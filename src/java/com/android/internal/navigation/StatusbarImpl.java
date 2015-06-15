@@ -28,4 +28,5 @@ public interface StatusbarImpl {
     public void setInteracting(int barWindow, boolean interacting);
     public void showNextAffiliatedTask();
     public void showPreviousAffiliatedTask();
+    public BaseNavigationBar getNavigationBarView();
 }
