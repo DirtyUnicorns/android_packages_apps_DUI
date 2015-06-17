@@ -277,6 +277,18 @@ public final class ActionUtils {
         }
     }
 
+    public static int getIntFromResources(Context context, String intName, String pkg) {
+        try {
+            Resources res = context.getPackageManager()
+                    .getResourcesForApplication(pkg);
+            int val = res.getInteger(res.getIdentifier(intName, "integer",
+                    pkg));
+            return val;
+        } catch (Exception e) {
+            return -1; // good luck
+        }
+    }
+
     public static int getcolorFromResources(Context context, String colorName, String pkg) {
         try {
             Resources res = context.getPackageManager()

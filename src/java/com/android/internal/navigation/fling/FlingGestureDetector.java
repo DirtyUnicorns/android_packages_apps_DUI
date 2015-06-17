@@ -16,6 +16,8 @@ package com.android.internal.navigation.fling;
  * limitations under the License.
  */
 
+import com.android.internal.actions.ActionUtils;
+
 import android.content.Context;
 import android.os.Handler;
 import android.os.Message;
@@ -390,7 +392,7 @@ public class FlingGestureDetector {
         mIsLongpressEnabled = true;
 
         // Fallback to support pre-donuts releases
-        int touchSlop, doubleTapSlop, doubleTapTouchSlop;
+        int touchSlop, touchSlopIncreaseFactor, doubleTapSlop, doubleTapTouchSlop;
         if (context == null) {
             //noinspection deprecation
             touchSlop = ViewConfiguration.getTouchSlop();
@@ -401,7 +403,12 @@ public class FlingGestureDetector {
             mMaximumFlingVelocity = ViewConfiguration.getMaximumFlingVelocity();
         } else {
             final ViewConfiguration configuration = ViewConfiguration.get(context);
-            touchSlop = configuration.getScaledTouchSlop();
+
+            touchSlopIncreaseFactor = ActionUtils.getIntFromResources(context,
+                    "config_fling_touchslop_increase_factor", ActionUtils.PACKAGE_SYSTEMUI);
+            touchSlop = Math.round(configuration.getScaledTouchSlop()
+                    * ((100 + touchSlopIncreaseFactor) / 100));
+
             doubleTapTouchSlop = configuration.getScaledDoubleTapTouchSlop();
             doubleTapSlop = configuration.getScaledDoubleTapSlop();
             mMinimumFlingVelocity = configuration.getScaledMinimumFlingVelocity();
