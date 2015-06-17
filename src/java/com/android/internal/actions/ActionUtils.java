@@ -266,6 +266,17 @@ public final class ActionUtils {
         }
     }
 
+    public static int getIdentifier(Context context, String resName, String resType, String pkg) {
+        try {
+            Resources res = context.getPackageManager()
+                    .getResourcesForApplication(pkg);
+            int ident = res.getIdentifier(resName, resType, pkg);
+            return ident;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     public static int getcolorFromResources(Context context, String colorName, String pkg) {
         try {
             Resources res = context.getPackageManager()

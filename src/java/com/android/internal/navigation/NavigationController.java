@@ -19,13 +19,12 @@ import com.android.internal.actions.ActionUtils;
 
 public class NavigationController {
     private static final String TAG = NavigationController.class.getSimpleName();
-    private static final boolean DEBUG = false;
+    private static final boolean DEBUG = true;
 
     public static final int NAVIGATION_MODE_AOSP = 0;
-    public static final int NAVIGATION_MODE_NX = 1;
-    private static final int[] NAVIGATION_LAYOUTS = {
-        com.android.systemui.R.layout.navigation_bar,
-        com.android.systemui.R.layout.nx_bar};
+    public static final int NAVIGATION_MODE_FLING = 1;
+    private static final String NAVBAR_LAYOUT = "navigation_bar";
+    private static final String FLING_LAYOUT = "fling_bar";
 
     private StatusbarImpl mBar;
     private NavbarObserver mNavbarObserver;
@@ -56,9 +55,40 @@ public class NavigationController {
     public BaseNavigationBar getNavigationBarView() {
         int navMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP, UserHandle.USER_CURRENT);
-        BaseNavigationBar navBar = (BaseNavigationBar) View.inflate(mContext,
-                NAVIGATION_LAYOUTS[navMode], null);
-        return navBar;
+        BaseNavigationBar bar = null;
+        String layout;
+        switch (navMode) {
+            case NAVIGATION_MODE_AOSP:
+                layout = NAVBAR_LAYOUT;
+                break;
+            case NAVIGATION_MODE_FLING:
+                layout = FLING_LAYOUT;
+                break;
+            default:
+                layout = NAVBAR_LAYOUT;
+        }
+        bar = inflateBar(mContext, layout);
+        // debugging: we know for sure navbar inflates here
+        if (bar == null) {
+            bar = inflateBar(mContext, NAVBAR_LAYOUT);
+            mNavbarObserver.unobserve();
+            Settings.System.putInt(mContext.getContentResolver(),
+                    Settings.System.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP);
+            mNavbarObserver.observe();
+        }
+        return bar;
+    }
+
+    private BaseNavigationBar inflateBar(Context ctx, String layout) {
+        BaseNavigationBar bar = null;
+        try {
+            bar = (BaseNavigationBar) View.inflate(ctx,
+                    ActionUtils.getIdentifier(ctx, layout,
+                            "layout", ActionUtils.PACKAGE_SYSTEMUI), null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bar;
     }
 
     // for now, it makes sense to let PhoneStatusBar add/remove navbar view
@@ -170,6 +200,6 @@ public class NavigationController {
             }
         });
         thread.setPriority(Process.THREAD_PRIORITY_BACKGROUND);
-        thread.run();
+        thread.start();
     }
 }
