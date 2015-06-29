@@ -57,7 +57,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     private final FlingBarTransitions mBarTransitions;
     private FlingObserver mObserver;
     private boolean mRippleEnabled;
-    private FlingPulse mMC;
+    private FlingPulse mPulse;
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
@@ -191,7 +191,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mGestureDetector.setLongPressTimeout(lpTimeout);
-        mMC = new FlingPulse(context, this);
+        mPulse = new FlingPulse(context, this);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this, this);
@@ -218,7 +218,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     protected void onKeyguardShowing(boolean showing) {
         mActionHandler.setKeyguardShowing(showing);
-        mMC.setKeyguardShowing(showing);
+        mPulse.setKeyguardShowing(showing);
         setDisabledFlags(mDisabledFlags, true /* force */);
     }
 
@@ -234,7 +234,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     public void setLeftInLandscape(boolean leftInLandscape) {
         super.setLeftInLandscape(leftInLandscape);
-        mMC.setLeftInLandscape(leftInLandscape);
+        mPulse.setLeftInLandscape(leftInLandscape);
     }
 
     private void updateLogoAnimates() {
@@ -265,7 +265,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     private void updatePulseEnabled() {
         boolean doPulse = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
-        mMC.setPulseEnabled(doPulse);
+        mPulse.setPulseEnabled(doPulse);
     }
 
     @Override
@@ -305,7 +305,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     public void setDisabledFlags(int disabledFlags, boolean force) {
         super.setDisabledFlags(disabledFlags, force);
         mGestureHandler.onScreenStateChanged(mScreenOn);
-        getNxLogo().updateVisibility(mMC.shouldDrawPulse());
+        getNxLogo().updateVisibility(mPulse.shouldDrawPulse());
     }
 
     @Override
@@ -319,7 +319,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mMC.onSizeChanged();
+        mPulse.onSizeChanged();
         mRipple.onSizeChanged(w, h, oldw, oldh);
         mTrails.onSizeChanged(w, h, oldw, oldh);
     }
@@ -331,8 +331,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     @Override
     public void onDraw(Canvas canvas) {
-        if (mMC.shouldDrawPulse()) {
-            mMC.onDraw(canvas);
+        if (mPulse.isPulseEnabled()) {
+            mPulse.onDraw(canvas);
         }
         if (mRippleEnabled) {
             mRipple.onDraw(canvas);
@@ -347,8 +347,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mObserver.unregister();
         mActionHandler.unregister();
         mGestureHandler.unregister();
-        if (mMC.isPulseEnabled()) {
-            mMC.setPulseEnabled(false);
+        if (mPulse.isPulseEnabled()) {
+            mPulse.setPulseEnabled(false);
         }
     }
 

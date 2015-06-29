@@ -55,7 +55,8 @@ public class FlingPulse implements FlingModule,
     private Context mContext;
     private Map<MediaSession.Token, CallbackInfo> mCallbacks = new HashMap<>();
     private MediaSessionManager mMediaSessionManager;
-    private NxVisualizer mVisualizer;
+    private PulseVisualizer mVisualizer;
+    private PulseRenderer mRenderer;
     private boolean mKeyguardShowing;
     private boolean mLinked;
     private boolean mIsAnythingPlaying;
@@ -77,8 +78,9 @@ public class FlingPulse implements FlingModule,
     public FlingPulse(Context context, FlingModule.Callbacks callback) {
         mContext = context;
         mCallback = callback;
-        mVisualizer = new NxVisualizer();
-        mVisualizer.addRenderer(new BarGraphRenderer(16));
+        mVisualizer = new PulseVisualizer();
+        mRenderer = new PulseRenderer(16);
+        mVisualizer.addRenderer(mRenderer);
     }
 
     public void setKeyguardShowing(boolean showing) {
@@ -92,7 +94,7 @@ public class FlingPulse implements FlingModule,
      */
     public void onSizeChanged() {
         if (mLinked) {
-            mVisualizer.setSizeChanged();
+            mVisualizer.resetDrawing();
         }
     }
 
@@ -133,7 +135,7 @@ public class FlingPulse implements FlingModule,
     }
 
     public boolean shouldDrawPulse() {
-        return mLinked;
+        return mLinked && mRenderer.shouldDraw();
     }
 
     private void doLinkage() {
@@ -157,9 +159,10 @@ public class FlingPulse implements FlingModule,
         public void run() {
             if (mVisualizer != null) {
                 if (!mLinked && !mKeyguardShowing) {
+                    mRenderer.resetAnalysisFlags();
+                    mVisualizer.resetDrawing();
                     mVisualizer.link(0);
                     mLinked = true;
-                    mCallback.onUpdateState();
                 }
             }
         }
@@ -172,6 +175,8 @@ public class FlingPulse implements FlingModule,
                 if (mLinked) {
                     mVisualizer.unlink();
                     mLinked = false;
+                    mVisualizer.resetDrawing();
+                    mRenderer.resetAnalysisFlags();
                     mCallback.onUpdateState();
                     mCallback.onInvalidate();
                 }
@@ -272,11 +277,10 @@ public class FlingPulse implements FlingModule,
         }
     }
 
-    private class NxVisualizer extends BaseVisualizer {
-        private Bitmap mRotatedBitmap;
+    private class PulseVisualizer extends BaseVisualizer {
         private boolean mVertical;
-        private boolean mSizeChanged;
         private boolean mLeftInLandscape;
+        private boolean mResetDrawing;
 
         @Override
         protected void onInvalidate() {
@@ -293,14 +297,14 @@ public class FlingPulse implements FlingModule,
             return mCallback.onGetHeight();
         }
 
-        public void setSizeChanged() {
-            mSizeChanged = true;
+        public void resetDrawing() {
+            mResetDrawing = true;
         }
 
         public void setLeftInLandscape(boolean leftInLandscape) {
             if (mLeftInLandscape != leftInLandscape) {
                 mLeftInLandscape = leftInLandscape;
-                mSizeChanged = true;
+                mResetDrawing = true;
             }
         }
 
@@ -314,19 +318,17 @@ public class FlingPulse implements FlingModule,
 
             // only null resources on orientation change
             // to allow proper fade effect
-            if (isVertical != mVertical || mSizeChanged) {
+            if (isVertical != mVertical || mResetDrawing) {
+                mResetDrawing = false;
                 mVertical = isVertical;
-                mSizeChanged = false;
-                mCanvasBitmap = null;
                 mCanvas = null;
+                mCanvasBitmap = null;
             }
 
             // Create canvas once we're ready to draw
             // the renderers don't like painting vertically
             // if vertical, create a horizontal canvas based on flipped current
-            // dimensions
-            // let renders paint, the rotate the bitmap to draw to NX surface
-            // we keep both bitmaps as class members to minimize GC
+            // dimensions, let renders paint, then rotate the bitmap to draw to Fling surface
             mRect.set(0, 0, isVertical ? sHeight : sWidth, isVertical ? sWidth : sHeight);
 
             if (mCanvasBitmap == null) {
@@ -334,16 +336,9 @@ public class FlingPulse implements FlingModule,
                         isVertical ? cWidth : cHeight,
                         Config.ARGB_8888);
             }
+
             if (mCanvas == null) {
                 mCanvas = new Canvas(mCanvasBitmap);
-            }
-
-            if (mBytes != null) {
-                // Render all audio renderers
-                AudioData audioData = new AudioData(mBytes);
-                for (Renderer r : mRenderers) {
-                    r.render(mCanvas, audioData, mRect);
-                }
             }
 
             if (mFFTBytes != null) {
@@ -357,29 +352,30 @@ public class FlingPulse implements FlingModule,
             // Fade out old contents
             mCanvas.drawPaint(mFadePaint);
 
-            if (mFlash) {
-                mFlash = false;
-                mCanvas.drawPaint(mFlashPaint);
-            }
-
             // if vertical flip our horizontally rendered bitmap
             if (isVertical) {
                 Matrix matrix = new Matrix();
                 matrix.postRotate(mLeftInLandscape ? 90 : -90);
-                mRotatedBitmap = Bitmap.createBitmap(mCanvasBitmap, 0, 0,
+                Bitmap rotatedBitmap = Bitmap.createBitmap(mCanvasBitmap, 0, 0,
                         mCanvasBitmap.getWidth(), mCanvasBitmap.getHeight(),
                         matrix, true);
+                canvas.drawBitmap(rotatedBitmap, new Matrix(), null);
+            } else {
+                canvas.drawBitmap(mCanvasBitmap, new Matrix(), null);
             }
-            canvas.drawBitmap(isVertical ? mRotatedBitmap : mCanvasBitmap, new Matrix(), null);
         }
 
     }
 
-    private static class BarGraphRenderer extends Renderer {
+    private class PulseRenderer extends Renderer {
+        private static final int NUM_VALIDATION_FRAMES = 3;
         private int mDivisions;
         private Paint mPaint;
+        private int mFramesToValidate;
+        private boolean isValidated;
+        private boolean isAnalyzed;
 
-        public BarGraphRenderer(int divisions) {
+        public PulseRenderer(int divisions) {
             super();
             mDivisions = divisions;
             mPaint = new Paint();
@@ -394,18 +390,62 @@ public class FlingPulse implements FlingModule,
 
         @Override
         public void onRender(Canvas canvas, FFTData data, Rect rect) {
-            for (int i = 0; i < data.bytes.length / mDivisions; i++) {
-                mFFTPoints[i * 4] = i * 4 * mDivisions;
-                mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;
-                byte rfk = data.bytes[mDivisions * i];
-                byte ifk = data.bytes[mDivisions * i + 1];
-                float magnitude = (rfk * rfk + ifk * ifk);
-                int dbValue = (int) (10 * Math.log10(magnitude));
-
-                mFFTPoints[i * 4 + 1] = rect.height();
-                mFFTPoints[i * 4 + 3] = rect.height() - (dbValue * 2 - 10);
+            // data not analyzed
+            if (!isAnalyzed) {
+                // we captured a sequence of initial empty frames
+                // high probability of failed visualizer
+                if (mFramesToValidate == NUM_VALIDATION_FRAMES) {
+                    isAnalyzed = true;
+                    isValidated = false;
+                    mFramesToValidate = 0;
+                } else {
+                    // we haven't analyzed yet
+                    // if data is empty, check more frames
+                    if (isDataEmpty(data)) {
+                        mFramesToValidate++;
+                    } else {
+                        // we have fft data, tell fling to update state
+                        // and it's safe to draw
+                        isAnalyzed = true;
+                        isValidated = true;
+                        mCallback.onUpdateState();
+                    }
+                }
             }
-            canvas.drawLines(mFFTPoints, mPaint);
+
+            if (shouldDraw()) {
+                for (int i = 0; i < data.bytes.length / mDivisions; i++) {
+                    mFFTPoints[i * 4] = i * 4 * mDivisions;
+                    mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;
+                    byte rfk = data.bytes[mDivisions * i];
+                    byte ifk = data.bytes[mDivisions * i + 1];
+                    float magnitude = (rfk * rfk + ifk * ifk);
+                    int dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
+
+                    mFFTPoints[i * 4 + 1] = rect.height();
+                    mFFTPoints[i * 4 + 3] = rect.height() - (dbValue * 2 - 10);
+                }
+                canvas.drawLines(mFFTPoints, mPaint);
+            }
+        }
+
+        void resetAnalysisFlags() {
+            isAnalyzed = false;
+            isValidated = false;
+            mFramesToValidate = 0;
+        }
+
+        boolean shouldDraw() {
+            return isAnalyzed && isValidated;
+        }
+
+        private boolean isDataEmpty(FFTData data) {
+            for (int i = 0; i < data.bytes.length; i++) {
+                if (data.bytes[i] != 0) {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
