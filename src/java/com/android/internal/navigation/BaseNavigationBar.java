@@ -25,8 +25,13 @@ package com.android.internal.navigation;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import com.android.internal.navigation.BarTransitions;
+import com.android.internal.navigation.utils.SmartObserver;
+import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.actions.ActionUtils;
 
 import android.app.StatusBarManager;
@@ -36,10 +41,12 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -80,6 +87,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
     protected boolean mScreenOn;
     protected boolean mLeftInLandscape;
     protected OnVerticalChangedListener mOnVerticalChangedListener;
+    protected SmartObserver mSmartObserver;
 
     // listeners from PhoneStatusBar
     protected View.OnTouchListener mHomeActionListener;
@@ -116,6 +124,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
         mDisplay = ((WindowManager) context.getSystemService(
                 Context.WINDOW_SERVICE)).getDefaultDisplay();
         mDelegateHelper = new DelegateViewHelper(this);
+        mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
         mVertical = false;
     }
 
@@ -223,8 +232,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
     }
 
     public final void dispose() {
-        // bar is being removed. Clean up here first then
-        // let subclass know
+        mSmartObserver.cleanUp();
         onDispose();
     }
 

@@ -21,11 +21,15 @@
 package com.android.internal.navigation.fling;
 
 
+import java.util.HashSet;
+import java.util.Set;
+
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.BaseNavigationBar;
 import com.android.internal.navigation.fling.FlingGestureDetector;
 import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
+import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.actions.ActionUtils;
 
 import android.content.Context;
@@ -50,6 +54,22 @@ import android.widget.ImageView;
 public class FlingView extends BaseNavigationBar implements FlingModule.Callbacks {
     final static String TAG = FlingView.class.getSimpleName();
 
+    private static Set<Uri> sUris = new HashSet<Uri>();    
+    static {
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_VISIBLE));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_ANIMATES));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_PULSE_ENABLED));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGPRESS_TIMEOUT));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_RIPPLE_ENABLED));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_RIPPLE_COLOR));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_ENABLED));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_COLOR));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_ENABLED));
+        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_SPEED));
+    }
+
     private static final int MSG_SET_DISABLED_FLAGS = 101;
     private static final int MSG_INVALIDATE = 102;
 
@@ -57,13 +77,24 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     private FlingGestureHandler mGestureHandler;
     private FlingGestureDetectorPriv mGestureDetector;
     private final FlingBarTransitions mBarTransitions;
-    private FlingObserver mObserver;
     private boolean mRippleEnabled;
     private PulseController mPulse;
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
     private UiHandler mUiHandler = new UiHandler();
+
+    private SmartObservable mObservable = new SmartObservable() {
+        @Override
+        public Set<Uri> onGetUris() {
+            return sUris;
+        }
+
+        @Override
+        public void onChange(Uri uri) {
+            updateSettings();
+        }
+    };
 
     private static final class FlingGestureDetectorPriv extends FlingGestureDetector {
         static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
@@ -90,75 +121,6 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                 timeoutFactor = LP_TIMEOUT_MIN;
             }
             mLongPressTimeout = timeoutFactor;
-        }
-    }
-
-    private class FlingObserver extends ContentObserver {
-
-        public FlingObserver(Handler handler) {
-            super(handler);
-        }
-
-        void register() {
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LOGO_VISIBLE), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LOGO_ANIMATES), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_PULSE_ENABLED), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGPRESS_TIMEOUT), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_RIPPLE_ENABLED), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_RIPPLE_COLOR), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_TRAILS_ENABLED), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_TRAILS_COLOR), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_ENABLED), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_SPEED), false,
-                    FlingObserver.this, UserHandle.USER_ALL);
-        }
-
-        void unregister() {
-            mContext.getContentResolver().unregisterContentObserver(
-                    FlingObserver.this);
-        }
-
-        public void onChange(boolean selfChange, Uri uri) {
-            updateRippleColor();
-            updateLogoEnabled();
-            updateLogoAnimates();
-            updateLogoColor();
-            updateTrailsEnabled();
-            updateTrailsColor();
-            updatePulseEnabled();
-            updatePulseColor();
-            updateLavaLampEnabled();
-            updateLavaLampSpeed();
-            int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
-            mGestureDetector.setLongPressTimeout(lpTimeout);
-            mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                    Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         }
     }
 
@@ -210,17 +172,13 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mGestureHandler = new FlingGestureHandler(context, mActionHandler, this);
         mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler);
         setOnTouchListener(mNxTouchListener);
-        mObserver = new FlingObserver(mUiHandler);
-        mObserver.register();
-        int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
-        mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
-        mGestureDetector.setLongPressTimeout(lpTimeout);
         mPulse = new PulseController(context, this);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this, this);
+        mSmartObserver.addListener(mActionHandler);
+        mSmartObserver.addListener(mGestureHandler);
+        mSmartObserver.addListener(mObservable);
     }
 
     private int findViewByIdName(String name) {
@@ -251,16 +209,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
-        updateRippleColor();
-        updateLogoEnabled();
-        updateLogoAnimates();
-        updateLogoColor();
-        updateTrailsEnabled();
-        updateTrailsColor();
-        updatePulseEnabled();
-        updatePulseColor();
-        updateLavaLampEnabled();
-        updateLavaLampSpeed();
+        updateSettings();
     }
 
     @Override
@@ -371,6 +320,24 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
     }
 
+    private void updateSettings() {
+        updateRippleColor();
+        updateLogoEnabled();
+        updateLogoAnimates();
+        updateLogoColor();
+        updateTrailsEnabled();
+        updateTrailsColor();
+        updatePulseEnabled();
+        updatePulseColor();
+        updateLavaLampEnabled();
+        updateLavaLampSpeed();
+        int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
+        mGestureDetector.setLongPressTimeout(lpTimeout);
+        mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;  
+    }
+
     public void setDisabledFlags(int disabledFlags, boolean force) {
         super.setDisabledFlags(disabledFlags, force);
         mGestureHandler.onScreenStateChanged(mScreenOn);
@@ -419,9 +386,6 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     @Override
     protected void onDispose() {
-        mObserver.unregister();
-        mActionHandler.unregister();
-        mGestureHandler.unregister();
         if (mPulse.isPulseEnabled()) {
             mPulse.setPulseEnabled(false);
         }

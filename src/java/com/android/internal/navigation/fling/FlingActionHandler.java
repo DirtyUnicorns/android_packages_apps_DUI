@@ -28,7 +28,10 @@ package com.android.internal.navigation.fling;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 import com.android.internal.actions.ActionConstants;
@@ -38,6 +41,7 @@ import com.android.internal.actions.Config;
 import com.android.internal.actions.Config.ActionConfig;
 import com.android.internal.actions.Config.ButtonConfig;
 import com.android.internal.navigation.fling.FlingGestureHandler.Swipeable;
+import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
 
 import android.content.Context;
@@ -52,22 +56,25 @@ import android.view.HapticFeedbackConstants;
 import android.view.SoundEffectConstants;
 import android.view.View;
 
-public class FlingActionHandler implements Swipeable {
+public class FlingActionHandler implements Swipeable, SmartObservable {
     final static String TAG = FlingActionHandler.class.getSimpleName();
 
+    private static Set<Uri> sUris = new HashSet<Uri>();    
+    static {
+        sUris.add(Settings.System.getUriFor(ActionConstants.getDefaults(ActionConstants.FLING)
+                            .getUri()));
+    }
+
     private Map<String, ActionConfig> mActionMap = new HashMap<String, ActionConfig>();
-    private ActionObserver mObserver;
     private View mHost;
     private Context mContext;
-    private Handler H = new Handler();
     private boolean isDoubleTapEnabled;
     private boolean mKeyguardShowing;
 
     public FlingActionHandler(Context context, View host) {
         mContext = context;
         mHost = host;
-        mObserver = new ActionObserver(H);
-        mObserver.register();
+        loadConfigs();
     }
 
     void loadConfigs() {
@@ -107,34 +114,6 @@ public class FlingActionHandler implements Swipeable {
         mHost.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         mHost.playSoundEffect(SoundEffectConstants.CLICK);
         ActionHandler.performTask(mContext, theAction);
-    }
-
-    public void unregister() {
-        mObserver.unregister();
-    }
-
-    private class ActionObserver extends ContentObserver {
-
-        public ActionObserver(Handler handler) {
-            super(handler);
-        }
-
-        void register() {
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(ActionConstants.getDefaults(ActionConstants.FLING)
-                            .getUri()), false,
-                    ActionObserver.this, UserHandle.USER_ALL);
-            loadConfigs();
-        }
-
-        void unregister() {
-            mContext.getContentResolver().unregisterContentObserver(
-                    ActionObserver.this);
-        }
-
-        public void onChange(boolean selfChange, Uri uri) {
-            loadConfigs();
-        }
     }
 
     @Override
@@ -222,5 +201,15 @@ public class FlingActionHandler implements Swipeable {
         } else {
             fireAction(!right_long.hasNoAction() ? right_long : left_long);
         }
+    }
+
+    @Override
+    public Set<Uri> onGetUris() {
+        return sUris;
+    }
+
+    @Override
+    public void onChange(Uri uri) {
+        loadConfigs();        
     }
 }

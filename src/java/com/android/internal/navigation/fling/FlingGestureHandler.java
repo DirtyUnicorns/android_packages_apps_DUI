@@ -23,8 +23,13 @@
 package com.android.internal.navigation.fling;
 
 
+import java.util.HashSet;
+import java.util.Set;
+
+import com.android.internal.actions.ActionConstants;
 import com.android.internal.actions.ActionUtils;
 import com.android.internal.navigation.fling.FlingGestureDetector.OnGestureListener;
+import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -38,7 +43,7 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.View;
 
-public class FlingGestureHandler implements OnGestureListener {
+public class FlingGestureHandler implements OnGestureListener, SmartObservable {
 
     public interface Swipeable {
         public boolean onDoubleTapEnabled();
@@ -52,6 +57,16 @@ public class FlingGestureHandler implements OnGestureListener {
         public void onLongLeftSwipe();
         public void onShortRightSwipe();
         public void onLongRightSwipe();
+    }
+
+    private static Set<Uri> sUris = new HashSet<Uri>();    
+    static {
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND));
+        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND));
     }
 
     // AOSP DT timeout feels a bit slow on nx
@@ -74,8 +89,6 @@ public class FlingGestureHandler implements OnGestureListener {
 
     // pass motion events to listener
     private Swipeable mReceiver;
-    // watch for user changes to swipe thresholds
-    private GestureObserver mObserver;
     private Context mContext;
 
     // for width/height logic
@@ -104,8 +117,6 @@ public class FlingGestureHandler implements OnGestureListener {
         mContext = context;
         mReceiver = swiper;
         mHost = host;
-        mObserver = new GestureObserver(mHandler);
-        mObserver.register();
         updateSettings();
     }
 
@@ -239,10 +250,6 @@ public class FlingGestureHandler implements OnGestureListener {
         mVertical = isVertical;
     }
 
-    public void unregister() {
-        mObserver.unregister();
-    }
-
     private boolean isRightSide(float x, float y) {
         float length = mVertical ? mHost.getHeight() : mHost.getWidth();
         float pos = mVertical ? y : x;
@@ -360,40 +367,13 @@ public class FlingGestureHandler implements OnGestureListener {
                 downDef, UserHandle.USER_CURRENT);
     }
 
-    private class GestureObserver extends ContentObserver {
+    @Override
+    public Set<Uri> onGetUris() {
+        return sUris;
+    }
 
-        public GestureObserver(Handler handler) {
-            super(handler);
-        }
-
-        void register() {
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-            mContext.getContentResolver().registerContentObserver(
-                    Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND), false,
-                    GestureObserver.this, UserHandle.USER_ALL);
-        }
-
-        void unregister() {
-            mContext.getContentResolver().unregisterContentObserver(
-                    GestureObserver.this);
-        }
-
-        public void onChange(boolean selfChange, Uri uri) {
-                updateSettings();
-        }
+    @Override
+    public void onChange(Uri uri) {
+        updateSettings();        
     }
 }
