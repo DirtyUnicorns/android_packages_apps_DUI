@@ -32,10 +32,13 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimListener {
-    private static final int TRAIL_COLOR = Color.RED;
+    private static final int TRAIL_COLOR = 0xff8213e0;
     private static final int ANIM_DELAY = 100;
     private static final int ANIM_DURATION = 400;
     private static final float SIZE_RELATIVE_TO_BAR = 0.3f;
+    private static final int NUM_TRAIL_SIZE = 25; // how much trail history
+    private static final int TRAIL_SIZE = SystemProperties.getInt("ro.fling.trails.num_trails", NUM_TRAIL_SIZE);
+
 
     private boolean mEnabled = "1".equals(SystemProperties.get("ro.fling.trails.enabled", "0"));
     private Context mContext;
@@ -97,7 +100,11 @@ public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimList
                 mTrailDrawer.touchDown((int) event.getX(), (int) event.getY());
                 break;
             case MotionEvent.ACTION_MOVE:
-                for (int i = 0; i < event.getHistorySize(); i++) {
+                int oldestPoint = event.getHistorySize() - TRAIL_SIZE;
+                if (oldestPoint < 0) {
+                    oldestPoint = 0;
+                }
+                for (int i = oldestPoint; i < event.getHistorySize(); i++) {
                     onMove(event.getHistoricalX(i), event.getHistoricalY(i));
                 }
                 onMove(event.getX(), event.getY());
