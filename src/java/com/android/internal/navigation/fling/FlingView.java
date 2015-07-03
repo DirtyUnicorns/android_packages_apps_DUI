@@ -116,6 +116,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
             mContext.getContentResolver().registerContentObserver(
                     Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR), false,
                     FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
         }
 
         void unregister() {
@@ -128,6 +131,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
             updateLogoAnimates();
             updateLogoColor();
             updatePulseEnabled();
+            updatePulseColor();
             int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
                     Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
             mGestureDetector.setLongPressTimeout(lpTimeout);
@@ -229,6 +233,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         updateLogoAnimates();
         updateLogoColor();
         updatePulseEnabled();
+        updatePulseColor();
     }
 
     @Override
@@ -266,6 +271,12 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         boolean doPulse = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
         mPulse.setPulseEnabled(doPulse);
+    }
+
+    private void updatePulseColor() {
+        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_PULSE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        mPulse.updateRenderColor(color);
     }
 
     @Override

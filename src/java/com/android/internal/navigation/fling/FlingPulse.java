@@ -236,6 +236,10 @@ public class FlingPulse implements FlingModule,
         }
     }
 
+    public void updateRenderColor(int color) {
+        mRenderer.updateColor(color);
+    }
+
     private class CallbackInfo {
         MediaController.Callback mCallback;
         MediaController mController;
@@ -368,6 +372,7 @@ public class FlingPulse implements FlingModule,
     }
 
     private class PulseRenderer extends Renderer {
+        private static final int DEF_PAINT_ALPHA = (byte)188;
         private static final int NUM_VALIDATION_FRAMES = 3;
         private int mDivisions;
         private Paint mPaint;
@@ -381,7 +386,14 @@ public class FlingPulse implements FlingModule,
             mPaint = new Paint();
             mPaint.setStrokeWidth(50f);
             mPaint.setAntiAlias(true);
-            mPaint.setColor(Color.argb(188, 255, 255, 255));
+            updateColor(Color.WHITE);
+        }
+
+        public void updateColor(int color) {
+            int opaqueColor = Color.rgb(Color.red(color),
+                    Color.green(color), Color.blue(color));
+            int newColor = ( DEF_PAINT_ALPHA << 24 ) | ( opaqueColor & 0x00ffffff );
+            mPaint.setColor(newColor);
         }
 
         @Override
