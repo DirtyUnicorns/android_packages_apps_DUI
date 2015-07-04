@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.android.internal.navigation.utils.LavaLamp;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.BaseVisualizer;
 import com.pheelicks.visualizer.FFTData;
@@ -47,12 +48,19 @@ import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.os.PowerManager;
 
 public class FlingPulse implements FlingModule,
         MediaSessionManager.OnActiveSessionsChangedListener {
 
+    private static final int MSG_START_LAVALAMP = 45;
+    private static final int MSG_STOP_LAVALAMP = 46;
+
     private Context mContext;
+    private PulseHandler mHandler;
     private Map<MediaSession.Token, CallbackInfo> mCallbacks = new HashMap<>();
     private MediaSessionManager mMediaSessionManager;
     private PulseVisualizer mVisualizer;
@@ -63,6 +71,24 @@ public class FlingPulse implements FlingModule,
     private boolean mPowerSaveModeEnabled;
     private boolean mPulseEnabled;
     private FlingModule.Callbacks mCallback;
+
+    private class PulseHandler extends Handler {
+
+        public PulseHandler() {
+            super(Looper.getMainLooper());
+        }
+
+        public void handleMessage(Message m) {
+            switch (m.what) {
+                case MSG_START_LAVALAMP:
+                    mRenderer.startLavaLamp();
+                    break;
+                case MSG_STOP_LAVALAMP:
+                    mRenderer.stopLavaLamp();
+                    break;
+            }
+        }
+    }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -78,6 +104,7 @@ public class FlingPulse implements FlingModule,
     public FlingPulse(Context context, FlingModule.Callbacks callback) {
         mContext = context;
         mCallback = callback;
+        mHandler = new PulseHandler();
         mVisualizer = new PulseVisualizer();
         mRenderer = new PulseRenderer(16);
         mVisualizer.addRenderer(mRenderer);
@@ -89,8 +116,7 @@ public class FlingPulse implements FlingModule,
     }
 
     /*
-     * we don't need to pass new size as args here we'll capture fresh dimens on
-     * callback
+     * we don't need to pass new size as args here we'll capture fresh dimens on callback
      */
     public void onSizeChanged() {
         if (mLinked) {
@@ -138,6 +164,14 @@ public class FlingPulse implements FlingModule,
         return mLinked && mRenderer.shouldDraw();
     }
 
+    public void setLavaAnimationTime(int time) {
+        mRenderer.setLavaAnimationTime(time);
+    }
+
+    public void setLavaLampEnabled(boolean enabled) {
+        mRenderer.setLavaLampEnabled(enabled);
+    }
+
     private void doLinkage() {
         if (mKeyguardShowing || !mPulseEnabled) {
             if (mLinked) {
@@ -160,6 +194,9 @@ public class FlingPulse implements FlingModule,
             if (mVisualizer != null) {
                 if (!mLinked && !mKeyguardShowing) {
                     mRenderer.resetAnalysisFlags();
+                    if (mRenderer.isLavaLampEnabled()) {
+                        mHandler.obtainMessage(MSG_START_LAVALAMP).sendToTarget();
+                    }
                     mVisualizer.resetDrawing();
                     mVisualizer.link(0);
                     mLinked = true;
@@ -177,6 +214,9 @@ public class FlingPulse implements FlingModule,
                     mLinked = false;
                     mVisualizer.resetDrawing();
                     mRenderer.resetAnalysisFlags();
+                    if (mRenderer.isLavaLampEnabled()) {
+                        mHandler.obtainMessage(MSG_STOP_LAVALAMP).sendToTarget();
+                    }
                     mCallback.onUpdateState();
                     mCallback.onInvalidate();
                 }
@@ -237,7 +277,7 @@ public class FlingPulse implements FlingModule,
     }
 
     public void updateRenderColor(int color) {
-        mRenderer.updateColor(color);
+        mRenderer.setColor(color);
     }
 
     private class CallbackInfo {
@@ -371,8 +411,9 @@ public class FlingPulse implements FlingModule,
 
     }
 
-    private class PulseRenderer extends Renderer {
-        private static final int DEF_PAINT_ALPHA = (byte)188;
+    private class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
+        private static final int DEF_PAINT_ALPHA = (byte) 188;
+        private static final int DEF_PAINT_COLOR = Color.WHITE;
         private static final int NUM_VALIDATION_FRAMES = 3;
         private int mDivisions;
         private Paint mPaint;
@@ -380,20 +421,64 @@ public class FlingPulse implements FlingModule,
         private boolean isValidated;
         private boolean isAnalyzed;
 
+        private LavaLamp mLavaLamp;
+        private int mUserColor = Color.WHITE;
+        private boolean mLavaEnabled;
+
         public PulseRenderer(int divisions) {
             super();
             mDivisions = divisions;
             mPaint = new Paint();
             mPaint.setStrokeWidth(50f);
             mPaint.setAntiAlias(true);
-            updateColor(Color.WHITE);
+            mLavaLamp = new LavaLamp(PulseRenderer.this);
+            updateColor(DEF_PAINT_COLOR);
+        }
+
+        public void setLavaAnimationTime(int time) {
+            mLavaLamp.setAnimationTime(time);
+        }
+
+        public boolean isLavaLampEnabled() {
+            return mLavaEnabled;
+        }
+
+        public void setLavaLampEnabled(boolean enabled) {
+            if (mLavaEnabled != enabled) {
+                mLavaEnabled = enabled;
+                if (shouldDraw()) {
+                    if (enabled) {
+                        mHandler.obtainMessage(MSG_START_LAVALAMP).sendToTarget();
+                    } else {
+                        mHandler.obtainMessage(MSG_STOP_LAVALAMP).sendToTarget();
+                    }
+                }
+            }
+        }
+
+        public void startLavaLamp() {
+            mLavaLamp.startAnimation();
+        }
+
+        public void stopLavaLamp() {
+            mLavaLamp.stopAnim();
         }
 
         public void updateColor(int color) {
+            mPaint.setColor(applyPaintAlphaToColor(color));
+        }
+
+        private int applyPaintAlphaToColor(int color) {
             int opaqueColor = Color.rgb(Color.red(color),
                     Color.green(color), Color.blue(color));
-            int newColor = ( DEF_PAINT_ALPHA << 24 ) | ( opaqueColor & 0x00ffffff );
-            mPaint.setColor(newColor);
+            return (DEF_PAINT_ALPHA << 24) | (opaqueColor & 0x00ffffff);
+        }
+
+        public void setColor(int color) {
+            if (mUserColor != color) {
+                mUserColor = color;
+                updateColor(color);
+            }
         }
 
         @Override
@@ -458,6 +543,27 @@ public class FlingPulse implements FlingModule,
                 }
             }
             return true;
+        }
+
+        @Override
+        public void onColorUpdated(int color) {
+            updateColor(color);
+        }
+
+        @Override
+        public int onGetInitialColor() {
+            return mUserColor;
+        }
+
+        @Override
+        public void onStartLava() {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onStopLava(int lastColor) {
+            updateColor(mUserColor);
         }
     }
 }

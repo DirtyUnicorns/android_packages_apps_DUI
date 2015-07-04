@@ -32,31 +32,24 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimListener {
-    private static final int TRAIL_COLOR = 0xff8213e0;
     private static final int ANIM_DELAY = 100;
     private static final int ANIM_DURATION = 400;
-    private static final float SIZE_RELATIVE_TO_BAR = 0.3f;
-    private static final int NUM_TRAIL_SIZE = 25; // how much trail history
-    private static final int TRAIL_SIZE = SystemProperties.getInt("ro.fling.trails.num_trails", NUM_TRAIL_SIZE);
-
-
-    private boolean mEnabled = "1".equals(SystemProperties.get("ro.fling.trails.enabled", "0"));
-    private Context mContext;
     private Callbacks mCallbacks;
     private TrailDrawer mTrailDrawer;
+    private boolean mEnabled;
+    private int mTrailColor = Color.WHITE;
 
     public FlingTrails(View v, Callbacks callback) {
-        mContext = v.getContext();
         mCallbacks = callback;
 
         mTrailDrawer = new TrailDrawer(v);
         mTrailDrawer.setMultistrokeEnabled(false);
-        mTrailDrawer.getTrailOptions().setColor(TRAIL_COLOR);
+        mTrailDrawer.getTrailOptions().setColor(mTrailColor);
         mTrailDrawer.getTrailOptions().selectMarkerPen();
         mTrailDrawer.getTrailOptions().setShadowEnabled(true);
         mTrailDrawer.getAnimationParameters().setTimeProperties(ANIM_DELAY, ANIM_DURATION);
-        mTrailDrawer.getAnimationParameters().setColorProperties(TRAIL_COLOR, TRAIL_COLOR);
-        mTrailDrawer.getAnimationParameters().setColorForAlphaAnimation(TRAIL_COLOR);
+        mTrailDrawer.getAnimationParameters().setColorProperties(mTrailColor, mTrailColor);
+        mTrailDrawer.getAnimationParameters().setColorForAlphaAnimation(mTrailColor);
         mTrailDrawer.setAnimationListener(this);
     }
 
@@ -72,6 +65,21 @@ public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimList
 
     public boolean isEnabled() {
         return mEnabled;
+    }
+
+    public void setTrailsEnabled(boolean enabled) {
+        if (mEnabled != enabled) {
+            mEnabled = enabled;
+        }
+    }
+
+    public void setTrailColor(int color) {
+        if (mTrailColor != color) {
+            mTrailColor = color;
+            mTrailDrawer.getTrailOptions().setColor(color);
+            mTrailDrawer.getAnimationParameters().setColorProperties(color, color);
+            mTrailDrawer.getAnimationParameters().setColorForAlphaAnimation(color);
+        }
     }
 
     @Override
@@ -100,7 +108,7 @@ public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimList
                 mTrailDrawer.touchDown((int) event.getX(), (int) event.getY());
                 break;
             case MotionEvent.ACTION_MOVE:
-                int oldestPoint = event.getHistorySize() - TRAIL_SIZE;
+                int oldestPoint = event.getHistorySize() - 25;
                 if (oldestPoint < 0) {
                     oldestPoint = 0;
                 }

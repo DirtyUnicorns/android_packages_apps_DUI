@@ -24,6 +24,7 @@ package com.android.internal.navigation.fling;
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.BaseNavigationBar;
 import com.android.internal.navigation.fling.FlingGestureDetector;
+import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.actions.ActionUtils;
 
 import android.content.Context;
@@ -117,7 +118,19 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                     Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR), false,
                     FlingObserver.this, UserHandle.USER_ALL);
             mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_TRAILS_ENABLED), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_TRAILS_COLOR), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
                     Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_ENABLED), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_SPEED), false,
                     FlingObserver.this, UserHandle.USER_ALL);
         }
 
@@ -130,8 +143,12 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
             updateLogoEnabled();
             updateLogoAnimates();
             updateLogoColor();
+            updateTrailsEnabled();
+            updateTrailsColor();
             updatePulseEnabled();
             updatePulseColor();
+            updateLavaLampEnabled();
+            updateLavaLampSpeed();
             int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
                     Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
             mGestureDetector.setLongPressTimeout(lpTimeout);
@@ -232,8 +249,12 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         updateLogoEnabled();
         updateLogoAnimates();
         updateLogoColor();
+        updateTrailsEnabled();
+        updateTrailsColor();
         updatePulseEnabled();
         updatePulseColor();
+        updateLavaLampEnabled();
+        updateLavaLampSpeed();
     }
 
     @Override
@@ -277,6 +298,31 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         int color = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.FLING_PULSE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
         mPulse.updateRenderColor(color);
+    }
+
+    private void updateLavaLampEnabled() {
+        boolean doLava = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_PULSE_LAVALAMP_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+        mPulse.setLavaLampEnabled(doLava);
+    }
+
+    private void updateLavaLampSpeed() {
+        int time = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_PULSE_LAVALAMP_SPEED, LavaLamp.ANIM_DEF_DURATION,
+                UserHandle.USER_CURRENT);
+        mPulse.setLavaAnimationTime(time);
+    }
+
+    private void updateTrailsEnabled() {
+        boolean enabled = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_TRAILS_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+        mTrails.setTrailsEnabled(enabled);
+    }
+
+    private void updateTrailsColor() {
+        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_TRAILS_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        mTrails.setTrailColor(color);
     }
 
     @Override
