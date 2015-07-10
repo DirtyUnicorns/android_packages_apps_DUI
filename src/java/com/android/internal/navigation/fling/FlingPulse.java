@@ -414,7 +414,7 @@ public class FlingPulse implements FlingModule,
     private class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
         private static final int DEF_PAINT_ALPHA = (byte) 188;
         private static final int DEF_PAINT_COLOR = Color.WHITE;
-        private static final int NUM_VALIDATION_FRAMES = 3;
+        private static final int NUM_VALIDATION_FRAMES = 6;
         private int mDivisions;
         private Paint mPaint;
         private int mFramesToValidate;
