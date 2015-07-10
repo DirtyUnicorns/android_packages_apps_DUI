@@ -115,6 +115,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                     Settings.System.getUriFor(Settings.System.NX_RIPPLE_ENABLED), false,
                     FlingObserver.this, UserHandle.USER_ALL);
             mContext.getContentResolver().registerContentObserver(
+                    Settings.System.getUriFor(Settings.System.FLING_RIPPLE_COLOR), false,
+                    FlingObserver.this, UserHandle.USER_ALL);
+            mContext.getContentResolver().registerContentObserver(
                     Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR), false,
                     FlingObserver.this, UserHandle.USER_ALL);
             mContext.getContentResolver().registerContentObserver(
@@ -140,6 +143,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
 
         public void onChange(boolean selfChange, Uri uri) {
+            updateRippleColor();
             updateLogoEnabled();
             updateLogoAnimates();
             updateLogoColor();
@@ -246,6 +250,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
+        updateRippleColor();
         updateLogoEnabled();
         updateLogoAnimates();
         updateLogoColor();
@@ -288,6 +293,12 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         setDisabledFlags(mDisabledFlags, true);
     }
 
+    private void updateRippleColor() {
+        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
+                Settings.System.FLING_RIPPLE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        mRipple.updateColor(color);
+    }
+
     private void updatePulseEnabled() {
         boolean doPulse = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
@@ -327,7 +338,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     @Override
     protected void onUpdateResources(Resources res) {
-        mRipple.updateResources(res);
+//        mRipple.updateResources(res);
         for (FlingLogoView v : ActionUtils.getAllChildren(FlingView.this, FlingLogoView.class)) {
             v.updateResources(res);
         }

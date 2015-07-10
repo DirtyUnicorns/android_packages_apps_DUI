@@ -106,6 +106,15 @@ public class FlingRipple implements View.OnTouchListener {
         mHost.invalidate();
     }
 
+    public void updateColor(int color) {
+        rippleColor = color;
+        rippleBackground = new ColorDrawable(adjustBgAlpha(color, 0.15f));
+        rippleBackground.setBounds(bounds);
+        paint.setColor(color);
+        paint.setAlpha(rippleAlpha);
+        mHost.invalidate();
+    }
+
     public int adjustBgAlpha(int color, float factor) {
         int alpha = Math.round(Color.alpha(color) * factor);
         int red = Color.red(color);
