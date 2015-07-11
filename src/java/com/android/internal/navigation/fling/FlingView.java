@@ -24,6 +24,7 @@ package com.android.internal.navigation.fling;
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.BaseNavigationBar;
 import com.android.internal.navigation.fling.FlingGestureDetector;
+import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.actions.ActionUtils;
 
@@ -58,7 +59,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     private final FlingBarTransitions mBarTransitions;
     private FlingObserver mObserver;
     private boolean mRippleEnabled;
-    private FlingPulse mPulse;
+    private PulseController mPulse;
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
@@ -216,7 +217,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mGestureDetector.setLongPressTimeout(lpTimeout);
-        mPulse = new FlingPulse(context, this);
+        mPulse = new PulseController(context, this);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this, this);
@@ -385,9 +386,15 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     @Override
+    public void notifyScreenOn(boolean screenOn) {
+        mPulse.notifyScreenOn(screenOn);
+        super.notifyScreenOn(screenOn);
+    }
+
+    @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        mPulse.onSizeChanged();
+        mPulse.onSizeChanged(w, h, oldw, oldh);
         mRipple.onSizeChanged(w, h, oldw, oldh);
         mTrails.onSizeChanged(w, h, oldw, oldh);
     }
