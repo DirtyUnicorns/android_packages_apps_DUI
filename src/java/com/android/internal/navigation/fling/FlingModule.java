@@ -2,6 +2,7 @@
 package com.android.internal.navigation.fling;
 
 import android.graphics.Canvas;
+import android.os.Handler;
 
 public interface FlingModule {
     /**
@@ -34,5 +35,10 @@ public interface FlingModule {
          * force setDiabledFlags for bar element view state
          */
         public void onUpdateState();
+
+        /**
+         * get the Fling ui thread handler
+         */
+        public Handler getHandler();
     }
 }

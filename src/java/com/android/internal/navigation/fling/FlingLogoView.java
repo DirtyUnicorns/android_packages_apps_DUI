@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2015 The TeamEos Project
  * Author: Randall Rushing aka Bigrushdog
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * NX indicator that soon will be more than eye candy
+ * TeamEos logo doubles as the Fling feature indicator! Most state is managed
+ * by FlingLogoController
  *
  */
 
@@ -29,23 +30,13 @@ import android.graphics.PorterDuff.Mode;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.animation.Animation;
-import android.view.animation.AnimationSet;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.RotateAnimation;
-import android.view.animation.ScaleAnimation;
-import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
 
 public class FlingLogoView extends ImageView {
-    public static final String TAG = FlingLogoView.class.getSimpleName();
-    private static final int ALPHA_DURATION = 250;
-    private static final int DEF_LOGO_COLOR = Color.WHITE;
 
-    private boolean mIsAnimating;
-    private boolean mSpinAnimationEnabled = true;
-    private boolean mLogoEnabled = true;
-    private int mLogoColor = DEF_LOGO_COLOR;
+    public static final String TAG = FlingLogoView.class.getSimpleName();
+
+    private int mLogoColor = Color.WHITE;
 
     public FlingLogoView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -65,15 +56,19 @@ public class FlingLogoView extends ImageView {
     }
 
     public void updateResources(Resources res) {
-        //int color = res.getColor(R.color.status_bar_clock_color);
-        //setDrawableColorFilter(color);
+        // int color = res.getColor(R.color.status_bar_clock_color);
+        // setDrawableColorFilter(color);
+    }
+
+    public int getLogoColor() {
+        return mLogoColor;
     }
 
     public void setLogoColor(int color) {
         if (mLogoColor == color) {
             return;
         } else if (color == -1) {
-            mLogoColor = DEF_LOGO_COLOR;
+            mLogoColor = Color.WHITE;
         } else if (color == -2) {
             mLogoColor = ActionUtils.getcolorFromResources(getContext(), "status_bar_clock_color",
                     ActionUtils.PACKAGE_SYSTEMUI);
@@ -86,94 +81,5 @@ public class FlingLogoView extends ImageView {
     private void setDrawableColorFilter(int color) {
         Drawable logo = getDrawable();
         logo.setColorFilter(color, Mode.SRC_ATOP);
-    }
-
-    public boolean isAnimating() {
-        return mIsAnimating;
-    }
-
-    public void updateVisibility(boolean isPulsing) {
-        if (!mLogoEnabled || isPulsing) {
-            animateAlpha(false, true);
-        } else if (mLogoEnabled && !isPulsing) {
-            animateAlpha(true, true);
-        }
-    }
-
-    private void animateAlpha(boolean show, boolean animate) {
-        animate().cancel();
-        final float alpha = show ? 1.0f : 0.0f;
-        if (!animate) {
-            setAlpha(alpha);
-        } else {
-            final int duration = ALPHA_DURATION;
-            animate()
-                    .alpha(alpha)
-                    .setDuration(duration)
-                    .start();
-        }
-    }
-
-    public void setSpinEnabled(boolean enabled) {
-        if (enabled == mSpinAnimationEnabled) {
-            return;
-        }
-        mSpinAnimationEnabled = enabled;
-        if (!enabled) {
-            animate().cancel();
-        }
-    }
-
-    public void setLogoEnabled(boolean enabled) {
-        if (enabled == mLogoEnabled) {
-            return;
-        }
-        mLogoEnabled = enabled;
-    }
-
-    public void animateSpinner(boolean isPressed) {
-        if (!mLogoEnabled || !mSpinAnimationEnabled) {
-            return;
-        }
-        animate().cancel();
-        final AnimationSet spinAnim = getSpinAnimation(isPressed);
-        startAnimation(spinAnim);
-    }
-
-    private AnimationSet getSpinAnimation(boolean isPressed) {
-        final float from = isPressed ? 1.0f : 0.0f;
-        final float to = isPressed ? 0.0f : 1.0f;
-        final float fromDeg = isPressed ? 0.0f : 360.0f;
-        final float toDeg = isPressed ? 360.0f : 0.0f;
-
-        Animation scale = new ScaleAnimation(from, to, from, to, Animation.RELATIVE_TO_SELF,
-                0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-        RotateAnimation rotate = new RotateAnimation(fromDeg, toDeg, Animation.RELATIVE_TO_SELF,
-                0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-
-        AnimationSet animSet = new AnimationSet(true);
-        animSet.setInterpolator(new LinearInterpolator());
-        animSet.setDuration(150);
-        animSet.setFillAfter(true);
-        animSet.addAnimation(scale);
-        animSet.addAnimation(rotate);
-        animSet.setAnimationListener(new AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-                mIsAnimating = true;
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                mIsAnimating = false;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-                // TODO Auto-generated method stub
-            }
-
-        });
-        return animSet;
     }
 }

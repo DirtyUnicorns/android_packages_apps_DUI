@@ -25,46 +25,47 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.Handler;
 
 import com.android.internal.navigation.utils.LavaLamp;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.FFTData;
 import com.pheelicks.visualizer.renderer.Renderer;
 
-public class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
-    private static final int MSG_REFRESH_STATE = 47;
-    private static final int MSG_INVALID_STREAM = 48;
+public abstract class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
+    public static final int STATE_SUCCESS = 1;
+    public static final int STATE_FAILED = 2;
 
     private static final int DEF_PAINT_ALPHA = (byte) 188;
     private static final int DEF_PAINT_COLOR = Color.WHITE;
     private int mDivisions;
     private Paint mPaint;
 
+    private PulseFftValidator mValidator;
     private LavaLamp mLavaLamp;
+
     private int mUserColor = Color.WHITE;
     private boolean mLavaEnabled;
-    private Handler mHandler;
-    private PulseFftValidator mValidator;
 
-    public PulseRenderer(int divisions, Handler handler) {
+
+    public PulseRenderer(int divisions) {
         super();
         mDivisions = divisions;
-        mHandler = handler;
         mPaint = new Paint();
         mPaint.setStrokeWidth(50f);
         mPaint.setAntiAlias(true);
         updateColor(DEF_PAINT_COLOR);
         mLavaLamp = new LavaLamp(this);
 
-        mValidator = new PulseFftValidator(handler) {
+        mValidator = new PulseFftValidator() {
             @Override
             public void onStreamValidated(boolean isValid) {
-                int msg = isValid ? MSG_REFRESH_STATE : MSG_INVALID_STREAM;
-                mHandler.obtainMessage(msg).sendToTarget();
+                int state = isValid ? STATE_SUCCESS : STATE_FAILED;
+                onRenderStateChanged(state);
             }
         };
     }
+
+    public abstract void onRenderStateChanged(int state);
 
     public void setLavaAnimationTime(int time) {
         mLavaLamp.setAnimationTime(time);
@@ -81,18 +82,22 @@ public class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
                 if (enabled) {
                     mLavaLamp.startAnimation();
                 } else {
-                    mLavaLamp.stopAnim();
+                    mLavaLamp.stopAnimation();
                 }
             }
         }
     }
 
     public void startLavaLamp() {
-        mLavaLamp.startAnimation();
+        if (mLavaEnabled) {
+            mLavaLamp.startAnimation();
+        }
     }
 
     public void stopLavaLamp() {
-        mLavaLamp.stopAnim();
+        if (mLavaEnabled) {
+            mLavaLamp.stopAnimation();
+        }
     }
 
     public void updateColor(int color) {
@@ -120,7 +125,7 @@ public class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
     public void onRender(Canvas canvas, FFTData data, Rect rect) {
         mValidator.analyze(data.bytes);
 
-        if (shouldDraw()) {
+        if (mValidator.isValidStream()) {
             for (int i = 0; i < data.bytes.length / mDivisions; i++) {
                 mFFTPoints[i * 4] = i * 4 * mDivisions;
                 mFFTPoints[i * 4 + 2] = i * 4 * mDivisions;

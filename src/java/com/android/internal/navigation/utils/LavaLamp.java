@@ -54,7 +54,7 @@ public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, Anima
     }
 
     public void startAnimation() {
-        stopAnim();
+        stopAnimation();
         Color.colorToHSV(Color.parseColor(RED), from);
         Color.colorToHSV(Color.parseColor(BLUE), to);
         mColorAnim.setDuration(mAnimTime);
@@ -63,7 +63,7 @@ public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, Anima
         mColorAnim.start();
     }
 
-    public void stopAnim() {
+    public void stopAnimation() {
         if (mColorAnim.isStarted()) {
             mColorAnim.end();
         }

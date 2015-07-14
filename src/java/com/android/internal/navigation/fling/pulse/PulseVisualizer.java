@@ -37,6 +37,8 @@ public class PulseVisualizer extends BaseVisualizer {
     private boolean mVertical;
     private boolean mLeftInLandscape;
     private boolean mResetDrawing = true;
+    protected boolean mDrawingEnabled = true;
+    
 
     public PulseVisualizer(FlingModule.Callbacks callback) {
         super();
@@ -70,17 +72,8 @@ public class PulseVisualizer extends BaseVisualizer {
         }
     }
 
-    @Override
-    public void onSizeChanged(int w, int h, int oldw, int oldh) {
-/*        boolean isVertical = w > 0 && h > w;
-        if (mVertical != isVertical) {
-            mVertical = isVertical;
-        }
-        final int width = mCallback.onGetWidth();
-        final int height = mCallback.onGetHeight();
-        mRect.set(0, 0, isVertical ? height : width, isVertical ? width : height);
-        mResetDrawing = true;
-*/
+    public boolean isDrawingEnabled() {
+        return mDrawingEnabled;
     }
 
     @Override

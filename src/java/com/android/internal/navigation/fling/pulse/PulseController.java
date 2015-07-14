@@ -14,56 +14,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Control class for NX media fuctions. Basic logic flow inspired by
- * Roman Burg aka romanbb in his Equalizer tile produced for Cyanogenmod
+ * Control class for Pulse media fuctions and visualizer state management
+ * Basic logic flow inspired by Roman Burg aka romanbb in his Equalizer
+ * tile produced for Cyanogenmod
  *
  */
 
 package com.android.internal.navigation.fling.pulse;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.android.internal.navigation.fling.FlingModule;
-import com.android.internal.navigation.fling.FlingModule.Callbacks;
-import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.navigation.utils.MediaMonitor;
-import com.pheelicks.visualizer.AudioData;
-import com.pheelicks.visualizer.BaseVisualizer;
-import com.pheelicks.visualizer.FFTData;
-import com.pheelicks.visualizer.renderer.Renderer;
 
-import android.annotation.NonNull;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Matrix;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Bitmap.Config;
-import android.media.session.MediaController;
-import android.media.session.MediaSession;
-import android.media.session.MediaSessionManager;
-import android.media.session.PlaybackState;
 import android.os.AsyncTask;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 import android.os.PowerManager;
 
-public class PulseController implements FlingModule {
-    private static final int MSG_START_LAVALAMP = 45;
-    private static final int MSG_STOP_LAVALAMP = 46;
-    private static final int MSG_REFRESH_STATE = 47;
-    private static final int MSG_INVALID_STREAM = 48;
+public abstract class PulseController implements FlingModule {
+    public static final int STATE_STARTED = 1;
+    public static final int STATE_STOPPED = 2;
 
     private Context mContext;
-    private PulseHandler mHandler;
     private MediaMonitor mMediaMonitor;
     private PulseVisualizer mVisualizer;
     private PulseRenderer mRenderer;
@@ -74,47 +48,18 @@ public class PulseController implements FlingModule {
     private boolean mPulseEnabled;
     private boolean mScreenOn;
 
-    private class PulseHandler extends Handler {
-
-        public PulseHandler() {
-            super(Looper.getMainLooper());
-        }
-
-        public void handleMessage(Message m) {
-            switch (m.what) {
-                case MSG_START_LAVALAMP:
-                    mRenderer.startLavaLamp();
-                    break;
-                case MSG_STOP_LAVALAMP:
-                    mRenderer.stopLavaLamp();
-                    break;
-                case MSG_REFRESH_STATE:
-                    removeCallbacks(mRefreshStateRunnable);
-                    postDelayed(mRefreshStateRunnable, 250);
-                    break;
-                case MSG_INVALID_STREAM:
-                    AsyncTask.execute(mUnlinkVisualizer);
-                    break;
-            }
-        }
-    }
-
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (PowerManager.ACTION_POWER_SAVE_MODE_CHANGING.equals(intent.getAction())) {
                 mPowerSaveModeEnabled = intent.getBooleanExtra(PowerManager.EXTRA_POWER_SAVE_MODE,
                         false);
-                if (mPowerSaveModeEnabled) {
-                    AsyncTask.execute(mUnlinkVisualizer);
-                } else {
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            doLinkage();
-                        }
-                    });
-                }
+                mCallback.getHandler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        doLinkage();
+                    }
+                });
             }
         }
     };
@@ -122,11 +67,21 @@ public class PulseController implements FlingModule {
     public PulseController(Context context, FlingModule.Callbacks callback) {
         mContext = context;
         mCallback = callback;
-        mHandler = new PulseHandler();
         mVisualizer = new PulseVisualizer(callback);
-        mRenderer = new PulseRenderer(16, mHandler);
+        mRenderer = new PulseRenderer(16) {
+            @Override
+            public void onRenderStateChanged(int state) {
+                if (state == PulseRenderer.STATE_SUCCESS) {
+                    final boolean needsPrepare = onPrepareToPulse();
+                    if (!needsPrepare) {
+                        turnOnPulse();
+                    }
+                } else if (state == PulseRenderer.STATE_FAILED) {
+                    AsyncTask.execute(mUnlinkVisualizer);
+                }
+            }
+        };
         mVisualizer.addRenderer(mRenderer);
-
         mMediaMonitor = new MediaMonitor(mContext) {
             @Override
             public void onPlayStateChanged(boolean playing) {
@@ -134,6 +89,21 @@ public class PulseController implements FlingModule {
             }
         };
     }
+
+    /**
+     * Pulse has successfully prepared rendering. Let subclasses adjust UI if needed
+     * 
+     * @return false if no preparation is needed, true if preparation is needed NOTE: if true is
+     *         returned, a call to turnOnPulse() is required to start rendering
+     */
+    public abstract boolean onPrepareToPulse();
+
+    /**
+     * Visualizer has started or stopped drawing
+     * 
+     * @param state STATE_STARTED to indicate drawing, STATE_STOPPED if stopped
+     */
+    public abstract void onPulseStateChanged(int state);
 
     public void setKeyguardShowing(boolean showing) {
         if (mKeyguardShowing != showing) {
@@ -157,6 +127,9 @@ public class PulseController implements FlingModule {
         mVisualizer.setLeftInLandscape(leftInLandscape);
     }
 
+    /**
+     * @param enabled Set true to turn on Pulse, false to turn off
+     */
     public void setPulseEnabled(boolean enabled) {
         if (enabled == mPulseEnabled) {
             return;
@@ -175,43 +148,93 @@ public class PulseController implements FlingModule {
         doLinkage();
     }
 
+    /**
+     * @return true if Pulse is enabled, false if not
+     */
     public boolean isPulseEnabled() {
         return mPulseEnabled;
     }
 
+    /**
+     * Current rendering state: There is a visualizer link and the fft stream is validated
+     * 
+     * @return true if bar elements should be hidden, false if not
+     */
     public boolean shouldDrawPulse() {
         return mLinked && mRenderer.shouldDraw();
     }
 
+    /**
+     * @param time The time in seconds for animation to traverse the HSV wheel
+     */
     public void setLavaAnimationTime(int time) {
         mRenderer.setLavaAnimationTime(time);
     }
 
+    /**
+     * @param enabled Set true to enable, false to disable
+     */
     public void setLavaLampEnabled(boolean enabled) {
         mRenderer.setLavaLampEnabled(enabled);
     }
 
+    public void turnOnPulse() {
+        if (mPulseEnabled && shouldDrawPulse()) {
+            mRenderer.startLavaLamp(); // start lava lamp
+            // mVisualizer.setDrawingEnabled(true); // enable visualizer drawing
+            mCallback.onInvalidate(); // all systems go: start pulsing
+            onPulseStateChanged(STATE_STARTED);
+        }
+    }
+
+    /**
+     * if any of these conditions are met, we unlink regardless of any other states
+     * 
+     * @return true if unlink is required, false if unlinking is not mandatory
+     */
+    private boolean isUnlinkRequired() {
+        return mKeyguardShowing
+                || !mScreenOn
+                || !mPulseEnabled
+                || mPowerSaveModeEnabled;
+    }
+
+    /**
+     * All of these conditions must be met to allow a visualizer link
+     * 
+     * @return true if all conditions are met to allow link, false if and conditions are not met
+     */
+    private boolean isAbleToLink() {
+        return mMediaMonitor != null
+                && mPulseEnabled
+                && mScreenOn
+                && mMediaMonitor.isAnythingPlaying()
+                && !mLinked
+                && !mPowerSaveModeEnabled
+                && !mKeyguardShowing;
+    }
+
+    private void unlinkAndRefreshState() {
+        AsyncTask.execute(mUnlinkVisualizer); // start unlink thread
+        mRenderer.stopLavaLamp(); // turn off lava lamp
+        // mVisualizer.setDrawingEnabled(false); // disable visualizer drawing
+        mCallback.onInvalidate(); // this should clear the bar canvas
+        onPulseStateChanged(STATE_STOPPED);// bring back logo or
+                                                                               // anything else that
+                                                                               // hides for Pulse
+    }
+
     private void doLinkage() {
-        if (mKeyguardShowing || !mScreenOn || !mPulseEnabled) {
+        if (isUnlinkRequired()) {
             if (mLinked) {
                 // explicitly unlink
-                AsyncTask.execute(mUnlinkVisualizer);
-                mHandler.removeCallbacks(mRefreshStateRunnable);
-                mHandler.postDelayed(mRefreshStateRunnable, 250);
+                unlinkAndRefreshState();
             }
         } else {
-            if (mMediaMonitor != null
-                    && mPulseEnabled
-                    && mScreenOn
-                    && mMediaMonitor.isAnythingPlaying()
-                    && !mLinked
-                    && !mPowerSaveModeEnabled
-                    && !mKeyguardShowing) {
+            if (isAbleToLink()) {
                 AsyncTask.execute(mLinkVisualizer);
             } else if (mLinked) {
-                AsyncTask.execute(mUnlinkVisualizer);
-                mHandler.removeCallbacks(mRefreshStateRunnable);
-                mHandler.postDelayed(mRefreshStateRunnable, 250);
+                unlinkAndRefreshState();
             }
         }
     }
@@ -221,11 +244,8 @@ public class PulseController implements FlingModule {
         public void run() {
             if (mVisualizer != null) {
                 if (!mLinked) {
-                    mRenderer.reset();
-                    if (mRenderer.isLavaLampEnabled()) {
-                        mHandler.obtainMessage(MSG_START_LAVALAMP).sendToTarget();
-                    }
-                    mVisualizer.resetDrawing();
+                    mRenderer.reset(); // reset validation flags
+                    mVisualizer.resetDrawing(); // clear stale bitmaps
                     mVisualizer.link(0);
                     mLinked = true;
                 }
@@ -240,27 +260,10 @@ public class PulseController implements FlingModule {
                 if (mLinked) {
                     mVisualizer.unlink();
                     mLinked = false;
-                    if (mRenderer.isLavaLampEnabled()) {
-                        mHandler.obtainMessage(MSG_STOP_LAVALAMP).sendToTarget();
-                    }
                 }
             }
         }
     };
-
-    private final Runnable mRefreshStateRunnable = new Runnable() {
-        @Override
-        public void run() {
-            mCallback.onUpdateState();
-            mCallback.onInvalidate();
-        }
-    };
-
-    @Override
-    public void setCallbacks(Callbacks callbacks) {
-        // TODO Auto-generated method stub
-
-    }
 
     @Override
     public void onDraw(Canvas canvas) {
@@ -271,5 +274,11 @@ public class PulseController implements FlingModule {
 
     public void updateRenderColor(int color) {
         mRenderer.setColor(color);
+    }
+
+    @Override
+    public void setCallbacks(Callbacks callbacks) {
+        // TODO Auto-generated method stub
+
     }
 }

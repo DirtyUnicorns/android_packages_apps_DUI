@@ -34,17 +34,13 @@ public abstract class PulseFftValidator {
     private static final int VALIDATION_TIME_MILLIS = 500;
     private static final int VALID_BYTES_THRESHOLD = 2;
 
-    private ValidatorHandler mHandler;
     private int mConsecutiveFrames;
     private boolean mIsValidated;
     private boolean mIsAnalyzed;
     private boolean mIsPrepared;
 
-    private class ValidatorHandler extends Handler {
-        public ValidatorHandler(Looper looper) {
-            super(looper);
-        }
-
+    private Handler mHandler = new Handler() {
+        @Override
         public void handleMessage(Message m) {
             switch (m.what) {
                 case MSG_STREAM_VALID:
@@ -61,10 +57,9 @@ public abstract class PulseFftValidator {
                     break;
             }
         }
-    }
+    };
 
-    public PulseFftValidator(Handler handler) {
-        mHandler = new ValidatorHandler(handler.getLooper());
+    public PulseFftValidator() {
     }
 
     public abstract void onStreamValidated(boolean isValid);

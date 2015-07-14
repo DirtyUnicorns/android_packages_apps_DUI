@@ -34,21 +34,22 @@ import com.android.internal.actions.ActionUtils;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.os.PowerManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
 
 public class FlingView extends BaseNavigationBar implements FlingModule.Callbacks {
@@ -56,13 +57,10 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private static Set<Uri> sUris = new HashSet<Uri>();    
     static {
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_VISIBLE));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_ANIMATES));
         sUris.add(Settings.System.getUriFor(Settings.System.NX_PULSE_ENABLED));
         sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGPRESS_TIMEOUT));
         sUris.add(Settings.System.getUriFor(Settings.System.NX_RIPPLE_ENABLED));
         sUris.add(Settings.System.getUriFor(Settings.System.FLING_RIPPLE_COLOR));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR));
         sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_ENABLED));
         sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_COLOR));
         sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR));
@@ -70,19 +68,19 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_SPEED));
     }
 
-    private static final int MSG_SET_DISABLED_FLAGS = 101;
-    private static final int MSG_INVALIDATE = 102;
+    public static final int MSG_SET_DISABLED_FLAGS = 101;
+    public static final int MSG_INVALIDATE = 102;
 
     private FlingActionHandler mActionHandler;
     private FlingGestureHandler mGestureHandler;
     private FlingGestureDetectorPriv mGestureDetector;
     private final FlingBarTransitions mBarTransitions;
+    private FlingLogoController mLogoController;
     private boolean mRippleEnabled;
     private PulseController mPulse;
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
-    private UiHandler mUiHandler = new UiHandler();
 
     private SmartObservable mObservable = new SmartObservable() {
         @Override
@@ -124,7 +122,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
     }
 
-    private class UiHandler extends Handler {
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
         public void handleMessage(Message m) {
             switch (m.what) {
                 case MSG_SET_DISABLED_FLAGS:
@@ -135,7 +133,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                     break;
             }
         }
-    }
+    };
 
     private final OnTouchListener mNxTouchListener = new OnTouchListener() {
 
@@ -147,12 +145,10 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
             }
             if (action == MotionEvent.ACTION_DOWN) {
                 mPm.cpuBoost(1000 * 1000);
-                if (!getNxLogo().isAnimating()) {
-                    getNxLogo().animateSpinner(true);
-                }
+                mLogoController.onTouchHide(null);
             } else if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_CANCEL) {
-                getNxLogo().animateSpinner(false);
+                mLogoController.onTouchShow(null);
             }
             if (mRippleEnabled) {
                 mRipple.onTouch(FlingView.this, event);
@@ -164,6 +160,23 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
     };
 
+    private final AnimationListener mPulseOnListener = new AnimationListener() {
+
+        @Override
+        public void onAnimationStart(Animation animation) {
+        }
+
+        @Override
+        public void onAnimationEnd(Animation animation) {
+            mPulse.turnOnPulse();
+            animation.setAnimationListener(null);
+        }
+
+        @Override
+        public void onAnimationRepeat(Animation animation) {
+        }
+    };
+
     public FlingView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mBarTransitions = new FlingBarTransitions(this);
@@ -172,12 +185,32 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mGestureHandler = new FlingGestureHandler(context, mActionHandler, this);
         mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler);
         setOnTouchListener(mNxTouchListener);
-        mPulse = new PulseController(context, this);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this, this);
+        mLogoController = new FlingLogoController(context);
+
+        mPulse = new PulseController(context, this) {
+            @Override
+            public boolean onPrepareToPulse() {
+                if (mLogoController.isEnabled()) {
+                    mLogoController.hideAndLock(mPulseOnListener);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onPulseStateChanged(int state) {
+                if (state == PulseController.STATE_STOPPED) {
+                    mLogoController.unlockAndShow(null);
+                }
+            }
+        };
+
         mSmartObserver.addListener(mActionHandler);
         mSmartObserver.addListener(mGestureHandler);
+        mSmartObserver.addListener(mLogoController);
         mSmartObserver.addListener(mObservable);
     }
 
@@ -216,31 +249,6 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     public void setLeftInLandscape(boolean leftInLandscape) {
         super.setLeftInLandscape(leftInLandscape);
         mPulse.setLeftInLandscape(leftInLandscape);
-    }
-
-    private void updateLogoAnimates() {
-        boolean logoAnimates = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        for (FlingLogoView v : ActionUtils.getAllChildren(FlingView.this, FlingLogoView.class)) {
-            v.setSpinEnabled(logoAnimates);
-        }
-    }
-
-    private void updateLogoColor() {
-        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
-        for (FlingLogoView v : ActionUtils.getAllChildren(FlingView.this, FlingLogoView.class)) {
-            v.setLogoColor(color);
-        }
-    }
-
-    private void updateLogoEnabled() {
-        boolean logoEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
-        for (FlingLogoView v : ActionUtils.getAllChildren(FlingView.this, FlingLogoView.class)) {
-            v.setLogoEnabled(logoEnabled);
-        }
-        setDisabledFlags(mDisabledFlags, true);
     }
 
     private void updateRippleColor() {
@@ -322,9 +330,6 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private void updateSettings() {
         updateRippleColor();
-        updateLogoEnabled();
-        updateLogoAnimates();
-        updateLogoColor();
         updateTrailsEnabled();
         updateTrailsColor();
         updatePulseEnabled();
@@ -341,13 +346,13 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     public void setDisabledFlags(int disabledFlags, boolean force) {
         super.setDisabledFlags(disabledFlags, force);
         mGestureHandler.onScreenStateChanged(mScreenOn);
-        getNxLogo().updateVisibility(mPulse.shouldDrawPulse());
     }
 
     @Override
     public void reorient() {
         super.reorient();
         mBarTransitions.init(mVertical);
+        mLogoController.setLogoView(getNxLogo());
         mGestureHandler.setIsVertical(mVertical);
         setDisabledFlags(mDisabledFlags, true /* force */);
     }
@@ -392,6 +397,11 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     @Override
+    public Handler getHandler() {
+        return mHandler;
+    }
+
+    @Override
     public int onGetWidth() {
         return getWidth();
     }
@@ -403,11 +413,11 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     @Override
     public void onInvalidate() {
-        mUiHandler.obtainMessage(MSG_INVALIDATE).sendToTarget();
+        mHandler.obtainMessage(MSG_INVALIDATE).sendToTarget();
     }
 
     @Override
     public void onUpdateState() {
-        mUiHandler.obtainMessage(MSG_SET_DISABLED_FLAGS).sendToTarget();
+        mHandler.obtainMessage(MSG_SET_DISABLED_FLAGS).sendToTarget();
     }
 }
