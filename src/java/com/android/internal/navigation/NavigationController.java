@@ -46,6 +46,7 @@ public class NavigationController {
         mBar = statusBar;
         mAddNavbar = forceAddNavbar;
         mRemoveNavbar = removeNavbar;
+        validateBarState();
         mNavbarObserver = new NavbarObserver(mHandler);
         mNavbarObserver.observe();
         mPackageReceiver = new PackageReceiver();
@@ -67,16 +68,7 @@ public class NavigationController {
             default:
                 layout = NAVBAR_LAYOUT;
         }
-        bar = inflateBar(mContext, layout);
-        // debugging: we know for sure navbar inflates here
-        if (bar == null) {
-            bar = inflateBar(mContext, NAVBAR_LAYOUT);
-            mNavbarObserver.unobserve();
-            Settings.System.putInt(mContext.getContentResolver(),
-                    Settings.System.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP);
-            mNavbarObserver.observe();
-        }
-        return bar;
+        return inflateBar(mContext, layout);
     }
 
     private BaseNavigationBar inflateBar(Context ctx, String layout) {
@@ -89,6 +81,23 @@ public class NavigationController {
             e.printStackTrace();
         }
         return bar;
+    }
+
+    // resolve possible bizarre state in which
+    // "force show navbar" became enabled on a
+    // device without hardware navigation buttons
+    private void validateBarState() {
+        final Context ctx = mContext;
+        final ContentResolver resolver = mContext.getContentResolver();
+        boolean needsNavbar = !ActionUtils.isCapKeyDevice(ctx);
+        if (needsNavbar) {
+            boolean forceShown = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.DEV_FORCE_SHOW_NAVBAR, 0, UserHandle.USER_CURRENT) == 1;
+            if (forceShown) {
+                Settings.Secure.putInt(resolver,
+                        Settings.Secure.DEV_FORCE_SHOW_NAVBAR, 0);
+            }
+        }
     }
 
     // for now, it makes sense to let PhoneStatusBar add/remove navbar view
@@ -110,7 +119,7 @@ public class NavigationController {
             resolver.registerContentObserver(
                     Settings.System.getUriFor(Settings.System.NAVIGATION_BAR_MODE), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(Settings.System.getUriFor(
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
                     Settings.Secure.DEV_FORCE_SHOW_NAVBAR), false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAVBAR_LEFT_IN_LANDSCAPE), false, this, UserHandle.USER_ALL);
@@ -125,10 +134,10 @@ public class NavigationController {
                 boolean navLeftInLandscape = Settings.System.getIntForUser(resolver,
                         Settings.System.NAVBAR_LEFT_IN_LANDSCAPE, 0, UserHandle.USER_CURRENT) == 1;
                 mBar.getNavigationBarView().setLeftInLandscape(navLeftInLandscape);
-            } else if (uri.equals(Settings.System.getUriFor(Settings.Secure.DEV_FORCE_SHOW_NAVBAR))
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.DEV_FORCE_SHOW_NAVBAR))
                     && ActionUtils.isCapKeyDevice(mContext)) {
                 // force navbar adds or removes the bar view
-                boolean visible = Settings.System.getIntForUser(resolver,
+                boolean visible = Settings.Secure.getIntForUser(resolver,
                         Settings.Secure.DEV_FORCE_SHOW_NAVBAR, 0, UserHandle.USER_CURRENT) == 1;
                 if (isBarShowingNow) {
                     mBar.getNavigationBarView().dispose();
@@ -192,7 +201,7 @@ public class NavigationController {
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                if (ActionUtils.isCapKeyDevice(mContext)) {
+                if (ActionUtils.isCapKeyDevice(ctx)) {
                     ActionUtils.resolveAndUpdateButtonActions(ctx, ActionConstants.getDefaults(ActionConstants.HWKEYS));
                 }
                 ActionUtils.resolveAndUpdateButtonActions(ctx, ActionConstants.getDefaults(ActionConstants.NAVBAR));

@@ -193,8 +193,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mPulse = new PulseController(context, this) {
             @Override
             public boolean onPrepareToPulse() {
+                mLogoController.hideAndLock(mPulseOnListener);
                 if (mLogoController.isEnabled()) {
-                    mLogoController.hideAndLock(mPulseOnListener);
                     return true;
                 }
                 return false;

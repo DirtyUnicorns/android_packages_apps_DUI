@@ -187,7 +187,7 @@ public class ActionHandler {
                     && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
                 continue;
             } else if (TextUtils.equals(action, SYSTEMUI_TASK_SCREENRECORD)) {
-                if (!context.getResources().getBoolean(com.android.internal.R.bool.config_enableScreenrecordChord)) {
+                if (!ActionUtils.getBoolFromResources(context, "config_enableScreenrecordChord", ActionUtils.PACKAGE_ANDROID)) {
                     continue;
                 }
             }
@@ -384,8 +384,8 @@ public class ActionHandler {
 
         if (lastTask != null) {
             final ActivityOptions opts = ActivityOptions.makeCustomAnimation(context,
-                    com.android.internal.R.anim.last_app_in,
-                    com.android.internal.R.anim.last_app_out);
+                    ActionUtils.getIdentifier(context, "last_app_in", "anim", ActionUtils.PACKAGE_ANDROID),
+                    ActionUtils.getIdentifier(context, "last_app_out", "anim", ActionUtils.PACKAGE_ANDROID));
             am.moveTaskToFront(lastTask.id, ActivityManager.MOVE_TASK_NO_USER_ACTION,
                     opts.toBundle());
         }

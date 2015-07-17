@@ -71,18 +71,15 @@ public class FlingLogoController implements SmartObservable {
     public void setLogoView(FlingLogoView view) {
         mLogoView = view;
         if (mLogoColor != view.getLogoColor()) {
-            view.setLogoColor(mLogoColor);
+            mLogoView.setLogoColor(mLogoColor);
         }
-        view.animate().cancel();
         animateToCurrentState();
     }
 
     private void animateToCurrentState() {
         if (mLogoEnabled) {
-            if (mVisibilityLock == LOCK_DISABLED || mVisibilityLock == LOCK_SHOW) {
+            if (mVisibilityLock != LOCK_HIDDEN) {
                 show(null);
-            } else {
-                hide(null);
             }
         } else {
             hide(null);
@@ -133,35 +130,31 @@ public class FlingLogoController implements SmartObservable {
     }
 
     public void showAndLock(AnimationListener listener) {
-        if (!mLogoEnabled) {
-            return;
-        }
-        unlockAndShow(listener);
         mVisibilityLock = LOCK_SHOW;
+        if (mLogoEnabled) {
+            show(listener);
+        }
     }
 
     public void hideAndLock(AnimationListener listener) {
-        if (!mLogoEnabled) {
-            return;
-        }
-        unlockAndHide(listener);
         mVisibilityLock = LOCK_HIDDEN;
+        if (mLogoEnabled) {
+            hide(listener);
+        }
     }
 
     public void unlockAndShow(AnimationListener listener) {
-        if (!mLogoEnabled) {
-            return;
-        }
         mVisibilityLock = LOCK_DISABLED;
-        show(listener);
+        if (mLogoEnabled) {
+            show(listener);
+        }
     }
 
     public void unlockAndHide(AnimationListener listener) {
-        if (!mLogoEnabled) {
-            return;
-        }
         mVisibilityLock = LOCK_DISABLED;
-        hide(listener);
+        if (mLogoEnabled) {
+            hide(listener);
+        }
     }
 
     @Override

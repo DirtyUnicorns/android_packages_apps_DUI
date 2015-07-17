@@ -43,6 +43,7 @@ import com.android.internal.actions.Config.ButtonConfig;
 public final class ActionUtils {
     public static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
     public static final String PACKAGE_SYSTEMUI = "com.android.systemui";
+    public static final String PACKAGE_ANDROID = "android";
 
     // 10 inch tablets
     public static boolean isXLargeScreen() {
@@ -71,8 +72,7 @@ public final class ActionUtils {
     }
 
     public static boolean isCapKeyDevice(Context context) {
-        return !context.getResources().getBoolean(
-                com.android.internal.R.bool.config_showNavigationBar);
+        return !getBoolFromResources(context, "config_showNavigationBar", PACKAGE_ANDROID);
     }
 
     /**
@@ -251,6 +251,18 @@ public final class ActionUtils {
             d = getDrawableFromComponent(context.getPackageManager(), action);
         }
         return d;
+    }
+
+    public static boolean getBoolFromResources(Context context, String boolName, String pkg) {
+        try {
+            Resources res = context.getPackageManager()
+                    .getResourcesForApplication(pkg);
+            boolean val = res.getBoolean(res.getIdentifier(boolName, "bool",
+                    pkg));
+            return val;
+        } catch (Exception e) {
+            return false; // good luck
+        }
     }
 
     public static Drawable getDrawableFromResources(Context context, String drawableName, String pkg) {
