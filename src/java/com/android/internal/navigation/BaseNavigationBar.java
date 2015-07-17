@@ -188,6 +188,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
         // actual value changes #common_cm
         mLeftInLandscape = Settings.System.getIntForUser(resolver,
                 Settings.System.NAVBAR_LEFT_IN_LANDSCAPE, 0, UserHandle.USER_CURRENT) == 1;
+        // we boot with screen off, but we need to force it true here
+        mScreenOn = true;
         onInflateFromUser();
     }
 

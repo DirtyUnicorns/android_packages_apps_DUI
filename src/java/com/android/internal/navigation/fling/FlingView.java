@@ -344,8 +344,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     public void setDisabledFlags(int disabledFlags, boolean force) {
-        super.setDisabledFlags(disabledFlags, force);
-        mGestureHandler.onScreenStateChanged(mScreenOn);
+        super.setDisabledFlags(disabledFlags, force);        
     }
 
     @Override
@@ -359,8 +358,15 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     @Override
     public void notifyScreenOn(boolean screenOn) {
+        mGestureHandler.onScreenStateChanged(screenOn);
         mPulse.notifyScreenOn(screenOn);
         super.notifyScreenOn(screenOn);
+    }
+
+    @Override
+    protected void onInflateFromUser() {
+        mGestureHandler.onScreenStateChanged(mScreenOn);
+        mPulse.notifyScreenOn(mScreenOn);
     }
 
     @Override
