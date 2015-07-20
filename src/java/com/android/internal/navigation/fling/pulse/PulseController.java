@@ -30,10 +30,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Canvas;
+import android.media.IAudioService;
 import android.os.AsyncTask;
+import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.util.Log;
 
 public abstract class PulseController implements FlingModule {
+    private static final String TAG = PulseController.class.getSimpleName();
+
     public static final int STATE_STARTED = 1;
     public static final int STATE_STOPPED = 2;
 
@@ -142,6 +149,7 @@ public abstract class PulseController implements FlingModule {
             mPowerSaveModeEnabled = pm.isPowerSaveMode();
             mMediaMonitor.setListening(true);
         } else {
+            setVisualizerLocked(false);
             mMediaMonitor.setListening(false);
             mContext.unregisterReceiver(mReceiver);
         }
@@ -184,6 +192,16 @@ public abstract class PulseController implements FlingModule {
             // mVisualizer.setDrawingEnabled(true); // enable visualizer drawing
             mCallback.onInvalidate(); // all systems go: start pulsing
             onPulseStateChanged(STATE_STARTED);
+        }
+    }
+
+    private void setVisualizerLocked(boolean doLock) {
+        try {
+            IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
+            IAudioService audioService = IAudioService.Stub.asInterface(b);
+            audioService.setVisualizerLocked(doLock);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error setting visualizer lock");
         }
     }
 
@@ -244,6 +262,7 @@ public abstract class PulseController implements FlingModule {
         public void run() {
             if (mVisualizer != null) {
                 if (!mLinked) {
+                    setVisualizerLocked(true);
                     mRenderer.reset(); // reset validation flags
                     mVisualizer.resetDrawing(); // clear stale bitmaps
                     mVisualizer.link(0);
@@ -259,6 +278,7 @@ public abstract class PulseController implements FlingModule {
             if (mVisualizer != null) {
                 if (mLinked) {
                     mVisualizer.unlink();
+                    setVisualizerLocked(false);
                     mLinked = false;
                 }
             }

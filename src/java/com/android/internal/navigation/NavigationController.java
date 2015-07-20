@@ -6,9 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
+import android.media.IAudioService;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Process;
+import android.os.RemoteException;
+import android.os.ServiceManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
@@ -47,6 +51,7 @@ public class NavigationController {
         mAddNavbar = forceAddNavbar;
         mRemoveNavbar = removeNavbar;
         validateBarState();
+        unlockVisualizer();
         mNavbarObserver = new NavbarObserver(mHandler);
         mNavbarObserver.observe();
         mPackageReceiver = new PackageReceiver();
@@ -69,6 +74,16 @@ public class NavigationController {
                 layout = NAVBAR_LAYOUT;
         }
         return inflateBar(mContext, layout);
+    }
+
+    private void unlockVisualizer() {
+        try {
+            IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
+            IAudioService audioService = IAudioService.Stub.asInterface(b);
+            audioService.setVisualizerLocked(false);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Error unlocking visualizer when starting SystemUI");
+        }
     }
 
     private BaseNavigationBar inflateBar(Context ctx, String layout) {
