@@ -78,7 +78,9 @@ public class FlingLogoController implements SmartObservable {
 
     private void animateToCurrentState() {
         if (mLogoEnabled) {
-            if (mVisibilityLock != LOCK_HIDDEN) {
+            if (mVisibilityLock == LOCK_HIDDEN) {
+                hide(null);
+            } else {
                 show(null);
             }
         } else {

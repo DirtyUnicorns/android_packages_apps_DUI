@@ -293,6 +293,7 @@ public class ActionHandler {
         if (action == null) {
             return;
         }
+        ActionUtils.checkSoftKeyDevice();
         // not a system action, should be intent
         if (!action.startsWith(SYSTEM_PREFIX)) {
             Intent intent = ActionUtils.getIntent(action);
