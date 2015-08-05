@@ -28,6 +28,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.ThemeConfig;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
@@ -331,6 +332,38 @@ public final class ActionUtils {
             return context.getResources().getDrawable(
                     com.android.internal.R.drawable.sym_def_app_icon);
         }
+    }
+
+    public static Drawable getDrawableFromResources(Resources res, String drawableName, String pkg) {
+        try {
+            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, "drawable",
+                    pkg));
+            return icon;
+        } catch (Exception e) {
+            return res.getDrawable(
+                    com.android.internal.R.drawable.sym_def_app_icon);
+        }
+    }
+
+    public static Resources getNavbarThemedResources(Context context) {
+        if (context == null)
+            return null;
+        ThemeConfig themeConfig = context.getResources().getConfiguration().themeConfig;
+        Resources res = null;
+        if (themeConfig != null) {
+            try {
+                final String navbarThemePkgName = themeConfig.getOverlayForNavBar();
+                final String sysuiThemePkgName = themeConfig.getOverlayForStatusBar();
+                // Check if the same theme is applied for systemui, if so we can skip this
+                if (navbarThemePkgName != null && !navbarThemePkgName.equals(sysuiThemePkgName)) {
+                    res = context.getPackageManager().getThemedResourcesForApplication(
+                            context.getPackageName(), navbarThemePkgName);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                // don't care since we'll handle res being null below
+            }
+        }
+        return res != null ? res : context.getResources();
     }
 
     public static int getIdentifier(Context context, String resName, String resType, String pkg) {
