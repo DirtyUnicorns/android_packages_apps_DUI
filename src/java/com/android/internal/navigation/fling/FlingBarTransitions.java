@@ -70,11 +70,11 @@ public final class FlingBarTransitions extends BarTransitions {
     @Override
     public void transitionTo(int mode, boolean animate) {
         mRequestedMode = mode;
-        if (mVertical) {
+        if (mVertical && !mTransparencyAllowedWhenVertical) {
             // translucent mode not allowed when vertical
             if (mode == MODE_TRANSLUCENT || mode == MODE_TRANSPARENT) {
                 mode = MODE_OPAQUE;
-            } else if (mode == MODE_LIGHTS_OUT_TRANSPARENT) {
+            } else if (mode == MODE_LIGHTS_OUT_TRANSPARENT || mode == MODE_LIGHTS_OUT_TRANSLUCENT) {
                 mode = MODE_LIGHTS_OUT;
             }
         }

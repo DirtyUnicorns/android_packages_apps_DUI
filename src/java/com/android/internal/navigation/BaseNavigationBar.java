@@ -204,6 +204,10 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
         onUpdateResources(res);
     }
 
+    public void setTransparencyAllowedWhenVertical(boolean allowed) {
+        getBarTransitions().setTransparencyAllowedWhenVertical(allowed);
+    }
+
     public void setDelegateView(View view) {
         mDelegateHelper.setDelegateView(view);
     }
