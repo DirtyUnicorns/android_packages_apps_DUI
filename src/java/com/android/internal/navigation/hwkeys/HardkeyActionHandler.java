@@ -27,6 +27,7 @@ import java.util.ArrayList;
 
 import com.android.internal.actions.ActionConstants;
 import com.android.internal.actions.ActionHandler;
+import com.android.internal.actions.ActionUtils;
 import com.android.internal.actions.Config;
 import com.android.internal.actions.Config.ActionConfig;
 import com.android.internal.actions.Config.ButtonConfig;
@@ -109,6 +110,9 @@ public class HardkeyActionHandler {
         mContext = context;
         mHandler = handler;
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+
+        mDeviceHardwareKeys = ActionUtils.getInt(context, "config_deviceHardwareKeys",
+                ActionUtils.PACKAGE_ANDROID);
 
         mDeviceHardwareKeys = mContext.getResources().getInteger(
                 com.android.internal.R.integer.config_deviceHardwareKeys);

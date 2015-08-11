@@ -174,8 +174,8 @@ public class BarTransitions {
                 mTransparent = 0x2f0000ff;
                 mWarning = 0xffff0000;
             } else {
-                mOpaque = ActionUtils.getcolorFromResources(context, "system_bar_background_opaque", ActionUtils.PACKAGE_SYSTEMUI);
-                mSemiTransparent = ActionUtils.getcolorFromResources(context, "system_bar_background_semi_transparent", ActionUtils.PACKAGE_SYSTEMUI);
+                mOpaque = ActionUtils.getColor(context, "system_bar_background_opaque", ActionUtils.PACKAGE_SYSTEMUI);
+                mSemiTransparent = ActionUtils.getColor(context, "system_bar_background_semi_transparent", ActionUtils.PACKAGE_SYSTEMUI);
                 mTransparent = res.getColor(transparentColorResourceId);
                 mWarning = res.getColor(warningColorResourceId);
             }

@@ -70,7 +70,7 @@ public class FlingLogoView extends ImageView {
         } else if (color == -1) {
             mLogoColor = Color.WHITE;
         } else if (color == -2) {
-            mLogoColor = ActionUtils.getcolorFromResources(getContext(), "status_bar_clock_color",
+            mLogoColor = ActionUtils.getColor(getContext(), "status_bar_clock_color",
                     ActionUtils.PACKAGE_SYSTEMUI);
         } else {
             mLogoColor = color;

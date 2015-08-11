@@ -284,8 +284,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
 
     @Override
     public void onFinishInflate() {
-        int rot0id = ActionUtils.getIdentifierByName(mContext, "rot0", ActionUtils.PACKAGE_SYSTEMUI);
-        int rot90id = ActionUtils.getIdentifierByName(mContext, "rot90", ActionUtils.PACKAGE_SYSTEMUI);
+        int rot0id = ActionUtils.getId(mContext, "rot0", ActionUtils.PACKAGE_SYSTEMUI);
+        int rot90id = ActionUtils.getId(mContext, "rot90", ActionUtils.PACKAGE_SYSTEMUI);
         mRot0 = (FrameLayout) findViewById(rot0id);
         mRot90 = (FrameLayout) findViewById(rot90id);
         mRotatedViews[Surface.ROTATION_0] =

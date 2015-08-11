@@ -93,7 +93,7 @@ public final class FlingBarTransitions extends BarTransitions {
     }
 
     private int findViewByIdName(String name) {
-        return ActionUtils.getIdentifierByName(mView.getContext(), name,
+        return ActionUtils.getId(mView.getContext(), name,
                 ActionUtils.PACKAGE_SYSTEMUI);
     }
 

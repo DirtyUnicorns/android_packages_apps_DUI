@@ -31,6 +31,7 @@ import android.content.res.Resources;
 import android.content.res.ThemeConfig;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -38,6 +39,7 @@ import android.os.SystemProperties;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -53,6 +55,19 @@ public final class ActionUtils {
     public static final String ANDROIDNS = "http://schemas.android.com/apk/res/android";
     public static final String PACKAGE_SYSTEMUI = "com.android.systemui";
     public static final String PACKAGE_ANDROID = "android";
+    public static final String FORMAT_NONE = "none";
+    public static final String FORMAT_FLOAT = "float";
+
+    public static final String ID = "id";
+    public static final String DIMEN = "dimen";
+    public static final String DIMEN_PIXEL = "dimen_pixel";
+    public static final String FLOAT = "float";
+    public static final String INT = "integer";
+    public static final String DRAWABLE = "drawable";
+    public static final String COLOR = "color";
+    public static final String BOOL = "bool";
+    public static final String STRING = "string";
+    public static final String ANIM = "anim";
 
     private static final Random sRnd = new Random();
     // 10 inch tablets
@@ -82,7 +97,7 @@ public final class ActionUtils {
     }
 
     public static boolean isCapKeyDevice(Context context) {
-        return !getBoolFromResources(context, "config_showNavigationBar", PACKAGE_ANDROID);
+        return !(Boolean)getValue(context, "config_showNavigationBar", BOOL, PACKAGE_ANDROID);
     }
 
     private static boolean isSoftKeyDevice() {
@@ -299,7 +314,7 @@ public final class ActionUtils {
         if (action.startsWith(ActionHandler.SYSTEM_PREFIX)) {
             for (int i = 0; i < ActionHandler.systemActions.length; i++) {
                 if (ActionHandler.systemActions[i].mAction.equals(action)) {
-                    d = getDrawableFromResources(context, ActionHandler.systemActions[i].mIconName,
+                    d = getDrawable(context, ActionHandler.systemActions[i].mIconName,
                             ActionHandler.systemActions[i].mIconPackage);
                 }
             }
@@ -309,61 +324,70 @@ public final class ActionUtils {
         return d;
     }
 
-    public static boolean getBoolFromResources(Context context, String boolName, String pkg) {
+    public static Resources getResourcesForPackage(Context ctx, String pkg) {
         try {
-            Resources res = context.getPackageManager()
+            Resources res = ctx.getPackageManager()
                     .getResourcesForApplication(pkg);
-            boolean val = res.getBoolean(res.getIdentifier(boolName, "bool",
-                    pkg));
-            return val;
+            return res;
         } catch (Exception e) {
-            return false; // good luck
+            return ctx.getResources();
         }
     }
 
-    public static Drawable getDrawableFromResources(Context context, String drawableName, String pkg) {
-        try {
-            Resources res = context.getPackageManager()
-                    .getResourcesForApplication(pkg);
-            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, "drawable",
-                    pkg));
-            return icon;
-        } catch (Exception e) {
-            return context.getResources().getDrawable(
-                    com.android.internal.R.drawable.sym_def_app_icon);
-        }
+    public static Object getValue(Context context, String resName, String resType, String pkg) {
+        return getValue(context, resName, resType, null, pkg);
     }
 
-    public static Drawable getDrawableFromResources(Resources res, String drawableName, String pkg) {
-        try {
-            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, "drawable",
-                    pkg));
-            return icon;
-        } catch (Exception e) {
-            return res.getDrawable(
-                    com.android.internal.R.drawable.sym_def_app_icon);
+    public static Object getValue(Context context, String resName, String resType, String format,
+            String pkg) {
+        Resources res = getResourcesForPackage(context, pkg);
+        String tmp;
+        if (resType.equals(DIMEN_PIXEL)) {
+            tmp = DIMEN;
+        } else {
+            tmp = resType;
         }
-    }
-
-    public static Resources getNavbarThemedResources(Context context) {
-        if (context == null)
-            return null;
-        ThemeConfig themeConfig = context.getResources().getConfiguration().themeConfig;
-        Resources res = null;
-        if (themeConfig != null) {
-            try {
-                final String navbarThemePkgName = themeConfig.getOverlayForNavBar();
-                final String sysuiThemePkgName = themeConfig.getOverlayForStatusBar();
-                // Check if the same theme is applied for systemui, if so we can skip this
-                if (navbarThemePkgName != null && !navbarThemePkgName.equals(sysuiThemePkgName)) {
-                    res = context.getPackageManager().getThemedResourcesForApplication(
-                            context.getPackageName(), navbarThemePkgName);
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                // don't care since we'll handle res being null below
+        int id = res.getIdentifier(resName, tmp, pkg);
+        if (format != null) { // standard res
+            TypedValue typedVal = new TypedValue();
+            res.getValue(id, typedVal, true);
+            if (format.equals(FORMAT_FLOAT)) {
+                return Float.valueOf(typedVal.getFloat());
+            }
+        } else { // typed values
+            if (resType.equals(ID)) {
+                return Integer.valueOf(id);
+            } else if (resType.equals(DIMEN)) {
+                return Float.valueOf(res.getDimension(id));
+            } else if (resType.equals(DIMEN_PIXEL)) {
+                return Integer.valueOf(res.getDimensionPixelSize(id));
+            } else if (resType.equals(FLOAT)) {
+                return Float.valueOf(res.getFloat(id));
+            } else if (resType.equals(INT)) {
+                return Integer.valueOf(res.getInteger(id));
+            } else if (resType.equals(COLOR)) {
+                return Integer.valueOf(res.getColor(id));
+            } else if (resType.equals(BOOL)) {
+                return Boolean.valueOf(res.getBoolean(id));
+            } else if (resType.equals(STRING)) {
+                return String.valueOf(res.getString(id));
+            } else if (resType.equals(DRAWABLE)) {
+                return getDrawable(context, resName, pkg);
             }
         }
-        return res != null ? res : context.getResources();
+        return null;
+    }
+
+    public static void putValue(String key, Object val, String type, Bundle b) {
+        if (type.equals(ID) || type.equals(DIMEN_PIXEL) || type.equals(INT) || type.equals(COLOR)) {
+            b.putInt(key, (Integer) val);
+        } else if (type.equals(FLOAT) || type.equals(DIMEN)) {
+            b.putFloat(key, (Float) val);
+        } else if (type.equals(BOOL)) {
+            b.putBoolean(key, (Boolean) val);
+        } else if (type.equals(STRING)) {
+            b.putString(key, (String) val);
+        }
     }
 
     public static int getIdentifier(Context context, String resName, String resType, String pkg) {
@@ -377,49 +401,42 @@ public final class ActionUtils {
         }
     }
 
-    public static int getIntFromResources(Context context, String intName, String pkg) {
+    public static boolean getBoolean(Context context, String resName, String pkg) {
+        return (Boolean) getValue(context, resName, BOOL, null, pkg);
+    }
+
+    public static int getInt(Context context, String resName, String pkg) {
+        return (Integer) getValue(context, resName, INT, null, pkg);
+    }
+
+    public static int getColor(Context context, String resName, String pkg) {
+        return (Integer) getValue(context, resName, COLOR, null, pkg);
+    }
+
+    public static int getId(Context context, String resName, String pkg) {
+        return (Integer) getValue(context, resName, ID, null, pkg);
+    }
+
+    public static float getDimen(Context context, String resName, String pkg) {
+        return (Float) getValue(context, resName, DIMEN, null, pkg);
+    }
+
+    public static int getDimenPixelSize(Context context, String resName, String pkg) {
+        return (Integer) getValue(context, resName, DIMEN_PIXEL, null, pkg);
+    }
+
+    public static Drawable getDrawable(Context context, String drawableName, String pkg) {
+        return getDrawable(getResourcesForPackage(context, pkg), drawableName, pkg);
+    }
+
+    public static Drawable getDrawable(Resources res, String drawableName, String pkg) {
         try {
-            Resources res = context.getPackageManager()
-                    .getResourcesForApplication(pkg);
-            int val = res.getInteger(res.getIdentifier(intName, "integer",
+            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, "drawable",
                     pkg));
-            return val;
+            return icon;
         } catch (Exception e) {
-            return -1; // good luck
-        }
-    }
-
-    public static int getcolorFromResources(Context context, String colorName, String pkg) {
-        try {
-            Resources res = context.getPackageManager()
-                    .getResourcesForApplication(pkg);
-            int color = res.getColor(res.getIdentifier(colorName, "color",
-                    pkg));
-            return color;
-        } catch (Exception e) {
-            return Color.WHITE; // sorry. you fail. you are white now
-        }
-    }
-
-    public static int getIdentifierByName(Context ctx, String name, String pkg) {
-        try {
-            Resources res = ctx.getPackageManager()
-                    .getResourcesForApplication(pkg);
-            int id = res.getIdentifier(name, "id", pkg);
-            return id;
-        } catch (Exception e) {
-            return 0;
-        }
-    }
-
-    public static int getDimensByName(Context ctx, String name, String pkg) {
-        try {
-            Resources res = ctx.getPackageManager()
-                    .getResourcesForApplication(pkg);
-            int id = res.getIdentifier(name, "dimen", pkg);
-            return id;
-        } catch (Exception e) {
-            return 0;
+            return res.getDrawable(
+                    com.android.internal.R.drawable.sym_def_app_icon);
         }
     }
 
@@ -482,5 +499,26 @@ public final class ActionUtils {
             }
         }
         return uri;
+    }
+
+    public static Resources getNavbarThemedResources(Context context) {
+        if (context == null)
+            return null;
+        ThemeConfig themeConfig = context.getResources().getConfiguration().themeConfig;
+        Resources res = null;
+        if (themeConfig != null) {
+            try {
+                final String navbarThemePkgName = themeConfig.getOverlayForNavBar();
+                final String sysuiThemePkgName = themeConfig.getOverlayForStatusBar();
+                // Check if the same theme is applied for systemui, if so we can skip this
+                if (navbarThemePkgName != null && !navbarThemePkgName.equals(sysuiThemePkgName)) {
+                    res = context.getPackageManager().getThemedResourcesForApplication(
+                            context.getPackageName(), navbarThemePkgName);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                // don't care since we'll handle res being null below
+            }
+        }
+        return res != null ? res : context.getResources();
     }
 }

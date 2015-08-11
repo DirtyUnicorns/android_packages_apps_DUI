@@ -61,7 +61,6 @@ public class NavigationController {
     public BaseNavigationBar getNavigationBarView() {
         int navMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP, UserHandle.USER_CURRENT);
-        BaseNavigationBar bar = null;
         String layout;
         switch (navMode) {
             case NAVIGATION_MODE_AOSP:

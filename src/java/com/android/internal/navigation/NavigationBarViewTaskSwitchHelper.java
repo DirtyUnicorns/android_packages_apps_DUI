@@ -40,10 +40,9 @@ public class NavigationBarViewTaskSwitchHelper extends GestureDetector.SimpleOnG
 
     public NavigationBarViewTaskSwitchHelper(Context context) {
         ViewConfiguration configuration = ViewConfiguration.get(context);
-        Resources r = context.getResources();
-        mScrollTouchSlop = r.getDimensionPixelSize(ActionUtils.getDimensByName(
-                context, "navigation_bar_min_swipe_distance",
-                ActionUtils.PACKAGE_SYSTEMUI));
+        mScrollTouchSlop = ActionUtils.getDimenPixelSize(context,
+                "navigation_bar_min_swipe_distance", ActionUtils.PACKAGE_SYSTEMUI);
+
         mMinFlingVelocity = configuration.getScaledMinimumFlingVelocity();
         mTaskSwitcherDetector = new GestureDetector(context, this);
     }

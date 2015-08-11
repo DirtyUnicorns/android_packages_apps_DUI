@@ -16,9 +16,11 @@ package com.android.internal.navigation.fling;
  * limitations under the License.
  */
 
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.actions.ActionConstants;
+import com.android.internal.actions.ActionConstants.Fling;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.InputEventConsistencyVerifier;
@@ -306,7 +308,7 @@ public class FlingGestureDetector {
      */
     @Deprecated
     public FlingGestureDetector(OnGestureListener listener, Handler handler) {
-        this(null, listener, handler);
+        this(null, listener, handler, null);
     }
 
     /**
@@ -324,7 +326,7 @@ public class FlingGestureDetector {
      */
     @Deprecated
     public FlingGestureDetector(OnGestureListener listener) {
-        this(null, listener, null);
+        this(null, listener, null, null);
     }
 
     /**
@@ -338,8 +340,8 @@ public class FlingGestureDetector {
      *
      * @throws NullPointerException if {@code listener} is null.
      */
-    public FlingGestureDetector(Context context, OnGestureListener listener) {
-        this(context, listener, null);
+    public FlingGestureDetector(Context context, OnGestureListener listener, Bundle configs) {
+        this(context, listener, null, configs);
     }
 
     /**
@@ -354,7 +356,7 @@ public class FlingGestureDetector {
      *
      * @throws NullPointerException if {@code listener} is null.
      */
-    public FlingGestureDetector(Context context, OnGestureListener listener, Handler handler) {
+    public FlingGestureDetector(Context context, OnGestureListener listener, Handler handler, Bundle configs) {
         if (handler != null) {
             mHandler = new GestureHandler(handler);
         } else {
@@ -364,7 +366,7 @@ public class FlingGestureDetector {
         if (listener instanceof OnDoubleTapListener) {
             setOnDoubleTapListener((OnDoubleTapListener) listener);
         }
-        init(context);
+        init(context, configs);
     }
     
     /**
@@ -382,17 +384,18 @@ public class FlingGestureDetector {
      */
     public FlingGestureDetector(Context context, OnGestureListener listener, Handler handler,
             boolean unused) {
-        this(context, listener, handler);
+        this(context, listener, handler, null);
     }
 
-    private void init(Context context) {
+    private void init(Context context, Bundle configs) {
         if (mListener == null) {
             throw new NullPointerException("OnGestureListener must not be null");
         }
         mIsLongpressEnabled = true;
 
         // Fallback to support pre-donuts releases
-        int touchSlop, touchSlopIncreaseFactor, doubleTapSlop, doubleTapTouchSlop;
+        int touchSlop, doubleTapSlop, doubleTapTouchSlop;
+        float touchSlopIncreaseFactor;
         if (context == null) {
             //noinspection deprecation
             touchSlop = ViewConfiguration.getTouchSlop();
@@ -404,10 +407,9 @@ public class FlingGestureDetector {
         } else {
             final ViewConfiguration configuration = ViewConfiguration.get(context);
 
-            touchSlopIncreaseFactor = ActionUtils.getIntFromResources(context,
-                    "config_fling_touchslop_increase_factor", ActionUtils.PACKAGE_SYSTEMUI);
-            touchSlop = Math.round(configuration.getScaledTouchSlop()
-                    * ((100 + touchSlopIncreaseFactor) / 100));
+            touchSlopIncreaseFactor = configs.getFloat(Fling.CONFIG_fling_touchslop_increase_factor);
+            final int slop = configuration.getScaledTouchSlop();
+            touchSlop = Math.round(slop * touchSlopIncreaseFactor);
 
             doubleTapTouchSlop = configuration.getScaledDoubleTapTouchSlop();
             doubleTapSlop = configuration.getScaledDoubleTapSlop();

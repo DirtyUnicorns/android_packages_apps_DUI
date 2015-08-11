@@ -32,7 +32,12 @@ package com.android.internal.actions;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
+import android.util.TypedValue;
 
 import com.android.internal.actions.ActionHandler.SystemAction;
 import com.android.internal.actions.Config.ActionConfig;
@@ -44,6 +49,7 @@ public class ActionConstants {
         public String getDefaultConfig();
         public int getMaxButtons();
         public Map<String, ConfigMap> getActionMap();
+        public Bundle getConfigs(Context context);
     }
 
     public static final String ACTION_DELIMITER = "|";
@@ -169,6 +175,12 @@ public class ActionConstants {
         public Map<String, ConfigMap> getActionMap() {
             return configMap;
         }
+
+        @Override
+        public Bundle getConfigs(Context context) {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 
     public static class Hwkeys implements Defaults {
@@ -271,6 +283,12 @@ public class ActionConstants {
         public Map<String, ConfigMap> getActionMap() {
             return configMap;
         }
+
+        @Override
+        public Bundle getConfigs(Context context) {
+            // TODO Auto-generated method stub
+            return null;
+        }
     }
 
     public static class Fling implements Defaults {
@@ -293,6 +311,39 @@ public class ActionConstants {
         public static final String FLING_SHORT_RIGHT_TAG = "fling_short_right";
         public static final String FLING_LONG_LEFT_TAG = "fling_long_left";
         public static final String FLING_LONG_RIGHT_TAG = "fling_long_right";
+        public static final String CONFIG_fling_touchslop_increase_factor = "config_fling_touchslop_increase_factor";
+        public static final String CONFIG_FlingLongSwipePortraitLeft = "config_FlingLongSwipePortraitLeft";
+        public static final String CONFIG_FlingLongSwipePortraitRight = "config_FlingLongSwipePortraitRight";
+        public static final String CONFIG_FlingLongSwipeLandscapeLeft = "config_FlingLongSwipeLandscapeLeft";
+        public static final String CONFIG_FlingLongSwipeLandscapeRight = "config_FlingLongSwipeLandscapeRight";
+        public static final String CONFIG_FlingLongSwipeVerticalUp = "config_FlingLongSwipeVerticalUp";
+        public static final String CONFIG_FlingLongSwipeVerticalDown = "config_FlingLongSwipeVerticalDown";
+
+        private static final Map<String, ConfigHolder> defMap = new HashMap<String, ConfigHolder>();
+
+        static {
+            defMap.put(CONFIG_fling_touchslop_increase_factor, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_fling_touchslop_increase_factor,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipePortraitLeft, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipePortraitLeft,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipePortraitRight, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipePortraitRight,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipeLandscapeLeft, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipeLandscapeLeft,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipeLandscapeRight, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipeLandscapeRight,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipeVerticalUp, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipeVerticalUp,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_FlingLongSwipeVerticalDown, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipeVerticalDown,
+                    ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+        }
 
         private static final Map<String, ConfigMap> configMap = new HashMap<String, ConfigMap>();
 
@@ -354,6 +405,11 @@ public class ActionConstants {
         @Override
         public Map<String, ConfigMap> getActionMap() {
             return configMap;
+        }
+
+        @Override
+        public Bundle getConfigs(Context context) {
+            return loadConfigsFromMap(context, defMap);
         }
     }
 
@@ -424,6 +480,12 @@ public class ActionConstants {
         @Override
         public Map<String, ConfigMap> getActionMap() {
             return configMap;
+        }
+
+        @Override
+        public Bundle getConfigs(Context context) {
+            // TODO Auto-generated method stub
+            return null;
         }        
     }
 
@@ -524,7 +586,42 @@ public class ActionConstants {
         public Map<String, ConfigMap> getActionMap() {
             return configMap;
         }
+
+        @Override
+        public Bundle getConfigs(Context context) {
+            // TODO Auto-generated method stub
+            return null;
+        }
         
+    }
+
+    private static Bundle loadConfigsFromMap(Context ctx, Map<String, ConfigHolder> configMap) {
+        Bundle b = new Bundle();
+        for (Map.Entry<String, ConfigHolder> entry : configMap.entrySet()) {
+            ConfigHolder holder = entry.getValue();
+            Object obj = ActionUtils.getValue(ctx, holder.name, holder.type, holder.format,
+                    holder.pkg);
+            ActionUtils.putValue(holder.name, obj, holder.type, b);
+        }
+        return b;
+    }
+
+    private static class ConfigHolder {
+        public String pkg;
+        public String name;
+        public String format;
+        public String type;
+
+        public ConfigHolder(String pkg, String name, String type) {
+            this(pkg, name, null, type);
+        }
+
+        public ConfigHolder(String pkg, String name, String format, String type) {
+            this.pkg = pkg;
+            this.name = name;
+            this.format = format;
+            this.type = type;
+        }
     }
 
     public static class ConfigMap {

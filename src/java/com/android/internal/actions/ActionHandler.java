@@ -187,7 +187,7 @@ public class ActionHandler {
                     && context.getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
                 continue;
             } else if (TextUtils.equals(action, SYSTEMUI_TASK_SCREENRECORD)) {
-                if (!ActionUtils.getBoolFromResources(context, "config_enableScreenrecordChord", ActionUtils.PACKAGE_ANDROID)) {
+                if (!ActionUtils.getBoolean(context, "config_enableScreenrecordChord", ActionUtils.PACKAGE_ANDROID)) {
                     continue;
                 }
             }

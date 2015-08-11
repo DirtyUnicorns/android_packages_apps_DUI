@@ -26,16 +26,15 @@ package com.android.internal.navigation.fling;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.android.internal.actions.ActionConstants;
+import com.android.internal.actions.ActionConstants.Fling;
 import com.android.internal.actions.ActionUtils;
 import com.android.internal.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
+import android.content.ContentResolver;
 import android.content.Context;
-import android.content.res.Configuration;
-import android.content.res.Resources;
-import android.database.ContentObserver;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.UserHandle;
 import android.provider.Settings;
@@ -78,14 +77,20 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     private boolean wasConsumed;
 
     // long swipe thresholds
-    private float mLeftLandVal;
-    private float mRightLandVal;
-    private float mLeftPortVal;
-    private float mRightPortVal;
+    private float mLeftLandDef;
+    private float mRightLandDef;
+    private float mLeftPortDef;
+    private float mRightPortDef;
+    private float mUpVertDef;
+    private float mDownVertDef;
 
-    // vertical navbar (usually normal screen size)
-    private float mUpVal;
-    private float mDownVal;
+    // long swipe thresholds
+    private float mLeftLand;
+    private float mRightLand;
+    private float mLeftPort;
+    private float mRightPort;
+    private float mUpVert;
+    private float mDownVert;
 
     // pass motion events to listener
     private Swipeable mReceiver;
@@ -113,11 +118,21 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         }
     };
 
-    public FlingGestureHandler(Context context, Swipeable swiper, View host) {
+    public FlingGestureHandler(Context context, Swipeable swiper, View host, Bundle configs) {
         mContext = context;
         mReceiver = swiper;
         mHost = host;
+        loadConfigs(configs);
         updateSettings();
+    }
+
+    private void loadConfigs(Bundle configs) {
+        mLeftLandDef = configs.getFloat(Fling.CONFIG_FlingLongSwipeLandscapeLeft);
+        mRightLandDef = configs.getFloat(Fling.CONFIG_FlingLongSwipeLandscapeRight);
+        mLeftPortDef = configs.getFloat(Fling.CONFIG_FlingLongSwipePortraitLeft);
+        mRightPortDef = configs.getFloat(Fling.CONFIG_FlingLongSwipePortraitRight);
+        mUpVertDef = configs.getFloat(Fling.CONFIG_FlingLongSwipeVerticalUp);
+        mDownVertDef = configs.getFloat(Fling.CONFIG_FlingLongSwipeVerticalDown);
     }
 
     // special case: double tap for screen off we never capture up motion event
@@ -199,8 +214,8 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
             float velocityY) {
 
-        boolean isVertical = mVertical;
-        boolean isLandscape = ActionUtils.isLandscape(mContext);
+        final boolean isVertical = mVertical;
+        final boolean isLandscape = ActionUtils.isLandscape(mContext);
 
         final float deltaParallel = isVertical ? e2.getY() - e1.getY() : e2
                 .getX() - e1.getX();
@@ -240,12 +255,6 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         return true;
     }
 
-    private int getScreenSize() {
-        return Resources.getSystem().getConfiguration().screenLayout &
-                Configuration.SCREENLAYOUT_SIZE_MASK;
-    }
-
-    // expose to NxBarView for config changes
     public void setIsVertical(boolean isVertical) {
         mVertical = isVertical;
     }
@@ -279,14 +288,14 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
                 // must be landscape for vertical bar
                 if (isVertical) {
                     // landscape with vertical bar
-                    longPressThreshold = mUpVal;
+                    longPressThreshold = mUpVert;
                 } else {
                     // landscape horizontal bar
-                    longPressThreshold = mRightLandVal;
+                    longPressThreshold = mRightLand;
                 }
             } else {
                 // portrait: can't have vertical navbar
-                longPressThreshold = mRightPortVal;
+                longPressThreshold = mRightPort;
             }
         } else {
             // left or down
@@ -294,77 +303,45 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
                 // must be landscape for vertical bar
                 if (isVertical) {
                     // landscape with vertical bar
-                    longPressThreshold = mDownVal;
+                    longPressThreshold = mDownVert;
                 } else {
                     // landscape horizontal bar
-                    longPressThreshold = mLeftLandVal;
+                    longPressThreshold = mLeftLand;
                 }
             } else {
                 // portrait: can't have vertical navbar
-                longPressThreshold = mLeftPortVal;
+                longPressThreshold = mLeftPort;
             }
         }
         return Math.abs(distance) > (size * longPressThreshold);
     }
 
     private void updateSettings() {
-        // get default swipe thresholds based on screensize
-        float leftDefH;
-        float rightDefH;
-        float leftDefV;
-        float rightDefV;
+        ContentResolver resolver = mContext.getContentResolver();
 
-        // vertical bar, bar can move (normal screen)
-        float upDef = 0.40f;
-        float downDef = 0.40f;
+        mLeftLand = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND,
+                mLeftLandDef, UserHandle.USER_CURRENT);
 
-        int screenSize = getScreenSize();
+        mRightLand = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND,
+                mRightLandDef, UserHandle.USER_CURRENT);
 
-        if (Configuration.SCREENLAYOUT_SIZE_NORMAL == screenSize) {
-            leftDefH = 0.40f;
-            rightDefH = 0.40f;
-            leftDefV = 0.35f;
-            rightDefV = 0.35f;
-        } else if (Configuration.SCREENLAYOUT_SIZE_LARGE == screenSize) {
-            leftDefH = 0.30f;
-            rightDefH = 0.30f;
-            leftDefV = 0.40f;
-            rightDefV = 0.40f;
-        } else if (Configuration.SCREENLAYOUT_SIZE_XLARGE == screenSize) {
-            leftDefH = 0.25f;
-            rightDefH = 0.25f;
-            leftDefV = 0.30f;
-            rightDefV = 0.30f;
-        } else {
-            leftDefH = 0.40f;
-            rightDefH = 0.40f;
-            leftDefV = 0.40f;
-            rightDefV = 0.40f;
-        }
+        mLeftPort = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT,
+                mLeftPortDef, UserHandle.USER_CURRENT);
 
-        mLeftLandVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND,
-                leftDefH, UserHandle.USER_CURRENT);
+        mRightPort = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT,
+                mRightPortDef, UserHandle.USER_CURRENT);
 
-        mRightLandVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND,
-                rightDefH, UserHandle.USER_CURRENT);
+        mUpVert = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND,
+                mUpVertDef, UserHandle.USER_CURRENT);
 
-        mLeftPortVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT,
-                leftDefV, UserHandle.USER_CURRENT);
-
-        mRightPortVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT,
-                rightDefV, UserHandle.USER_CURRENT);
-
-        mUpVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND,
-                upDef, UserHandle.USER_CURRENT);
-
-        mDownVal = Settings.System.getFloatForUser(
-                mContext.getContentResolver(), Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND,
-                downDef, UserHandle.USER_CURRENT);
+        mDownVert = Settings.System.getFloatForUser(
+                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND,
+                mDownVertDef, UserHandle.USER_CURRENT);
     }
 
     @Override

@@ -114,10 +114,8 @@ public class DelegateViewHelper {
     public void setSourceView(View view) {
         mSourceView = view;
         if (mSourceView != null) {
-            Resources r = mSourceView.getContext().getResources();
-            mTriggerThreshhold = r.getDimensionPixelSize(ActionUtils.getDimensByName(
-                    mSourceView.getContext(), "navigation_bar_min_swipe_distance",
-                    ActionUtils.PACKAGE_SYSTEMUI));
+            mTriggerThreshhold = ActionUtils.getDimenPixelSize(mSourceView.getContext(),
+                    "navigation_bar_min_swipe_distance", ActionUtils.PACKAGE_SYSTEMUI);
         }
     }
 

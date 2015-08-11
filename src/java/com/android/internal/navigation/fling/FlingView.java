@@ -31,12 +31,15 @@ import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.actions.ActionUtils;
+import com.android.internal.actions.ActionConstants;
+import com.android.internal.actions.ActionConstants.Fling;
 
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -44,6 +47,7 @@ import android.os.PowerManager;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -102,8 +106,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         static final int LP_TIMEOUT_MIN = 25;
         private int mLongPressTimeout = LP_TIMEOUT;
 
-        public FlingGestureDetectorPriv(Context context, OnGestureListener listener) {
-            super(context, listener);
+        public FlingGestureDetectorPriv(Context context, OnGestureListener listener, Bundle config) {
+            super(context, listener, config);
             // TODO Auto-generated constructor stub
         }
 
@@ -179,11 +183,12 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     public FlingView(Context context, AttributeSet attrs) {
         super(context, attrs);
+        Bundle configs = getConfigs(context);
         mBarTransitions = new FlingBarTransitions(this);
         mDelegateHelper.setForceDisabled(true);
         mActionHandler = new FlingActionHandler(context, this);
-        mGestureHandler = new FlingGestureHandler(context, mActionHandler, this);
-        mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler);
+        mGestureHandler = new FlingGestureHandler(context, mActionHandler, this, configs);
+        mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler, configs);
         setOnTouchListener(mNxTouchListener);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
@@ -214,8 +219,18 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mSmartObserver.addListener(mObservable);
     }
 
+    private Bundle getConfigs(Context ctx) {
+        try {
+            Bundle b = ActionConstants.getDefaults(ActionConstants.FLING).getConfigs(ctx);
+            Log.i(TAG, "Got config bundle! dump: " + b.toString());
+            return b;
+        } catch (Exception e) {
+            return null; // it's all over anyways
+        }
+    }
+
     private int findViewByIdName(String name) {
-        return ActionUtils.getIdentifierByName(getContext(), name,
+        return ActionUtils.getId(getContext(), name,
                 ActionUtils.PACKAGE_SYSTEMUI);
     }
 
