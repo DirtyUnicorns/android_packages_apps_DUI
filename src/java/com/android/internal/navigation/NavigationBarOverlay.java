@@ -25,16 +25,16 @@ public class NavigationBarOverlay {
 
     private static final String TAG = NavigationBarOverlay.class.getSimpleName();
 
-    private BaseNavigationBar mNavigationBar;
+    private Navigator mNavigationBar;
 
     private boolean mAnimate = true;
 
     public NavigationBarOverlay() {
     }
 
-    public void setNavigationBar(BaseNavigationBar view) {
-        mNavigationBar = view;
-        mNavigationBar.setOnSystemUiVisibilityChangeListener(
+    public void setNavigationBar(Navigator navigator) {
+        mNavigationBar = navigator;
+        mNavigationBar.getBaseView().setOnSystemUiVisibilityChangeListener(
                 new View.OnSystemUiVisibilityChangeListener() {
             @Override
             public void onSystemUiVisibilityChange(int visibility) {

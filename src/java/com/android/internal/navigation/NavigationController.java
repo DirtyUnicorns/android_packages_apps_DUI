@@ -58,7 +58,7 @@ public class NavigationController {
         mPackageReceiver.registerBootReceiver(context);
     }
 
-    public BaseNavigationBar getNavigationBarView() {
+    public Navigator getNavigationBarView() {
         int navMode = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP, UserHandle.USER_CURRENT);
         String layout;

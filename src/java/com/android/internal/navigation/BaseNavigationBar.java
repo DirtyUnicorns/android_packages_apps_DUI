@@ -25,13 +25,9 @@ package com.android.internal.navigation;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.utils.SmartObserver;
-import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.actions.ActionUtils;
 
 import android.app.StatusBarManager;
@@ -41,28 +37,20 @@ import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
 import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
 import android.view.Surface;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-public abstract class BaseNavigationBar extends LinearLayout implements Hintable {
-    public interface OnVerticalChangedListener {
-        void onVerticalChanged(boolean isVertical);
-    }
-
+public abstract class BaseNavigationBar extends LinearLayout implements Navigator {
     final static String TAG = "PhoneStatusBar/BaseNavigationBar";
     public final static boolean DEBUG = false;
     public static final boolean NAVBAR_ALWAYS_AT_RIGHT = true;
@@ -127,8 +115,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
         mVertical = false;
     }
-
-    public abstract BarTransitions getBarTransitions();
 
     // require implementation. Surely they have something to clean up
     protected abstract void onDispose();
@@ -320,6 +306,11 @@ public abstract class BaseNavigationBar extends LinearLayout implements Hintable
         if (SLIPPERY_WHEN_DISABLED) {
             setSlippery(disableHome && disableRecent && disableBack && disableSearch);
         }
+    }
+
+    @Override
+    public final View getBaseView() {
+        return (View)this;
     }
 
     // returns themed resources is availabe, otherwise system resources
