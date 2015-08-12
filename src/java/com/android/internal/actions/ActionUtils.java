@@ -314,8 +314,15 @@ public final class ActionUtils {
         if (action.startsWith(ActionHandler.SYSTEM_PREFIX)) {
             for (int i = 0; i < ActionHandler.systemActions.length; i++) {
                 if (ActionHandler.systemActions[i].mAction.equals(action)) {
-                    d = getDrawable(context, ActionHandler.systemActions[i].mIconName,
+                    Resources res = getResourcesForPackage(context,
                             ActionHandler.systemActions[i].mIconPackage);
+                    String iconName = ActionHandler.systemActions[i].mIconName;
+                    if (isNavbarResource(action)) {
+                        d = getNavbarThemedDrawable(context, res, iconName);
+                    } else {
+                        d = getDrawable(res, iconName,
+                                ActionHandler.systemActions[i].mIconPackage);
+                    }
                 }
             }
         } else {
@@ -437,7 +444,7 @@ public final class ActionUtils {
 
     public static Drawable getDrawable(Resources res, String drawableName, String pkg) {
         try {
-            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, "drawable",
+            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, DRAWABLE,
                     pkg));
             return icon;
         } catch (Exception e) {
@@ -505,6 +512,62 @@ public final class ActionUtils {
             }
         }
         return uri;
+    }
+
+    public static boolean isNavbarResource(String res) {
+        return TextUtils.equals(res, ActionHandler.SYSTEMUI_TASK_RECENTS)
+                || TextUtils.equals(res, ActionHandler.SYSTEMUI_TASK_BACK)
+                || TextUtils.equals(res, ActionHandler.SYSTEMUI_TASK_HOME)
+                || TextUtils.equals(res, ActionHandler.SYSTEMUI_TASK_MENU)
+                || TextUtils.equals(res, "ic_sysbar_recent")
+                || TextUtils.equals(res, "ic_sysbar_back")
+                || TextUtils.equals(res, "ic_sysbar_home")
+                || TextUtils.equals(res, "ic_sysbar_menu");
+    }
+
+    private static Drawable getMaybeNullDrawable(Resources res, String drawableName, String pkg) {
+        try {
+            Drawable icon = res.getDrawable(res.getIdentifier(drawableName, DRAWABLE,
+                    pkg));
+            return icon;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static Drawable getNavbarThemedDrawable(Context context, Resources defRes,
+            String drawableName) {
+        if (context == null)
+            return null;
+        ThemeConfig themeConfig = context.getResources().getConfiguration().themeConfig;
+        Resources res = null;
+        Drawable d = null;
+        if (themeConfig != null) {
+            try {
+                final String navbarThemePkgName = themeConfig.getOverlayForNavBar();
+                final String sysuiThemePkgName = themeConfig.getOverlayForStatusBar();
+                // Check if the same theme is applied for systemui, if so we can skip this
+                if (navbarThemePkgName != null && !navbarThemePkgName.equals(sysuiThemePkgName)) {
+                    // Navbar theme and SystemUI (statusbar) theme packages are different
+                    // But we can't assume navbar package has our drawable, so try navbar theme
+                    // package first. If we fail, try the systemui (statusbar) package
+                    // if we still fail, fall back to default package resource
+                    res = context.getPackageManager().getThemedResourcesForApplication(
+                            PACKAGE_SYSTEMUI, navbarThemePkgName);
+                    d = getMaybeNullDrawable(res, drawableName, PACKAGE_SYSTEMUI);
+                    if (d == null) {
+                        // get it from systemui
+                        d = getDrawable(defRes, drawableName, PACKAGE_SYSTEMUI);
+                    }
+                } else {
+                    // same package
+                    d = getDrawable(defRes, drawableName, PACKAGE_SYSTEMUI);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                d = getDrawable(defRes, drawableName, PACKAGE_SYSTEMUI);
+            }
+        }
+        return d;
     }
 
     public static Resources getNavbarThemedResources(Context context) {
