@@ -24,8 +24,11 @@ package com.android.internal.navigation.fling.pulse;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PathEffect;
 import android.graphics.Rect;
+import android.os.Bundle;
 
+import com.android.internal.actions.ActionConstants;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.FFTData;
@@ -36,26 +39,41 @@ public abstract class PulseRenderer extends Renderer implements LavaLamp.LavaLis
     public static final int STATE_FAILED = 2;
 
     private static final int DEF_PAINT_ALPHA = (byte) 188;
-    private static final int DEF_PAINT_COLOR = Color.WHITE;
-    private int mDivisions;
-    private Paint mPaint;
 
+    private int mDivisions;
+    private int mDefColor;
+    private int mUserColor;
+    private int mDbFuzzFactor;
+    private int mDbFuzz;
+    private int mPathEffect1;
+    private int mPathEffect2;
+
+    private Paint mPaint;
     private PulseFftValidator mValidator;
     private LavaLamp mLavaLamp;
 
-    private int mUserColor = Color.WHITE;
     private boolean mLavaEnabled;
 
-
-    public PulseRenderer(int divisions) {
+    public PulseRenderer(Bundle config) {
         super();
-        mDivisions = divisions;
-        mPaint = new Paint();
-        mPaint.setStrokeWidth(50f);
-        mPaint.setAntiAlias(true);
-        updateColor(DEF_PAINT_COLOR);
-        mLavaLamp = new LavaLamp(this);
+        mDivisions = config.getInt(ActionConstants.Fling.CONFIG_pulseDivisions);
+        mDefColor = config.getInt(ActionConstants.Fling.CONFIG_pulseFillColor);
+        mDbFuzzFactor = config.getInt(ActionConstants.Fling.CONFIG_pulseDbFuzzFactor);
+        mDbFuzz = config.getInt(ActionConstants.Fling.CONFIG_pulseDbFuzz);
+        mPathEffect1 = config.getInt(ActionConstants.Fling.CONFIG_pulsePathEffect_1);
+        mPathEffect2 = config.getInt(ActionConstants.Fling.CONFIG_pulsePathEffect_2);
+        mUserColor = mDefColor;
 
+        mPaint = new Paint();
+        mPaint.setStrokeWidth(config.getInt(ActionConstants.Fling.CONFIG_pulsePathStrokeWidth));
+        mPaint.setAntiAlias(true);
+        mPaint.setPathEffect(new android.graphics.DashPathEffect(new float[] {
+                mPathEffect1,
+                mPathEffect2
+        }, 0));
+        updateColor(mDefColor);
+
+        mLavaLamp = new LavaLamp(this);
         mValidator = new PulseFftValidator() {
             @Override
             public void onStreamValidated(boolean isValid) {
@@ -135,7 +153,7 @@ public abstract class PulseRenderer extends Renderer implements LavaLamp.LavaLis
                 int dbValue = magnitude > 0 ? (int) (10 * Math.log10(magnitude)) : 0;
 
                 mFFTPoints[i * 4 + 1] = rect.height();
-                mFFTPoints[i * 4 + 3] = rect.height() - (dbValue * 2 - 10);
+                mFFTPoints[i * 4 + 3] = rect.height() - (dbValue * mDbFuzzFactor + mDbFuzz);
             }
             canvas.drawLines(mFFTPoints, mPaint);
         }

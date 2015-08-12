@@ -32,6 +32,7 @@ import android.content.IntentFilter;
 import android.graphics.Canvas;
 import android.media.IAudioService;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
@@ -71,11 +72,11 @@ public abstract class PulseController implements FlingModule {
         }
     };
 
-    public PulseController(Context context, FlingModule.Callbacks callback) {
+    public PulseController(Context context, FlingModule.Callbacks callback, Bundle config) {
         mContext = context;
         mCallback = callback;
         mVisualizer = new PulseVisualizer(callback);
-        mRenderer = new PulseRenderer(16) {
+        mRenderer = new PulseRenderer(config) {
             @Override
             public void onRenderStateChanged(int state) {
                 if (state == PulseRenderer.STATE_SUCCESS) {
@@ -237,9 +238,7 @@ public abstract class PulseController implements FlingModule {
         mRenderer.stopLavaLamp(); // turn off lava lamp
         // mVisualizer.setDrawingEnabled(false); // disable visualizer drawing
         mCallback.onInvalidate(); // this should clear the bar canvas
-        onPulseStateChanged(STATE_STOPPED);// bring back logo or
-                                                                               // anything else that
-                                                                               // hides for Pulse
+        onPulseStateChanged(STATE_STOPPED);// bring back logo
     }
 
     private void doLinkage() {

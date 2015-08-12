@@ -195,7 +195,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mTrails = new FlingTrails(this, this);
         mLogoController = new FlingLogoController(context);
 
-        mPulse = new PulseController(context, this) {
+        mPulse = new PulseController(context, this, configs) {
             @Override
             public boolean onPrepareToPulse() {
                 mLogoController.hideAndLock(mPulseOnListener);
@@ -274,7 +274,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private void updatePulseEnabled() {
         boolean doPulse = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+                Settings.System.NX_PULSE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mPulse.setPulseEnabled(doPulse);
     }
 
@@ -286,7 +286,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private void updateLavaLampEnabled() {
         boolean doLava = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_PULSE_LAVALAMP_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+                Settings.System.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mPulse.setLavaLampEnabled(doLava);
     }
 
@@ -299,7 +299,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private void updateTrailsEnabled() {
         boolean enabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_TRAILS_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
+                Settings.System.FLING_TRAILS_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mTrails.setTrailsEnabled(enabled);
     }
 

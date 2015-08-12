@@ -31,8 +31,8 @@ public abstract class PulseFftValidator {
     private static final int MSG_STREAM_INVALID = 56;
 
     // we have 500 millis to get two consecutive valid frames
-    private static final int VALIDATION_TIME_MILLIS = 500;
-    private static final int VALID_BYTES_THRESHOLD = 2;
+    private static final int VALIDATION_TIME_MILLIS = 750;
+    private static final int VALID_BYTES_THRESHOLD = 3;
 
     private int mConsecutiveFrames;
     private boolean mIsValidated;

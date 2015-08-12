@@ -318,6 +318,13 @@ public class ActionConstants {
         public static final String CONFIG_FlingLongSwipeLandscapeRight = "config_FlingLongSwipeLandscapeRight";
         public static final String CONFIG_FlingLongSwipeVerticalUp = "config_FlingLongSwipeVerticalUp";
         public static final String CONFIG_FlingLongSwipeVerticalDown = "config_FlingLongSwipeVerticalDown";
+        public static final String CONFIG_pulsePathEffect_1 = "config_pulsePathEffect_1";
+        public static final String CONFIG_pulsePathEffect_2 = "config_pulsePathEffect_2";
+        public static final String CONFIG_pulsePathStrokeWidth = "config_pulsePathStrokeWidth";
+        public static final String CONFIG_pulseFillColor = "config_pulseFillColor";
+        public static final String CONFIG_pulseDivisions = "config_pulseDivisions";
+        public static final String CONFIG_pulseDbFuzzFactor = "config_pulseDbFuzzFactor";
+        public static final String CONFIG_pulseDbFuzz = "config_pulseDbFuzz";
 
         private static final Map<String, ConfigHolder> defMap = new HashMap<String, ConfigHolder>();
 
@@ -343,6 +350,20 @@ public class ActionConstants {
             defMap.put(CONFIG_FlingLongSwipeVerticalDown, new ConfigHolder(
                     ActionUtils.PACKAGE_SYSTEMUI, CONFIG_FlingLongSwipeVerticalDown,
                     ActionUtils.FORMAT_FLOAT, ActionUtils.DIMEN));
+            defMap.put(CONFIG_pulsePathEffect_1, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulsePathEffect_1, ActionUtils.DIMEN_PIXEL));
+            defMap.put(CONFIG_pulsePathEffect_2, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulsePathEffect_2, ActionUtils.DIMEN_PIXEL));
+            defMap.put(CONFIG_pulsePathStrokeWidth, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulsePathStrokeWidth, ActionUtils.DIMEN_PIXEL));
+            defMap.put(CONFIG_pulseFillColor, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulseFillColor, ActionUtils.COLOR));
+            defMap.put(CONFIG_pulseDivisions, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulseDivisions, ActionUtils.INT));
+            defMap.put(CONFIG_pulseDbFuzzFactor, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulseDbFuzzFactor, ActionUtils.INT));
+            defMap.put(CONFIG_pulseDbFuzz, new ConfigHolder(
+                    ActionUtils.PACKAGE_SYSTEMUI, CONFIG_pulseDbFuzz, ActionUtils.INT));
         }
 
         private static final Map<String, ConfigMap> configMap = new HashMap<String, ConfigMap>();

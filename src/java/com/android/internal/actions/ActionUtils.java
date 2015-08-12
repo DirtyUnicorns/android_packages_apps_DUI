@@ -366,7 +366,9 @@ public final class ActionUtils {
             } else if (resType.equals(INT)) {
                 return Integer.valueOf(res.getInteger(id));
             } else if (resType.equals(COLOR)) {
-                return Integer.valueOf(res.getColor(id));
+                int rawColor = res.getColor(id);
+                return Integer.valueOf(Color.argb(Color.alpha(rawColor), Color.red(rawColor),
+                        Color.green(rawColor), Color.blue(rawColor)));
             } else if (resType.equals(BOOL)) {
                 return Boolean.valueOf(res.getBoolean(id));
             } else if (resType.equals(STRING)) {
@@ -401,6 +403,10 @@ public final class ActionUtils {
         }
     }
 
+    public static String getString(Context context, String resName, String pkg) {
+        return (String) getValue(context, resName, STRING, null, pkg);
+    }
+
     public static boolean getBoolean(Context context, String resName, String pkg) {
         return (Boolean) getValue(context, resName, BOOL, null, pkg);
     }
@@ -409,7 +415,7 @@ public final class ActionUtils {
         return (Integer) getValue(context, resName, INT, null, pkg);
     }
 
-    public static int getColor(Context context, String resName, String pkg) {
+    public static int getColor(Context context, String resName, String pkg) {        
         return (Integer) getValue(context, resName, COLOR, null, pkg);
     }
 
