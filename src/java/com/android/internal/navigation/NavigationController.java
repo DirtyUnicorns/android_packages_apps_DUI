@@ -20,6 +20,8 @@
 
 package com.android.internal.navigation;
 
+import com.android.internal.navigation.pulse.PulseController;
+import com.android.internal.navigation.smartbar.SmartBarView;
 import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.UserContentObserver;
@@ -39,6 +41,7 @@ import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 
@@ -47,8 +50,10 @@ public class NavigationController implements PackageChangedListener {
 
     public static final int NAVIGATION_MODE_AOSP = 0;
     public static final int NAVIGATION_MODE_FLING = 1;
+    public static final int NAVIGATION_MODE_SMARTBAR = 2;
     private static final String NAVBAR_LAYOUT = "navigation_bar";
     private static final String FLING_LAYOUT = "fling_bar";
+    private static final String SMARTBAR_LAYOUT = "smart_bar";
 
     private StatusbarImpl mBar;
     private NavbarObserver mNavbarObserver;
@@ -56,6 +61,7 @@ public class NavigationController implements PackageChangedListener {
     private Runnable mAddNavbar;
     private Runnable mRemoveNavbar;
     private Context mContext;
+    private PulseController mPulseController;
 
     public NavigationController(Context context, StatusbarImpl statusBar,
             Runnable forceAddNavbar, Runnable removeNavbar) {
@@ -66,6 +72,7 @@ public class NavigationController implements PackageChangedListener {
         unlockVisualizer();
         mNavbarObserver = new NavbarObserver(mHandler);
         mNavbarObserver.observe();
+        mPulseController = new PulseController(mContext, mHandler, ActionConstants.getDefaults(ActionConstants.FLING).getConfigs(mContext));
     }
 
     public Navigator getNavigationBarView() {
@@ -79,19 +86,29 @@ public class NavigationController implements PackageChangedListener {
             case NAVIGATION_MODE_FLING:
                 layout = FLING_LAYOUT;
                 break;
+            case NAVIGATION_MODE_SMARTBAR:
+                layout = SMARTBAR_LAYOUT;
+                break;
             default:
                 layout = NAVBAR_LAYOUT;
         }
-        // use for testing or lack of settings
-        String override = SystemProperties.get("ro.fling.debug");
-        if (override != null) {
-            if ("0".equals(override)) {
-                layout = NAVBAR_LAYOUT;
-            } else if ("1".equals(override)) {
-                layout = FLING_LAYOUT;
-            }
+
+        // SmartBar was enabled but we turned off debugging
+        if (!"1".equals("ro.smartbar.debug") && TextUtils.equals(layout, SMARTBAR_LAYOUT)) {
+            layout = NAVBAR_LAYOUT;
         }
-        return inflateBar(mContext, layout);
+
+        Navigator nav = null;
+
+        if (TextUtils.equals(SMARTBAR_LAYOUT, layout)) {
+            nav = new SmartBarView(mContext);
+        } else {
+            nav = (BaseNavigationBar) View.inflate(mContext,
+                    DUActionUtils.getIdentifier(mContext, layout,
+                            "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
+        }
+        nav.setControllers(mPulseController);
+        return nav;
     }
 
     public void destroy() {
@@ -107,18 +124,6 @@ public class NavigationController implements PackageChangedListener {
         } catch (RemoteException e) {
             Log.e(TAG, "Error unlocking visualizer when starting SystemUI");
         }
-    }
-
-    private BaseNavigationBar inflateBar(Context ctx, String layout) {
-        BaseNavigationBar bar = null;
-        try {
-            bar = (BaseNavigationBar) View.inflate(ctx,
-                    DUActionUtils.getIdentifier(ctx, layout,
-                            "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return bar;
     }
 
     // for now, it makes sense to let PhoneStatusBar add/remove navbar view
@@ -161,18 +166,18 @@ public class NavigationController implements PackageChangedListener {
                 boolean navLeftInLandscape = Settings.System.getIntForUser(resolver,
                         Settings.System.NAVBAR_LEFT_IN_LANDSCAPE, 0, UserHandle.USER_CURRENT) == 1;
                 mBar.getNavigationBarView().setLeftInLandscape(navLeftInLandscape);
-			} else if (uri.equals(Settings.Secure
-					.getUriFor(Settings.Secure.NAVIGATION_BAR_VISIBLE))) {
-				boolean showing = Settings.Secure.getInt(resolver,
-						Settings.Secure.NAVIGATION_BAR_VISIBLE,
-						DUActionUtils.hasNavbarByDefault(mContext) ? 1 : 0) != 0;
-				if (isBarShowingNow && !showing) {
-					mBar.getNavigationBarView().dispose();
-					mHandler.post(mRemoveNavbar);
-				} else if (!isBarShowingNow && showing) {
-					mHandler.post(mAddNavbar);
-				}
-				updateKeyDisabler();
+            } else if (uri.equals(Settings.Secure
+                    .getUriFor(Settings.Secure.NAVIGATION_BAR_VISIBLE))) {
+                boolean showing = Settings.Secure.getInt(resolver,
+                        Settings.Secure.NAVIGATION_BAR_VISIBLE,
+                        DUActionUtils.hasNavbarByDefault(mContext) ? 1 : 0) != 0;
+                if (isBarShowingNow && !showing) {
+                    mBar.getNavigationBarView().dispose();
+                    mHandler.post(mRemoveNavbar);
+                } else if (!isBarShowingNow && showing) {
+                    mHandler.post(mAddNavbar);
+                }
+                updateKeyDisabler();
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_MODE))) {
                 if (isBarShowingNow) {
                     mBar.getNavigationBarView().dispose();
@@ -208,14 +213,14 @@ public class NavigationController implements PackageChangedListener {
             final Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (!DUActionUtils.hasNavbarByDefault(mContext)) {
+                    if (!DUActionUtils.hasNavbarByDefault(ctx)) {
                         DUActionUtils.resolveAndUpdateButtonActions(ctx,
                                 ActionConstants
                                         .getDefaults(ActionConstants.HWKEYS));
                     }
                     DUActionUtils
                             .resolveAndUpdateButtonActions(ctx, ActionConstants
-                                    .getDefaults(ActionConstants.NAVBAR));
+                                    .getDefaults(ActionConstants.SMARTBAR));
                     DUActionUtils.resolveAndUpdateButtonActions(ctx,
                             ActionConstants.getDefaults(ActionConstants.FLING));
                 }

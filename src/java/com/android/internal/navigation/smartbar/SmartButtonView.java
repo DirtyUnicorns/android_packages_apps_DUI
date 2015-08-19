@@ -1,0 +1,373 @@
+/*
+ * Copyright (C) 2008 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.internal.navigation.smartbar;
+
+import android.animation.Animator;
+
+import com.android.internal.utils.du.ActionHandler;
+import com.android.internal.utils.du.Config.ActionConfig;
+import com.android.internal.utils.du.Config.ButtonConfig;
+
+import android.animation.ObjectAnimator;
+import android.app.ActivityManager;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.content.res.ThemeConfig;
+import android.media.AudioManager;
+import android.os.PowerManager;
+import android.os.SystemClock;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
+import android.view.SoundEffectConstants;
+import android.view.View;
+import android.view.ViewConfiguration;
+import android.view.accessibility.AccessibilityEvent;
+import android.widget.ImageView;
+import java.lang.Math;
+
+public class SmartButtonView extends ImageView {
+    private static final String TAG = "StatusBar.KeyButtonView";
+    private static final boolean DEBUG = false;
+
+    // TODO: make this dynamic again
+    private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
+    private static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
+
+    // TODO: Get rid of this
+    public static final float DEFAULT_QUIESCENT_ALPHA = 1f;
+
+    private long mDownTime;
+    private long mUpTime;
+    private int mTouchSlop;
+    private float mDrawingAlpha = 1f;
+    private float mQuiescentAlpha = DEFAULT_QUIESCENT_ALPHA;
+    private AudioManager mAudioManager;
+    private Animator mAnimateToQuiescent = new ObjectAnimator();
+    private SmartButtonRipple mRipple;
+    private boolean mInEditMode;
+
+    private PowerManager mPm;
+
+    private boolean mHasSingleAction = true, mHasDoubleAction, mHasLongAction;
+    private boolean mIsRecentsAction = false, mIsRecentsSingleAction, mIsRecentsLongAction,
+            mIsRecentsDoubleTapAction;
+
+    private final int mSingleTapTimeout = ViewConfiguration.getTapTimeout();
+    private final int mSingleTapTimeoutWithDT = mSingleTapTimeout + 175;
+    private int mLongPressTimeout = LP_TIMEOUT;
+    private int mDoubleTapTimeout = DT_TIMEOUT;
+    private ButtonConfig mConfig;
+    private SmartActionHandler mActionHandler;
+    public boolean mHasBlankSingleAction = false;
+    private boolean mDoOverrideSingleTap;
+
+    public SmartButtonView(Context context, SmartActionHandler actionHandler) {
+        this(context);
+        mActionHandler = actionHandler;
+    }
+
+    public SmartButtonView(Context context) {
+        super(context);
+        setDrawingAlpha(mQuiescentAlpha);
+        setClickable(true);
+        setLongClickable(false);
+        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+        mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+    }
+
+    public void loadRipple() {
+        setBackground(mRipple = new SmartButtonRipple(mContext, this));
+    }
+
+    public void setEditMode(boolean editMode) {
+        mInEditMode = editMode;
+    }
+
+    public void setLongPressTimeout(int lpTimeout) {
+        mLongPressTimeout = lpTimeout;
+    }
+
+    public void setDoubleTapTimeout(int dtTimeout) {
+        mDoubleTapTimeout = dtTimeout;
+    }
+
+    public void setButtonConfig(ButtonConfig actions) {
+        this.mConfig = actions;
+        setTag(mConfig.getTag());
+
+        mHasSingleAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.PRIMARY).hasNoAction();
+        mHasLongAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.SECOND).hasNoAction();
+        mHasDoubleAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.THIRD).hasNoAction();
+        mHasBlankSingleAction = mHasSingleAction && mConfig.getActionConfig(ActionConfig.PRIMARY).hasNoAction();
+
+        mIsRecentsSingleAction = (mHasSingleAction && mConfig.getActionConfig(ActionConfig.PRIMARY).isActionRecents());
+        mIsRecentsLongAction = (mHasLongAction && mConfig.getActionConfig(ActionConfig.SECOND).isActionRecents());
+        mIsRecentsDoubleTapAction = (mHasDoubleAction && mConfig.getActionConfig(ActionConfig.THIRD).isActionRecents());
+
+        if (mIsRecentsSingleAction || mIsRecentsLongAction || mIsRecentsDoubleTapAction) {
+            mIsRecentsAction = true;
+        }
+
+        setLongClickable(mHasLongAction);
+    }
+
+    public ButtonConfig getButtonConfig() {
+        return mConfig;
+    }
+
+    public String getSingleTapAction() {
+        if (mHasSingleAction) {
+            return mConfig.getActionConfig(ActionConfig.PRIMARY).getAction();
+        } else {
+            return null;
+        }
+    }
+
+    private int getSingleTapTimeout() {
+        return mHasDoubleAction ? mSingleTapTimeoutWithDT : mSingleTapTimeout;
+    }
+
+    private boolean isLongPressStopScreenPinning() {
+        return false;
+    }
+
+    @Override
+    public Resources getResources() {
+        ThemeConfig themeConfig = mContext.getResources().getConfiguration().themeConfig;
+        Resources res = null;
+        if (themeConfig != null) {
+            try {
+                final String navbarThemePkgName = themeConfig.getOverlayForNavBar();
+                final String sysuiThemePkgName = themeConfig.getOverlayForStatusBar();
+                // Check if the same theme is applied for systemui, if so we can skip this
+                if (navbarThemePkgName != null && !navbarThemePkgName.equals(sysuiThemePkgName)) {
+                    res = mContext.getPackageManager().getThemedResourcesForApplication(
+                            mContext.getPackageName(), navbarThemePkgName);
+                }
+            } catch (PackageManager.NameNotFoundException e) {
+                // don't care since we'll handle res being null below
+            }
+        }
+
+        return res != null ? res : super.getResources();
+    }
+
+    public void setQuiescentAlpha(float alpha, boolean animate) {
+        mAnimateToQuiescent.cancel();
+        alpha = Math.min(Math.max(alpha, 0), 1);
+        if (alpha == mQuiescentAlpha && alpha == mDrawingAlpha)
+            return;
+        mQuiescentAlpha = alpha;
+        if (DEBUG)
+            Log.d(TAG, "New quiescent alpha = " + mQuiescentAlpha);
+        if (animate) {
+            mAnimateToQuiescent = animateToQuiescent();
+            mAnimateToQuiescent.start();
+        } else {
+            setDrawingAlpha(mQuiescentAlpha);
+        }
+    }
+
+    private ObjectAnimator animateToQuiescent() {
+        return ObjectAnimator.ofFloat(this, "drawingAlpha", mQuiescentAlpha);
+    }
+
+    public float getQuiescentAlpha() {
+        return mQuiescentAlpha;
+    }
+
+    public float getDrawingAlpha() {
+        return mDrawingAlpha;
+    }
+
+    public void setDrawingAlpha(float x) {
+        setImageAlpha((int) (x * 255));
+        mDrawingAlpha = x;
+    }
+
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (mInEditMode) {
+            return false;
+        }
+        if (mHasBlankSingleAction) {
+            return true;
+        }
+
+        final int action = ev.getAction();
+        int x, y;
+
+        // A lot of stuff is about to happen. Lets get ready.
+//        mPm.cpuBoost(750000);
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                if (mIsRecentsAction) {
+                    ActionHandler.preloadRecentApps();
+                }
+                mDownTime = SystemClock.uptimeMillis();
+                setPressed(true);
+                if (mHasSingleAction) {
+                    removeCallbacks(mSingleTap);
+                }
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                long diff = mDownTime - mUpTime; // difference between last up
+                                                 // and now
+                if (mHasDoubleAction && diff <= mDoubleTapTimeout) {
+                    doDoubleTap();
+                } else {
+
+                    if (mHasLongAction || isLongPressStopScreenPinning()) {
+                        removeCallbacks(mCheckLongPress);
+                        postDelayed(mCheckLongPress, mLongPressTimeout);
+                    }
+                    if (mHasSingleAction) {
+                        postDelayed(mSingleTap, getSingleTapTimeout());
+                    }
+                }
+                break;
+            case MotionEvent.ACTION_MOVE:
+                x = (int) ev.getX();
+                y = (int) ev.getY();
+                setPressed(x >= -mTouchSlop
+                        && x < getWidth() + mTouchSlop
+                        && y >= -mTouchSlop
+                        && y < getHeight() + mTouchSlop);
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                setPressed(false);
+                if (mHasSingleAction) {
+                    removeCallbacks(mSingleTap);
+                }
+                // hack to fix ripple getting stuck. exitHardware() starts an animation,
+                // but sometimes does not finish it.
+                // TODO: no-op now?
+                // mRipple.exitSoftware();
+                if (mHasLongAction || isLongPressStopScreenPinning()) {
+                    removeCallbacks(mCheckLongPress);
+                }
+                ActionHandler.cancelPreloadRecentApps();
+                break;
+            case MotionEvent.ACTION_UP:
+                mUpTime = SystemClock.uptimeMillis();
+                boolean playSound;
+
+                if (mHasLongAction || isLongPressStopScreenPinning()) {
+                    removeCallbacks(mCheckLongPress);
+                }
+                playSound = isPressed();
+                setPressed(false);
+
+                if (playSound) {
+                    playSoundEffect(SoundEffectConstants.CLICK);
+                }
+
+                if (!mHasDoubleAction && !mHasLongAction && !mDoOverrideSingleTap) {
+                    removeCallbacks(mSingleTap);
+                    doSinglePress();
+                }
+                mDoOverrideSingleTap = false;
+                break;
+        }
+
+        return true;
+    }
+
+    public void playSoundEffect(int soundConstant) {
+        mAudioManager.playSoundEffect(soundConstant, ActivityManager.getCurrentUser());
+    };
+
+    // respect the public call so we don't have to butcher PhoneStatusBar
+    public void sendEvent(int action, int flags) {}
+
+    private void doSinglePress() {
+        if (callOnClick()) {
+            // cool
+            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+        } else if (mActionHandler != null && mIsRecentsSingleAction && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY).getAction())) {
+            ActionHandler.toggleRecentApps();
+            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+            return;
+        }
+
+        if (mConfig != null) {
+            if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY).getAction())) {
+                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.PRIMARY).getAction());
+                sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
+            }
+        }
+    }
+
+    private void doDoubleTap() {
+        if (mHasDoubleAction) {
+            removeCallbacks(mSingleTap);
+            if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.THIRD).getAction())) {
+                if (mIsRecentsDoubleTapAction) {
+                    ActionHandler.toggleRecentApps();
+                } else {
+                    ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.THIRD).getAction());
+                }
+            }
+        }
+    }
+
+    private void doLongPress() {
+        if (isLongPressStopScreenPinning()
+                && ActionHandler.isLockTaskOn()) {
+            ActionHandler.turnOffLockTask();
+            mDoOverrideSingleTap = true;
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+        } else {
+            if (mHasLongAction) {
+                removeCallbacks(mSingleTap);
+                if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.SECOND).getAction())) {
+                    if (mIsRecentsLongAction) {
+                        ActionHandler.toggleRecentApps();
+                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+                    } else {
+                        ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.SECOND).getAction());
+                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
+                    }
+                }
+            }
+        }
+    }
+
+    private Runnable mCheckLongPress = new Runnable() {
+        public void run() {
+            if (isPressed()) {
+                removeCallbacks(mSingleTap);
+                doLongPress();
+            }
+        }
+    };
+
+    private Runnable mSingleTap = new Runnable() {
+        @Override
+        public void run() {
+            if (!isPressed()) {
+                doSinglePress();
+            }
+        }
+    };
+}

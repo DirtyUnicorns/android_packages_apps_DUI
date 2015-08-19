@@ -31,17 +31,16 @@ import android.os.SystemProperties;
 import android.view.MotionEvent;
 import android.view.View;
 
-public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimListener {
+public class FlingTrails implements View.OnTouchListener, IAnimListener {
     private static final int ANIM_DELAY = 100;
     private static final int ANIM_DURATION = 400;
-    private Callbacks mCallbacks;
     private TrailDrawer mTrailDrawer;
     private boolean mEnabled;
+    private View mHost;
     private int mTrailColor = Color.WHITE;
 
-    public FlingTrails(View v, Callbacks callback) {
-        mCallbacks = callback;
-
+    public FlingTrails(View v) {
+        mHost = v;
         mTrailDrawer = new TrailDrawer(v);
         mTrailDrawer.setMultistrokeEnabled(false);
         mTrailDrawer.getTrailOptions().setColor(mTrailColor);
@@ -82,13 +81,6 @@ public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimList
         }
     }
 
-    @Override
-    public void setCallbacks(Callbacks callbacks) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public void onDraw(Canvas canvas) {
         if (mEnabled) {
             mTrailDrawer.draw(canvas);
@@ -98,7 +90,7 @@ public class FlingTrails implements FlingModule, View.OnTouchListener, IAnimList
     @Override
     public void animationFinished() {
         mTrailDrawer.clear();
-        mCallbacks.onInvalidate();
+        mHost.invalidate();
     }
 
     @Override

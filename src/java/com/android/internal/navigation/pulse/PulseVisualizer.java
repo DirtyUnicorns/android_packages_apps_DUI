@@ -19,46 +19,46 @@
  *
  */
 
-package com.android.internal.navigation.fling.pulse;
+package com.android.internal.navigation.pulse;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Bitmap.Config;
 
-import com.android.internal.navigation.fling.FlingModule;
-import com.pheelicks.visualizer.BaseVisualizer;
-import com.pheelicks.visualizer.renderer.Renderer;
+import com.android.internal.navigation.pulse.PulseController.PulseObserver;
 
 public class PulseVisualizer extends BaseVisualizer {
-    private FlingModule.Callbacks mCallback;
+    private PulseObserver mCallback;
     private Bitmap mRotatedBitmap;
     private Matrix mRotMatrix;
     private boolean mVertical;
     private boolean mLeftInLandscape;
-    private boolean mResetDrawing = true;
-    protected boolean mDrawingEnabled = true;
-    
+    private boolean mResetDrawing = true;    
 
-    public PulseVisualizer(FlingModule.Callbacks callback) {
+    public PulseVisualizer(PulseObserver callback) {
         super();
-        mCallback = callback;
         mRotMatrix = new Matrix();
+        mCallback = callback;
+    }
+
+    public void setPulseObserver(PulseObserver observer) {
+        mCallback = observer;
     }
 
     @Override
     protected void onInvalidate() {
-        mCallback.onInvalidate();
+        mCallback.invalidate();
     }
 
     @Override
     protected int onGetWidth() {
-        return mCallback.onGetWidth();
+        return mCallback.getWidth();
     }
 
     @Override
     protected int onGetHeight() {
-        return mCallback.onGetHeight();
+        return mCallback.getHeight();
     }
 
     public void resetDrawing() {
@@ -70,10 +70,6 @@ public class PulseVisualizer extends BaseVisualizer {
             mLeftInLandscape = leftInLandscape;
             mResetDrawing = true;
         }
-    }
-
-    public boolean isDrawingEnabled() {
-        return mDrawingEnabled;
     }
 
     @Override
@@ -111,10 +107,7 @@ public class PulseVisualizer extends BaseVisualizer {
         }
 
         if (mFFTBytes != null) {
-            // Render all FFT renderers
-            for (Renderer r : mRenderers) {
-                r.render(mCanvas, mFftData, mRect);
-            }
+            mRenderer.render(mCanvas, mFftData, mRect);
         }
 
         if (mDrawingEnabled) {

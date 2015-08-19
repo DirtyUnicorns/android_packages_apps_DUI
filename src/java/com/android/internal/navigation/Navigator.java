@@ -25,6 +25,8 @@ package com.android.internal.navigation;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
+import com.android.internal.navigation.pulse.PulseController;
+
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.View;
@@ -54,12 +56,11 @@ public interface Navigator extends Hintable {
     public void setTransparencyAllowedWhenVertical(boolean allowed);
     public void abortCurrentGesture();
     public void setStatusBarCallbacks(StatusbarImpl statusbar);
-    public void setDisabledFlags(int disabledFlags);
-    public void setDisabledFlags(int disabledFlags, boolean force);
     public void setOnVerticalChangedListener(OnVerticalChangedListener onVerticalChangedListener);
     public void dispose();
     public void notifyScreenOn(boolean screenOn);
     public void setSlippery(boolean newSlippery);
+    public void setDisabledFlags(int disabledFlags, boolean force);
     public void reorient();
     public void setListeners(OnTouchListener homeActionListener,
             OnLongClickListener homeLongClickListener,
@@ -67,7 +68,7 @@ public interface Navigator extends Hintable {
             OnClickListener recentsClickListener,
             OnTouchListener recentsTouchListener,
             OnLongClickListener recentsLongClickListener);
-    public void updateSettings();
+    public void setControllers(PulseController pulseController);
     public boolean isInEditMode();
     public void setLayoutTransitionsEnabled(boolean enabled);
     public void setWakeAndUnlocking(boolean wakeAndUnlocking);

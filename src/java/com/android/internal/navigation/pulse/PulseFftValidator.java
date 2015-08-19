@@ -20,24 +20,27 @@
  *
  */
 
-package com.android.internal.navigation.fling.pulse;
+package com.android.internal.navigation.pulse;
+
+import com.android.internal.navigation.utils.Shutdownable;
 
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 
-public abstract class PulseFftValidator {
+public class PulseFftValidator implements StreamValidator, Shutdownable {
     private static final int MSG_STREAM_VALID = 55;
     private static final int MSG_STREAM_INVALID = 56;
 
-    // we have 500 millis to get two consecutive valid frames
-    private static final int VALIDATION_TIME_MILLIS = 750;
+    // we have 1500 millis to get three consecutive valid frames
+    private static final int VALIDATION_TIME_MILLIS = 1500;
     private static final int VALID_BYTES_THRESHOLD = 3;
 
     private int mConsecutiveFrames;
     private boolean mIsValidated;
     private boolean mIsAnalyzed;
     private boolean mIsPrepared;
+
+    private StreamValidator.Callbacks mListener;
 
     private Handler mHandler = new Handler() {
         @Override
@@ -47,13 +50,17 @@ public abstract class PulseFftValidator {
                     mIsAnalyzed = true;
                     mIsValidated = true;
                     mIsPrepared = false;
-                    onStreamValidated(true);
+                    if (mListener != null) {
+                        mListener.onStreamAnalyzed(true);
+                    }
                     break;
                 case MSG_STREAM_INVALID:
                     mIsAnalyzed = true;
                     mIsValidated = false;
                     mIsPrepared = false;
-                    onStreamValidated(false);
+                    if (mListener != null) {
+                        mListener.onStreamAnalyzed(false);
+                    }
                     break;
             }
         }
@@ -61,8 +68,6 @@ public abstract class PulseFftValidator {
 
     public PulseFftValidator() {
     }
-
-    public abstract void onStreamValidated(boolean isValid);
 
     public void analyze(byte[] data) {
         if (mIsAnalyzed) {
@@ -92,7 +97,7 @@ public abstract class PulseFftValidator {
         return mIsAnalyzed && mIsValidated;
     }
 
-    public void resetFlags() {
+    public void reset() {
         mIsAnalyzed = false;
         mIsValidated = false;
         mIsPrepared = false;
@@ -106,5 +111,22 @@ public abstract class PulseFftValidator {
             }
         }
         return true;
+    }
+
+    @Override
+    public void shutdown(Shutdownable.Callbacks callbacks) {
+        mHandler.removeMessages(MSG_STREAM_INVALID);
+        mHandler.removeMessages(MSG_STREAM_VALID);
+        callbacks.onShutdown();
+    }
+
+    @Override
+    public void addCallbacks(StreamValidator.Callbacks callbacks) {
+        mListener = callbacks;
+    }
+
+    @Override
+    public void removeCallbacks(StreamValidator.Callbacks callbacks) {
+        mListener = null;
     }
 }

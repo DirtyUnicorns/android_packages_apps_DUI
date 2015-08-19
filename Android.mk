@@ -5,7 +5,6 @@ include $(CLEAR_VARS)
 LOCAL_JAVA_LIBRARIES := org.dirtyunicorns.utils
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
-    android-visualizer \
     trail-drawing
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
