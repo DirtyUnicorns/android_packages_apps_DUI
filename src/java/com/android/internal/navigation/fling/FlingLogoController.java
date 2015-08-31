@@ -59,7 +59,7 @@ public class FlingLogoController implements SmartObservable {
     private boolean mLogoEnabled;
     private boolean mAnimateTouchEnabled;
     private int mVisibilityLock;
-    private int mLogoColor;
+    private int mLogoColor = 0;
     private AnimationSet mShow = getSpinAnimation(LOGO_ANIMATE_SHOW);
     private AnimationSet mHide = getSpinAnimation(LOGO_ANIMATE_HIDE);
 
@@ -175,7 +175,7 @@ public class FlingLogoController implements SmartObservable {
         boolean spinOnTouch = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
         int logoColor = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+                Settings.System.NX_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
         if (mLogoColor != logoColor) {
             mLogoColor = logoColor;
             if (mLogoColor != mLogoView.getLogoColor()) {
@@ -196,7 +196,7 @@ public class FlingLogoController implements SmartObservable {
         mAnimateTouchEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
                 Settings.System.NX_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
         mLogoColor = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+                Settings.System.NX_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
     }
 
     public static AnimationSet getSpinAnimation(int mode) {

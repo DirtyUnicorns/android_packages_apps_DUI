@@ -46,7 +46,6 @@ public class FlingLogoView extends ImageView {
         super(context, attrs, defStyle);
         setBackground(null);
         updateResources(context.getResources());
-        setDrawableColorFilter(mLogoColor);
     }
 
     @Override
@@ -68,7 +67,9 @@ public class FlingLogoView extends ImageView {
         if (mLogoColor == color) {
             return;
         } else if (color == -1) {
-            mLogoColor = Color.WHITE;
+            mLogoColor = -1;
+            getDrawable().setColorFilter(null);
+            return;
         } else if (color == -2) {
             mLogoColor = ActionUtils.getColor(getContext(), "status_bar_clock_color",
                     ActionUtils.PACKAGE_SYSTEMUI);
