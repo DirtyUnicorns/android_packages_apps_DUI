@@ -23,7 +23,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.android.internal.navigation.StatusbarImpl;
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionUtils;
 
 public class DelegateViewHelper {
     private View mDelegateView;

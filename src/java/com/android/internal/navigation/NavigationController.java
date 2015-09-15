@@ -18,8 +18,8 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 
-import com.android.internal.actions.ActionConstants;
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionConstants;
+import com.android.internal.utils.eos.ActionUtils;
 
 public class NavigationController {
     private static final String TAG = NavigationController.class.getSimpleName();

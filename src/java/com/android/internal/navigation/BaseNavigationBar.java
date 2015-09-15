@@ -28,7 +28,7 @@ import java.io.PrintWriter;
 
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.utils.SmartObserver;
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionUtils;
 
 import android.app.StatusBarManager;
 import android.content.ContentResolver;

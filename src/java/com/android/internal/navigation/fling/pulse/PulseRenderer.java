@@ -28,7 +28,7 @@ import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-import com.android.internal.actions.ActionConstants;
+import com.android.internal.utils.eos.ActionConstants;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.FFTData;

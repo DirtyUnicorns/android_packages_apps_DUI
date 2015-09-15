@@ -26,8 +26,8 @@ package com.android.internal.navigation.fling;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.android.internal.actions.ActionConstants.Fling;
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionConstants.Fling;
+import com.android.internal.utils.eos.ActionUtils;
 import com.android.internal.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 

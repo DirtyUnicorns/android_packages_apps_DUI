@@ -30,8 +30,8 @@ import com.android.internal.navigation.fling.FlingGestureDetector;
 import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
-import com.android.internal.actions.ActionUtils;
-import com.android.internal.actions.ActionConstants;
+import com.android.internal.utils.eos.ActionUtils;
+import com.android.internal.utils.eos.ActionConstants;
 
 import android.content.Context;
 import android.content.res.Resources;

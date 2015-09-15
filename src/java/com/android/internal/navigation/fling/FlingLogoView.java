@@ -21,7 +21,7 @@
 
 package com.android.internal.navigation.fling;
 
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionUtils;
 
 import android.content.Context;
 import android.content.res.Resources;

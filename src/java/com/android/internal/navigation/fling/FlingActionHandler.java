@@ -14,12 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * Handles binding actions to events, and a simple public api for firing
- * events. Also handles observing user changes to actions and a callback
+ * Handles binding utils.eos to events, and a simple public api for firing
+ * events. Also handles observing user changes to utils.eos and a callback
  * that's called action pre-execution. Let's motion handler know if double
  * tap is enabled in case of different touch handling
  * 
- * Split bar actions: if only one side is enabled, the full bar executes the
+ * Split bar utils.eos: if only one side is enabled, the full bar executes the
  * enabled side action
  *
  */
@@ -34,12 +34,12 @@ import java.util.Map;
 import java.util.Set;
 
 
-import com.android.internal.actions.ActionConstants;
-import com.android.internal.actions.ActionConstants.ConfigMap;
-import com.android.internal.actions.ActionHandler;
-import com.android.internal.actions.Config;
-import com.android.internal.actions.Config.ActionConfig;
-import com.android.internal.actions.Config.ButtonConfig;
+import com.android.internal.utils.eos.ActionConstants;
+import com.android.internal.utils.eos.ActionConstants.ConfigMap;
+import com.android.internal.utils.eos.ActionHandler;
+import com.android.internal.utils.eos.Config;
+import com.android.internal.utils.eos.Config.ActionConfig;
+import com.android.internal.utils.eos.Config.ButtonConfig;
 import com.android.internal.navigation.fling.FlingGestureHandler.Swipeable;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 

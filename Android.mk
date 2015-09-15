@@ -2,6 +2,8 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 
+LOCAL_JAVA_LIBRARIES := org.teameos.utils
+
 LOCAL_STATIC_JAVA_LIBRARIES := \
     android-visualizer \
     trail-drawing
@@ -16,6 +18,8 @@ include $(BUILD_JAVA_LIBRARY)
 
 
 include $(CLEAR_VARS)
+
+LOCAL_JAVA_LIBRARIES := org.teameos.utils
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
     android-visualizer \

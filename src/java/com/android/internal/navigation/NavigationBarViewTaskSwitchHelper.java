@@ -23,7 +23,7 @@ import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 
 import com.android.internal.navigation.StatusbarImpl;
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionUtils;
 
 public class NavigationBarViewTaskSwitchHelper extends GestureDetector.SimpleOnGestureListener {
 

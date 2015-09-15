@@ -16,7 +16,7 @@
 
 package com.android.internal.navigation;
 
-import com.android.internal.actions.ActionUtils;
+import com.android.internal.utils.eos.ActionUtils;
 
 import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
