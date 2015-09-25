@@ -37,6 +37,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -84,6 +85,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
+    private Drawable mLogo, mLogoLand;
 
     private SmartObservable mObservable = new SmartObservable() {
         @Override
@@ -311,8 +313,25 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     protected void onUpdateResources(Resources res) {
 //        mRipple.updateResources(res);
-        for (FlingLogoView v : ActionUtils.getAllChildren(FlingView.this, FlingLogoView.class)) {
-            v.updateResources(res);
+        View v = mRot0.findViewById(findViewByIdName("fling_console"));
+        if (v != null && v instanceof ImageView) {
+            ImageView iv = (ImageView) v;
+            mLogo = getAvailableResources().getDrawable(
+                    ActionUtils.getIdentifier(getContext(),
+                            "ic_eos_fling", "drawable",
+                            ActionUtils.PACKAGE_SYSTEMUI));
+            iv.setImageDrawable(null);
+            iv.setImageDrawable(mLogo);
+        }
+        v = mRot90.findViewById(findViewByIdName("fling_console"));
+        if (v != null && v instanceof ImageView) {
+            ImageView iv = (ImageView) v;
+            mLogoLand = getAvailableResources().getDrawable(
+                    ActionUtils.getIdentifier(getContext(),
+                            "ic_eos_fling_land", "drawable",
+                            ActionUtils.PACKAGE_SYSTEMUI));
+            iv.setImageDrawable(null);
+            iv.setImageDrawable(mLogoLand);
         }
         for (int i = 0; i < mRotatedViews.length; i++) {
             ViewGroup container = (ViewGroup) mRotatedViews[i];
