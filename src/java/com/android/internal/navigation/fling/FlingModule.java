@@ -6,28 +6,28 @@ import android.os.Handler;
 
 public interface FlingModule {
     /**
-     * @param call back to nx host
+     * @param call back to Fling host
      */
     public void setCallbacks(Callbacks callbacks);
 
     /**
-     * @param canvas NX canvas to render
+     * @param canvas Fling canvas to render
      */
     public void onDraw(Canvas canvas);
 
     public interface Callbacks {
         /**
-         * @return width on NX host
+         * @return width on Fling host
          */
         public int onGetWidth();
 
         /**
-         * @return height on NX host
+         * @return height on Fling host
          */
         public int onGetHeight();
 
         /**
-         * invalidate NX host
+         * invalidate Fling host
          */
         public void onInvalidate();
 

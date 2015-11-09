@@ -20,17 +20,17 @@
 
 package com.android.internal.navigation.fling;
 
-
 import java.util.HashSet;
 import java.util.Set;
 
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.BaseNavigationBar;
+import com.android.internal.navigation.StatusbarImpl;
 import com.android.internal.navigation.fling.FlingGestureDetector;
 import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
-import com.android.internal.utils.eos.ActionUtils;
+import com.android.internal.utils.eos.EosActionUtils;
 import com.android.internal.utils.eos.ActionConstants;
 
 import android.content.Context;
@@ -61,15 +61,15 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
     private static Set<Uri> sUris = new HashSet<Uri>();    
     static {
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_PULSE_ENABLED));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGPRESS_TIMEOUT));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_RIPPLE_ENABLED));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_RIPPLE_COLOR));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_ENABLED));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_TRAILS_COLOR));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_COLOR));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_ENABLED));
-        sUris.add(Settings.System.getUriFor(Settings.System.FLING_PULSE_LAVALAMP_SPEED));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGPRESS_TIMEOUT));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_RIPPLE_ENABLED));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_RIPPLE_COLOR));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_ENABLED));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_COLOR));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_COLOR));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_SPEED));
     }
 
     public static final int MSG_SET_DISABLED_FLAGS = 101;
@@ -95,7 +95,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
 
         @Override
         public void onChange(Uri uri) {
-            updateSettings();
+            updateFlingSettings();
         }
     };
 
@@ -186,7 +186,6 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         super(context, attrs);
         Bundle configs = getConfigs(context);
         mBarTransitions = new FlingBarTransitions(this);
-        mDelegateHelper.setForceDisabled(true);
         mActionHandler = new FlingActionHandler(context, this);
         mGestureHandler = new FlingGestureHandler(context, mActionHandler, this, configs);
         mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler, configs);
@@ -231,8 +230,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     private int findViewByIdName(String name) {
-        return ActionUtils.getId(getContext(), name,
-                ActionUtils.PACKAGE_SYSTEMUI);
+        return EosActionUtils.getId(getContext(), name,
+                EosActionUtils.PACKAGE_SYSTEMUI);
     }
 
     @Override
@@ -258,7 +257,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
-        updateSettings();
+        updateFlingSettings();
     }
 
     @Override
@@ -268,45 +267,45 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     private void updateRippleColor() {
-        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_RIPPLE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        int color = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_RIPPLE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
         mRipple.updateColor(color);
     }
 
     private void updatePulseEnabled() {
-        boolean doPulse = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_PULSE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+        boolean doPulse = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_PULSE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mPulse.setPulseEnabled(doPulse);
     }
 
     private void updatePulseColor() {
-        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_PULSE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        int color = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_PULSE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
         mPulse.updateRenderColor(color);
     }
 
     private void updateLavaLampEnabled() {
-        boolean doLava = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+        boolean doLava = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mPulse.setLavaLampEnabled(doLava);
     }
 
     private void updateLavaLampSpeed() {
-        int time = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_PULSE_LAVALAMP_SPEED, LavaLamp.ANIM_DEF_DURATION,
+        int time = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, LavaLamp.ANIM_DEF_DURATION,
                 UserHandle.USER_CURRENT);
         mPulse.setLavaAnimationTime(time);
     }
 
     private void updateTrailsEnabled() {
-        boolean enabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_TRAILS_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+        boolean enabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_TRAILS_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         mTrails.setTrailsEnabled(enabled);
     }
 
     private void updateTrailsColor() {
-        int color = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.FLING_TRAILS_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
+        int color = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_TRAILS_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
         mTrails.setTrailColor(color);
     }
 
@@ -317,9 +316,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         if (v != null && v instanceof ImageView) {
             ImageView iv = (ImageView) v;
             mLogo = getAvailableResources().getDrawable(
-                    ActionUtils.getIdentifier(getContext(),
+                    EosActionUtils.getIdentifier(getContext(),
                             "ic_eos_fling", "drawable",
-                            ActionUtils.PACKAGE_SYSTEMUI));
+                            EosActionUtils.PACKAGE_SYSTEMUI));
             iv.setImageDrawable(null);
             iv.setImageDrawable(mLogo);
         }
@@ -327,9 +326,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         if (v != null && v instanceof ImageView) {
             ImageView iv = (ImageView) v;
             mLogoLand = getAvailableResources().getDrawable(
-                    ActionUtils.getIdentifier(getContext(),
+                    EosActionUtils.getIdentifier(getContext(),
                             "ic_eos_fling_land", "drawable",
-                            ActionUtils.PACKAGE_SYSTEMUI));
+                            EosActionUtils.PACKAGE_SYSTEMUI));
             iv.setImageDrawable(null);
             iv.setImageDrawable(mLogoLand);
         }
@@ -347,9 +346,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                         // it will not update the drawable.
                         iv.setImageDrawable(null);
                         iv.setImageDrawable(getAvailableResources().getDrawable(
-                                ActionUtils.getIdentifier(getContext(),
+                                EosActionUtils.getIdentifier(getContext(),
                                         "ic_sysbar_lights_out_dot_large", "drawable",
-                                        ActionUtils.PACKAGE_SYSTEMUI)));                   
+                                        EosActionUtils.PACKAGE_SYSTEMUI)));                   
                     }
                 }
             }
@@ -361,7 +360,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
     }
 
-    private void updateSettings() {
+    private void updateFlingSettings() {
         updateRippleColor();
         updateTrailsEnabled();
         updateTrailsColor();
@@ -369,11 +368,11 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         updatePulseColor();
         updateLavaLampEnabled();
         updateLavaLampSpeed();
-        int lpTimeout = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
+        int lpTimeout = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
         mGestureDetector.setLongPressTimeout(lpTimeout);
-        mRippleEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;  
+        mRippleEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;  
     }
 
     public void setDisabledFlags(int disabledFlags, boolean force) {
@@ -459,4 +458,10 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     public void onUpdateState() {
         mHandler.obtainMessage(MSG_SET_DISABLED_FLAGS).sendToTarget();
     }
+
+	@Override
+	public void setStatusBarCallbacks(StatusbarImpl statusbar) {
+		// TODO Auto-generated method stub
+		
+	}
 }

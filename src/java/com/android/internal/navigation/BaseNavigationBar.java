@@ -28,7 +28,7 @@ import java.io.PrintWriter;
 
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.utils.SmartObserver;
-import com.android.internal.utils.eos.ActionUtils;
+import com.android.internal.utils.eos.EosActionUtils;
 
 import android.app.StatusBarManager;
 import android.content.ContentResolver;
@@ -47,6 +47,9 @@ import android.view.Display;
 import android.view.Surface;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.view.View.OnTouchListener;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -66,7 +69,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     protected final Display mDisplay;
     protected View[] mRotatedViews = new View[4];
-    protected DelegateViewHelper mDelegateHelper;
     protected View mCurrentView = null;
     protected FrameLayout mRot0, mRot90;
     protected int mDisabledFlags = 0;
@@ -74,6 +76,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected boolean mVertical;
     protected boolean mScreenOn;
     protected boolean mLeftInLandscape;
+    protected boolean mLayoutTransitionsEnabled;
+    protected boolean mWakeAndUnlocking;
     protected OnVerticalChangedListener mOnVerticalChangedListener;
     protected SmartObserver mSmartObserver;
 
@@ -111,7 +115,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         super(context, attrs);
         mDisplay = ((WindowManager) context.getSystemService(
                 Context.WINDOW_SERVICE)).getDefaultDisplay();
-        mDelegateHelper = new DelegateViewHelper(this);
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
         mVertical = false;
     }
@@ -127,11 +130,57 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     protected void onKeyguardShowing(boolean showing){}
 
+    public void abortCurrentGesture(){}
+
     public void setMenuVisibility(final boolean show) {}
     public void setMenuVisibility(final boolean show, final boolean force) {}
     public void setNavigationIconHints(int hints) {}
     public void setNavigationIconHints(int hints, boolean force) {}
     public void onHandlePackageChanged(){}
+    public void updateSettings(){};
+
+    public View getRecentsButton() { return null; }
+    public View getMenuButton() { return null; }
+    public View getBackButton() { return null; }
+    public View getHomeButton() { return null; }
+    public boolean isInEditMode() { return false; }
+
+	@Override
+	public void setListeners(OnTouchListener homeActionListener,
+			OnLongClickListener homeLongClickListener,
+			OnTouchListener userAutoHideListener,
+			OnClickListener recentsClickListener,
+			OnTouchListener recentsTouchListener,
+			OnLongClickListener recentsLongClickListener) {}
+
+	@Override
+    public void setWakeAndUnlocking(boolean wakeAndUnlocking) {
+        setUseFadingAnimations(wakeAndUnlocking);
+        mWakeAndUnlocking = wakeAndUnlocking;
+    }
+
+	protected void setUseFadingAnimations(boolean useFadingAnimations) {
+		WindowManager.LayoutParams lp = (WindowManager.LayoutParams) getLayoutParams();
+		if (lp != null) {
+			boolean old = lp.windowAnimations != 0;
+			if (!old && useFadingAnimations) {
+				lp.windowAnimations = EosActionUtils.getIdentifier(mContext,
+						"Animation_NavigationBarFadeIn", "style",
+						EosActionUtils.PACKAGE_SYSTEMUI);
+			} else if (old && !useFadingAnimations) {
+				lp.windowAnimations = 0;
+			} else {
+				return;
+			}
+			WindowManager wm = (WindowManager) getContext().getSystemService(
+					Context.WINDOW_SERVICE);
+			wm.updateViewLayout(this, lp);
+		}
+	}
+
+    public void setLayoutTransitionsEnabled(boolean enabled) {
+        mLayoutTransitionsEnabled = enabled;
+    }
 
     public void setForgroundColor(Drawable drawable) {
         if (mRot0 != null) {
@@ -191,15 +240,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     }
 
     public void setTransparencyAllowedWhenVertical(boolean allowed) {
-        getBarTransitions().setTransparencyAllowedWhenVertical(allowed);
-    }
-
-    public void setDelegateView(View view) {
-        mDelegateHelper.setDelegateView(view);
-    }
-
-    public void setStatusBarCallbacks(StatusbarImpl statusbar) {
-        mDelegateHelper.setStatusBarCallbacks(statusbar);
+//        getBarTransitions().setTransparencyAllowedWhenVertical(allowed);
     }
 
     public View getCurrentView() {
@@ -270,8 +311,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     @Override
     public void onFinishInflate() {
-        int rot0id = ActionUtils.getId(mContext, "rot0", ActionUtils.PACKAGE_SYSTEMUI);
-        int rot90id = ActionUtils.getId(mContext, "rot90", ActionUtils.PACKAGE_SYSTEMUI);
+        int rot0id = EosActionUtils.getId(mContext, "rot0", EosActionUtils.PACKAGE_SYSTEMUI);
+        int rot90id = EosActionUtils.getId(mContext, "rot90", EosActionUtils.PACKAGE_SYSTEMUI);
         mRot0 = (FrameLayout) findViewById(rot0id);
         mRot90 = (FrameLayout) findViewById(rot90id);
         mRotatedViews[Surface.ROTATION_0] =
@@ -282,14 +323,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         mRotatedViews[Surface.ROTATION_270] = mRotatedViews[Surface.ROTATION_90];
 
         mCurrentView = mRotatedViews[Surface.ROTATION_0];
-    }
-
-    public void setKeyButtonListeners(OnTouchListener homeActionListener, OnTouchListener userAutoHideListener) {
-        if (mHomeActionListener == null)
-            mHomeActionListener = homeActionListener;
-        if (mUserAutoHideListener == null) {
-            mUserAutoHideListener = userAutoHideListener;
-        }
     }
 
     public void setDisabledFlags(int disabledFlags, boolean force) {

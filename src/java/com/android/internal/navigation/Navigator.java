@@ -28,12 +28,18 @@ import java.io.PrintWriter;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 
 public interface Navigator extends Hintable {
     public interface OnVerticalChangedListener {
         void onVerticalChanged(boolean isVertical);
     }
+    public View getRecentsButton();
+    public View getMenuButton();
+    public View getBackButton();
+    public View getHomeButton();
     public View getCurrentView();
     public View getBaseView();
     public View.OnTouchListener getHomeActionListener();
@@ -46,7 +52,7 @@ public interface Navigator extends Hintable {
     public void notifyInflateFromUser();
     public void updateResources(Resources res);
     public void setTransparencyAllowedWhenVertical(boolean allowed);
-    public void setDelegateView(View view);
+    public void abortCurrentGesture();
     public void setStatusBarCallbacks(StatusbarImpl statusbar);
     public void setDisabledFlags(int disabledFlags);
     public void setDisabledFlags(int disabledFlags, boolean force);
@@ -55,6 +61,15 @@ public interface Navigator extends Hintable {
     public void notifyScreenOn(boolean screenOn);
     public void setSlippery(boolean newSlippery);
     public void reorient();
-    public void setKeyButtonListeners(OnTouchListener homeActionListener, OnTouchListener userAutoHideListener);
+    public void setListeners(OnTouchListener homeActionListener,
+            OnLongClickListener homeLongClickListener,
+            OnTouchListener userAutoHideListener,
+            OnClickListener recentsClickListener,
+            OnTouchListener recentsTouchListener,
+            OnLongClickListener recentsLongClickListener);
+    public void updateSettings();
+    public boolean isInEditMode();
+    public void setLayoutTransitionsEnabled(boolean enabled);
+    public void setWakeAndUnlocking(boolean wakeAndUnlocking);
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args);
 }

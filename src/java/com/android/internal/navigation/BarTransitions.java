@@ -16,7 +16,7 @@
 
 package com.android.internal.navigation;
 
-import com.android.internal.utils.eos.ActionUtils;
+import com.android.internal.utils.eos.EosActionUtils;
 
 import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
@@ -46,7 +46,6 @@ public class BarTransitions {
     public static final int MODE_TRANSPARENT = 4;
     public static final int MODE_WARNING = 5;
     public static final int MODE_LIGHTS_OUT_TRANSPARENT = 6;
-    public static final int MODE_LIGHTS_OUT_TRANSLUCENT = 7;
 
     public static final int LIGHTS_IN_DURATION = 250;
     public static final int LIGHTS_OUT_DURATION = 750;
@@ -55,9 +54,8 @@ public class BarTransitions {
     private final String mTag;
     private final View mView;
     private final BarBackgroundDrawable mBarBackground;
-    private int mMode;
 
-    protected boolean mTransparencyAllowedWhenVertical = false;
+    private int mMode;
 
     public BarTransitions(View view, int gradientResourceId, int opaqueColorResourceId,
             int semiTransparentColorResourceId, int transparentColorResourceId,
@@ -91,7 +89,7 @@ public class BarTransitions {
                 || mode == MODE_TRANSPARENT)) {
             mode = MODE_OPAQUE;
         }
-        if (!HIGH_END && (mode == MODE_LIGHTS_OUT_TRANSPARENT || mode == MODE_LIGHTS_OUT_TRANSLUCENT)) {
+        if (!HIGH_END && (mode == MODE_LIGHTS_OUT_TRANSPARENT)) {
             mode = MODE_LIGHTS_OUT;
         }
         if (mMode == mode) return;
@@ -100,10 +98,6 @@ public class BarTransitions {
         if (DEBUG) Log.d(mTag, String.format("%s -> %s animate=%s",
                 modeToString(oldMode), modeToString(mode),  animate));
         onTransition(oldMode, mMode, animate);
-    }
-
-    public void setTransparencyAllowedWhenVertical(boolean allowed) {
-        mTransparencyAllowedWhenVertical = allowed;
     }
 
     protected void onTransition(int oldMode, int newMode, boolean animate) {
@@ -126,8 +120,6 @@ public class BarTransitions {
         if (mode == MODE_TRANSPARENT) return "MODE_TRANSPARENT";
         if (mode == MODE_WARNING) return "MODE_WARNING";
         if (mode == MODE_LIGHTS_OUT_TRANSPARENT) return "MODE_LIGHTS_OUT_TRANSPARENT";
-        if (mode == MODE_LIGHTS_OUT_TRANSLUCENT) return "MODE_LIGHTS_OUT_TRANSLUCENT";
-        if (mode == -1) return "MODE_UNKNOWN";
         throw new IllegalArgumentException("Unknown mode " + mode);
     }
 
@@ -136,7 +128,7 @@ public class BarTransitions {
     }
 
     protected boolean isLightsOut(int mode) {
-        return mode == MODE_LIGHTS_OUT || mode == MODE_LIGHTS_OUT_TRANSPARENT || mode == MODE_LIGHTS_OUT_TRANSLUCENT;
+        return mode == MODE_LIGHTS_OUT || mode == MODE_LIGHTS_OUT_TRANSPARENT;
     }
 
     private static class BarBackgroundDrawable extends Drawable {
@@ -174,12 +166,12 @@ public class BarTransitions {
                 mTransparent = 0x2f0000ff;
                 mWarning = 0xffff0000;
             } else {
-                mOpaque = ActionUtils.getColor(context, "system_bar_background_opaque", ActionUtils.PACKAGE_SYSTEMUI);
-                mSemiTransparent = ActionUtils.getColor(context, "system_bar_background_semi_transparent", ActionUtils.PACKAGE_SYSTEMUI);
+                mOpaque = EosActionUtils.getColor(context, "system_bar_background_opaque", EosActionUtils.PACKAGE_SYSTEMUI);
+                mSemiTransparent = EosActionUtils.getColor(context, "system_bar_background_semi_transparent", EosActionUtils.PACKAGE_SYSTEMUI);
                 mTransparent = res.getColor(transparentColorResourceId);
                 mWarning = res.getColor(warningColorResourceId);
             }
-            mGradient = res.getDrawable(gradientResourceId);
+            mGradient = context.getDrawable(gradientResourceId);
             mInterpolator = new LinearInterpolator();
             mGradientResourceId = gradientResourceId;
             mOpaqueColorResourceId = opaqueColorResourceId;
@@ -212,7 +204,7 @@ public class BarTransitions {
         }
 
         @Override
-        public void setColorFilter(ColorFilter cf) {
+        public void setColorFilter(ColorFilter colorFilter) {
             // noop
         }
 
@@ -253,7 +245,7 @@ public class BarTransitions {
             int targetGradientAlpha = 0, targetColor = 0;
             if (mMode == MODE_WARNING) {
                 targetColor = mWarning;
-            } else if (mMode == MODE_TRANSLUCENT || mMode == MODE_LIGHTS_OUT_TRANSLUCENT) {
+            } else if (mMode == MODE_TRANSLUCENT) {
                 targetColor = mSemiTransparent;
             } else if (mMode == MODE_SEMI_TRANSPARENT) {
                 targetColor = mSemiTransparent;

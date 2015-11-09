@@ -27,7 +27,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.android.internal.utils.eos.ActionConstants.Fling;
-import com.android.internal.utils.eos.ActionUtils;
+import com.android.internal.utils.eos.EosActionUtils;
 import com.android.internal.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
@@ -60,12 +60,12 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
 
     private static Set<Uri> sUris = new HashSet<Uri>();    
     static {
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_LAND));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_LAND));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_PORT));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_PORT));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_UP_LAND));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_DOWN_LAND));
     }
 
     // AOSP DT timeout feels a bit slow on nx
@@ -215,7 +215,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
             float velocityY) {
 
         final boolean isVertical = mVertical;
-        final boolean isLandscape = ActionUtils.isLandscape(mContext);
+        final boolean isLandscape = EosActionUtils.isLandscape(mContext);
 
         final float deltaParallel = isVertical ? e2.getY() - e1.getY() : e2
                 .getX() - e1.getX();
@@ -319,28 +319,28 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     private void updateSettings() {
         ContentResolver resolver = mContext.getContentResolver();
 
-        mLeftLand = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_LAND,
+        mLeftLand = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_LAND,
                 mLeftLandDef, UserHandle.USER_CURRENT);
 
-        mRightLand = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_LAND,
+        mRightLand = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_LAND,
                 mRightLandDef, UserHandle.USER_CURRENT);
 
-        mLeftPort = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_LEFT_PORT,
+        mLeftPort = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_PORT,
                 mLeftPortDef, UserHandle.USER_CURRENT);
 
-        mRightPort = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_RIGHT_PORT,
+        mRightPort = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_PORT,
                 mRightPortDef, UserHandle.USER_CURRENT);
 
-        mUpVert = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_UP_LAND,
+        mUpVert = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_UP_LAND,
                 mUpVertDef, UserHandle.USER_CURRENT);
 
-        mDownVert = Settings.System.getFloatForUser(
-                resolver, Settings.System.NX_LONGSWIPE_THRESHOLD_DOWN_LAND,
+        mDownVert = Settings.Secure.getFloatForUser(
+                resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_DOWN_LAND,
                 mDownVertDef, UserHandle.USER_CURRENT);
     }
 

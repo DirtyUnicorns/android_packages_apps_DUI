@@ -24,7 +24,6 @@ package com.android.internal.navigation;
 
 public interface StatusbarImpl {
     public boolean shouldDisableNavbarGestures();
-    public void showSearchPanel();
     public void setInteracting(int barWindow, boolean interacting);
     public void showNextAffiliatedTask();
     public void showPreviousAffiliatedTask();

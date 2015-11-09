@@ -48,9 +48,9 @@ public class FlingLogoController implements SmartObservable {
 
     private static Set<Uri> sUris = new HashSet<Uri>();
     static {
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_VISIBLE));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_ANIMATES));
-        sUris.add(Settings.System.getUriFor(Settings.System.NX_LOGO_COLOR));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_VISIBLE));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_ANIMATES));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_COLOR));
     }
 
     private Context mContext;
@@ -170,12 +170,12 @@ public class FlingLogoController implements SmartObservable {
     }
 
     private void updateSettings() {
-        boolean enabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
-        boolean spinOnTouch = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        int logoColor = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
+        boolean enabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
+        boolean spinOnTouch = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
+        int logoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
         if (mLogoColor != logoColor) {
             mLogoColor = logoColor;
             if (mLogoColor != mLogoView.getLogoColor()) {
@@ -191,12 +191,12 @@ public class FlingLogoController implements SmartObservable {
     }
 
     private void initialize() {
-        mLogoEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
-        mAnimateTouchEnabled = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        mLogoColor = Settings.System.getIntForUser(mContext.getContentResolver(),
-                Settings.System.NX_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
+        mLogoEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
+        mAnimateTouchEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
+        mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
     }
 
     public static AnimationSet getSpinAnimation(int mode) {
