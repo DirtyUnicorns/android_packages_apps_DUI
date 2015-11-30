@@ -28,13 +28,13 @@ import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.os.Bundle;
 
-import com.android.internal.utils.eos.ActionConstants;
 import com.android.internal.navigation.utils.LavaLamp;
+import com.android.internal.utils.du.ActionConstants;
 import com.pheelicks.visualizer.AudioData;
 import com.pheelicks.visualizer.FFTData;
 import com.pheelicks.visualizer.renderer.Renderer;
 
-public abstract class PulseRenderer extends Renderer implements LavaLamp.LavaListener {
+public abstract class PulseRenderer extends Renderer implements LavaLamp.Callbacks {
     public static final int STATE_SUCCESS = 1;
     public static final int STATE_FAILED = 2;
 
@@ -73,7 +73,8 @@ public abstract class PulseRenderer extends Renderer implements LavaLamp.LavaLis
         }, 0));
         updateColor(mDefColor);
 
-        mLavaLamp = new LavaLamp(this);
+        mLavaLamp = new LavaLamp();
+        mLavaLamp.addCallback(this);
         mValidator = new PulseFftValidator() {
             @Override
             public void onStreamValidated(boolean isValid) {

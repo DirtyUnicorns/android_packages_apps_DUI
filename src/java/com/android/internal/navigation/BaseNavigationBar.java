@@ -28,7 +28,7 @@ import java.io.PrintWriter;
 
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.utils.SmartObserver;
-import com.android.internal.utils.eos.EosActionUtils;
+import com.android.internal.utils.du.DUActionUtils;
 
 import android.app.StatusBarManager;
 import android.content.ContentResolver;
@@ -151,7 +151,9 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 			OnTouchListener userAutoHideListener,
 			OnClickListener recentsClickListener,
 			OnTouchListener recentsTouchListener,
-			OnLongClickListener recentsLongClickListener) {}
+			OnLongClickListener recentsLongClickListener) {
+	    mUserAutoHideListener = userAutoHideListener;
+	}
 
 	@Override
     public void setWakeAndUnlocking(boolean wakeAndUnlocking) {
@@ -164,9 +166,9 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 		if (lp != null) {
 			boolean old = lp.windowAnimations != 0;
 			if (!old && useFadingAnimations) {
-				lp.windowAnimations = EosActionUtils.getIdentifier(mContext,
+				lp.windowAnimations = DUActionUtils.getIdentifier(mContext,
 						"Animation_NavigationBarFadeIn", "style",
-						EosActionUtils.PACKAGE_SYSTEMUI);
+						DUActionUtils.PACKAGE_SYSTEMUI);
 			} else if (old && !useFadingAnimations) {
 				lp.windowAnimations = 0;
 			} else {
@@ -311,8 +313,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     @Override
     public void onFinishInflate() {
-        int rot0id = EosActionUtils.getId(mContext, "rot0", EosActionUtils.PACKAGE_SYSTEMUI);
-        int rot90id = EosActionUtils.getId(mContext, "rot90", EosActionUtils.PACKAGE_SYSTEMUI);
+        int rot0id = DUActionUtils.getId(mContext, "rot0", DUActionUtils.PACKAGE_SYSTEMUI);
+        int rot90id = DUActionUtils.getId(mContext, "rot90", DUActionUtils.PACKAGE_SYSTEMUI);
         mRot0 = (FrameLayout) findViewById(rot0id);
         mRot90 = (FrameLayout) findViewById(rot90id);
         mRotatedViews[Surface.ROTATION_0] =

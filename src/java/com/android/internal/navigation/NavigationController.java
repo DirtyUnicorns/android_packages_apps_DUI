@@ -1,5 +1,30 @@
+/*
+ * Copyright (C) 2014 The TeamEos Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Helper functions mostly for device configuration and some utilities
+ * including a fun ViewGroup crawler and dpi conversion
+ * 
+ */
 
 package com.android.internal.navigation;
+
+import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.du.UserContentObserver;
+import com.android.internal.utils.du.DUPackageMonitor.PackageChangedListener;
+import com.android.internal.utils.du.DUPackageMonitor.PackageState;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -17,12 +42,6 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 
-import com.android.internal.utils.eos.ActionConstants;
-import com.android.internal.utils.eos.EosActionUtils;
-import com.android.internal.utils.eos.EosPackageMonitor.PackageChangedListener;
-import com.android.internal.utils.eos.EosPackageMonitor.PackageState;
-import com.android.internal.utils.eos.UserContentObserver;
-
 public class NavigationController implements PackageChangedListener {
     private static final String TAG = NavigationController.class.getSimpleName();
     private static final boolean DEBUG = "1".equals(SystemProperties.get("ro.fling.debug", "0"));
@@ -37,8 +56,6 @@ public class NavigationController implements PackageChangedListener {
     private Handler mHandler = new Handler();
     private Runnable mAddNavbar;
     private Runnable mRemoveNavbar;
-
-    // private final boolean mHasHardkeys;
     private Context mContext;
 
     public NavigationController(Context context, StatusbarImpl statusBar,
@@ -69,6 +86,11 @@ public class NavigationController implements PackageChangedListener {
         return inflateBar(mContext, layout);
     }
 
+    public void destroy() {
+        mNavbarObserver.unobserve();
+        unlockVisualizer(); // just to be sure
+    }
+
     private void unlockVisualizer() {
         try {
             IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
@@ -83,8 +105,8 @@ public class NavigationController implements PackageChangedListener {
         BaseNavigationBar bar = null;
         try {
             bar = (BaseNavigationBar) View.inflate(ctx,
-                    EosActionUtils.getIdentifier(ctx, layout,
-                            "layout", EosActionUtils.PACKAGE_SYSTEMUI), null);
+                    DUActionUtils.getIdentifier(ctx, layout,
+                            "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -113,7 +135,7 @@ public class NavigationController implements PackageChangedListener {
                     Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_MODE), false, this,
                     UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.Secure.getUriFor(
-                    Settings.Secure.DEV_FORCE_SHOW_NAVBAR), false, this, UserHandle.USER_ALL);
+                    Settings.Secure.NAVIGATION_BAR_VISIBLE), false, this, UserHandle.USER_ALL);
             resolver.registerContentObserver(Settings.System.getUriFor(
                     Settings.System.NAVBAR_LEFT_IN_LANDSCAPE), false, this, UserHandle.USER_ALL);
         }
@@ -131,9 +153,12 @@ public class NavigationController implements PackageChangedListener {
                 boolean navLeftInLandscape = Settings.System.getIntForUser(resolver,
                         Settings.System.NAVBAR_LEFT_IN_LANDSCAPE, 0, UserHandle.USER_CURRENT) == 1;
                 mBar.getNavigationBarView().setLeftInLandscape(navLeftInLandscape);
-            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.DEV_FORCE_SHOW_NAVBAR))
-                    && EosActionUtils.isCapKeyDevice(mContext)) {
-                updateDevForceNavbar(false);
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_VISIBLE))) {
+                if (isBarShowingNow) {
+                    mBar.getNavigationBarView().dispose();
+                    mHandler.post(mRemoveNavbar);
+                    updateKeyDisabler();
+                }                
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_MODE))) {
                 if (isBarShowingNow) {
                     mBar.getNavigationBarView().dispose();
@@ -145,29 +170,15 @@ public class NavigationController implements PackageChangedListener {
 
         @Override
         protected void update() {
-            if (EosActionUtils.isCapKeyDevice(mContext)) {
-                updateDevForceNavbar(true);
-            }
+            updateKeyDisabler();
         }
 
-        private void updateDevForceNavbar(boolean userChange) {
-            final ContentResolver resolver = mContext.getContentResolver();
-            final boolean isBarShowingNow = mBar.getNavigationBarView() != null;
-            // force navbar adds or removes the bar view
-            boolean visible = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.DEV_FORCE_SHOW_NAVBAR, 0, UserHandle.USER_CURRENT) == 1;
-            if (isBarShowingNow) {
-                mBar.getNavigationBarView().dispose();
-                mHandler.post(mRemoveNavbar);
-            }
-            if (visible) {
-                mHandler.postDelayed(mAddNavbar, 500);
-            }
+        private void updateKeyDisabler() {
             // only broadcast if updating from a user change
             // i.e. don't broadcast if user simply changed settings as
             // key disabler has already been invoked
-            if (userChange) {
-                // Send a broadcast to Settings to update Key disabling when user changes
+            // Send a broadcast to Settings to update Key disabling when user changes
+            if (!DUActionUtils.hasNavbarByDefault(mContext)) {
                 Intent intent = new Intent("com.cyanogenmod.action.UserChanged");
                 intent.setPackage("com.android.settings");
                 mContext.sendBroadcastAsUser(intent, new UserHandle(UserHandle.USER_CURRENT));
@@ -183,15 +194,15 @@ public class NavigationController implements PackageChangedListener {
             final Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    if (EosActionUtils.isCapKeyDevice(ctx)) {
-                        EosActionUtils.resolveAndUpdateButtonActions(ctx,
+                    if (!DUActionUtils.hasNavbarByDefault(mContext)) {
+                        DUActionUtils.resolveAndUpdateButtonActions(ctx,
                                 ActionConstants
                                         .getDefaults(ActionConstants.HWKEYS));
                     }
-                    EosActionUtils
+                    DUActionUtils
                             .resolveAndUpdateButtonActions(ctx, ActionConstants
                                     .getDefaults(ActionConstants.NAVBAR));
-                    EosActionUtils.resolveAndUpdateButtonActions(ctx,
+                    DUActionUtils.resolveAndUpdateButtonActions(ctx,
                             ActionConstants.getDefaults(ActionConstants.FLING));
                 }
             });

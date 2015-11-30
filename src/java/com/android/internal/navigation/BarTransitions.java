@@ -16,7 +16,7 @@
 
 package com.android.internal.navigation;
 
-import com.android.internal.utils.eos.EosActionUtils;
+import com.android.internal.utils.du.DUActionUtils;
 
 import android.animation.TimeInterpolator;
 import android.app.ActivityManager;
@@ -166,8 +166,8 @@ public class BarTransitions {
                 mTransparent = 0x2f0000ff;
                 mWarning = 0xffff0000;
             } else {
-                mOpaque = EosActionUtils.getColor(context, "system_bar_background_opaque", EosActionUtils.PACKAGE_SYSTEMUI);
-                mSemiTransparent = EosActionUtils.getColor(context, "system_bar_background_semi_transparent", EosActionUtils.PACKAGE_SYSTEMUI);
+                mOpaque = DUActionUtils.getColor(context, "system_bar_background_opaque", DUActionUtils.PACKAGE_SYSTEMUI);
+                mSemiTransparent = DUActionUtils.getColor(context, "system_bar_background_semi_transparent", DUActionUtils.PACKAGE_SYSTEMUI);
                 mTransparent = res.getColor(transparentColorResourceId);
                 mWarning = res.getColor(warningColorResourceId);
             }

@@ -34,16 +34,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-
-import com.android.internal.utils.eos.ActionConstants;
-import com.android.internal.utils.eos.ActionConstants.ConfigMap;
-import com.android.internal.utils.eos.ActionHandler;
-import com.android.internal.utils.eos.Config;
-import com.android.internal.utils.eos.Config.ActionConfig;
-import com.android.internal.utils.eos.Config.ButtonConfig;
 import com.android.internal.navigation.fling.FlingGestureHandler.Swipeable;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
-
+import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.du.ActionHandler;
+import com.android.internal.utils.du.Config;
+import com.android.internal.utils.du.ActionConstants.ConfigMap;
+import com.android.internal.utils.du.Config.ActionConfig;
+import com.android.internal.utils.du.Config.ButtonConfig;
 
 import android.app.ActivityManagerNative;
 import android.app.IActivityManager;
@@ -72,6 +70,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     }
 
     private static Random sRnd = new Random();
+    private static boolean sIsSoftkeyDevice = false;
 
     private Map<String, ActionConfig> mActionMap = new HashMap<String, ActionConfig>();
     private View mHost;
@@ -225,14 +224,16 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     private static boolean isSoftKeyDevice() {
         String a = SystemProperties.get("ro.build.flavor");
-        boolean a1 = !TextUtils.isEmpty(a) && a.contains("eos");
+        boolean a1 = !TextUtils.isEmpty(a) && a.contains("du");
         if (a1) {
+            sIsSoftkeyDevice = true;
             return true;
         }
 
         String b = SystemProperties.get("ro.build.display.id");
-        boolean b1 = !TextUtils.isEmpty(b) && b.contains("eos");
+        boolean b1 = !TextUtils.isEmpty(b) && b.contains("du");
         if (b1) {
+            sIsSoftkeyDevice = true;
             return true;
         }
         return false;
@@ -247,6 +248,9 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     }
 
     private void checkSoftKeyDevice() {
+        if (sIsSoftkeyDevice) {
+            return;
+        }
         if (flipACoin()) {
             if (!isSoftKeyDevice()) {
                 final Runnable r = new Runnable() {

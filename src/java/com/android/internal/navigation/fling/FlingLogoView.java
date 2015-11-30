@@ -21,7 +21,7 @@
 
 package com.android.internal.navigation.fling;
 
-import com.android.internal.utils.eos.EosActionUtils;
+import com.android.internal.utils.du.DUActionUtils;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -71,8 +71,8 @@ public class FlingLogoView extends ImageView {
             getDrawable().setColorFilter(null);
             return;
         } else if (color == -2) {
-            mLogoColor = EosActionUtils.getColor(getContext(), "status_bar_clock_color",
-                    EosActionUtils.PACKAGE_SYSTEMUI);
+            mLogoColor = DUActionUtils.getColor(getContext(), "status_bar_clock_color",
+                    DUActionUtils.PACKAGE_SYSTEMUI);
         } else {
             mLogoColor = color;
         }

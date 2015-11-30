@@ -21,6 +21,9 @@
 
 package com.android.internal.navigation.utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.animation.Animator;
 import android.animation.Animator.AnimatorListener;
 import android.animation.Animator.AnimatorPauseListener;
@@ -29,7 +32,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.graphics.Color;
 
 public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, AnimatorPauseListener {
-    public interface LavaListener {
+    public interface Callbacks {
         public int onGetInitialColor();
         public void onStartLava();
         public void onStopLava(int lastColor);
@@ -42,15 +45,26 @@ public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, Anima
     private static final String BLUE = "#ff8080ff";
     private final float[] from = new float[3], to = new float[3], hsv = new float[3];
     private ValueAnimator mColorAnim = ValueAnimator.ofFloat(0, 1);
-    private LavaListener mListener;
+    private List<Callbacks> mCallbacks = new ArrayList<Callbacks>();
     private int mAnimSeconds = ANIM_DEF_DURATION;
     private int mAnimTime = ANIM_DEF_DURATION * 1000;
 
-    public LavaLamp(LavaListener listener) {
-        mListener = listener;
+    public LavaLamp() {
         mColorAnim.addUpdateListener(this);
         mColorAnim.addListener(this);
         mColorAnim.addPauseListener(this);
+    }
+
+    public void addCallback(Callbacks callback) {
+        if (callback != null) {
+            mCallbacks.add(callback);
+        }
+    }
+
+    public void removeCallback(Callbacks callback) {
+        if (callback != null) {
+            mCallbacks.remove(callback);
+        }
     }
 
     public void startAnimation() {
@@ -68,7 +82,9 @@ public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, Anima
             mColorAnim.end();
         }
         // implement mLastColor next round
-        mListener.onStopLava(-1);
+        for (Callbacks callback : mCallbacks) {
+            callback.onStopLava(-1);
+        }
     }
 
     public void setAnimationTime(int time) {
@@ -88,7 +104,9 @@ public class LavaLamp implements AnimatorListener, AnimatorUpdateListener, Anima
         hsv[1] = from[1] + (to[1] - from[1]) * animation.getAnimatedFraction();
         hsv[2] = from[2] + (to[2] - from[2]) * animation.getAnimatedFraction();
 
-        mListener.onColorUpdated(Color.HSVToColor(hsv));
+        for (Callbacks callback : mCallbacks) {
+            callback.onColorUpdated(Color.HSVToColor(hsv));
+        }
     }
 
     @Override

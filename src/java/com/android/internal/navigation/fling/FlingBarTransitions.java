@@ -24,9 +24,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 
-import com.android.internal.utils.eos.EosActionUtils;
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.statusbar.IStatusBarService;
+import com.android.internal.utils.du.DUActionUtils;
 
 public final class FlingBarTransitions extends BarTransitions {
 
@@ -39,17 +39,17 @@ public final class FlingBarTransitions extends BarTransitions {
 
     public FlingBarTransitions(FlingView view) {
         super(view,
-                EosActionUtils.getIdentifier(view.getContext(), "nav_background", "drawable",
-                        EosActionUtils.PACKAGE_SYSTEMUI),
-                EosActionUtils.getIdentifier(view.getContext(), "navigation_bar_background_opaque",
-                        "color", EosActionUtils.PACKAGE_SYSTEMUI),
-                EosActionUtils.getIdentifier(view.getContext(),
+                DUActionUtils.getIdentifier(view.getContext(), "nav_background", "drawable",
+                        DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getIdentifier(view.getContext(), "navigation_bar_background_opaque",
+                        "color", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getIdentifier(view.getContext(),
                         "navigation_bar_background_semi_transparent", "color",
-                        EosActionUtils.PACKAGE_SYSTEMUI),
-                EosActionUtils.getIdentifier(view.getContext(),
+                        DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getIdentifier(view.getContext(),
                         "navigation_bar_background_transparent", "color",
-                        EosActionUtils.PACKAGE_SYSTEMUI),
-                EosActionUtils.getIdentifier(view.getContext(), "battery_saver_mode_color", "color",
+                        DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getIdentifier(view.getContext(), "battery_saver_mode_color", "color",
                         "android"));
         mView = view;
         mBarService = IStatusBarService.Stub.asInterface(
@@ -107,8 +107,8 @@ public final class FlingBarTransitions extends BarTransitions {
     }
 
     private int findViewByIdName(String name) {
-        return EosActionUtils.getId(mView.getContext(), name,
-                EosActionUtils.PACKAGE_SYSTEMUI);
+        return DUActionUtils.getId(mView.getContext(), name,
+                DUActionUtils.PACKAGE_SYSTEMUI);
     }
 
     private void applyLightsOut(boolean lightsOut, boolean animate, boolean force) {

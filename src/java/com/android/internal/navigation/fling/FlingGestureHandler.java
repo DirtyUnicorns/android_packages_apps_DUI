@@ -26,10 +26,10 @@ package com.android.internal.navigation.fling;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.android.internal.utils.eos.ActionConstants.Fling;
-import com.android.internal.utils.eos.EosActionUtils;
 import com.android.internal.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
+import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.du.ActionConstants.Fling;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -215,7 +215,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
             float velocityY) {
 
         final boolean isVertical = mVertical;
-        final boolean isLandscape = EosActionUtils.isLandscape(mContext);
+        final boolean isLandscape = DUActionUtils.isLandscape(mContext);
 
         final float deltaParallel = isVertical ? e2.getY() - e1.getY() : e2
                 .getX() - e1.getX();

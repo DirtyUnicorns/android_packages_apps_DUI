@@ -30,8 +30,8 @@ import com.android.internal.navigation.fling.FlingGestureDetector;
 import com.android.internal.navigation.fling.pulse.PulseController;
 import com.android.internal.navigation.utils.LavaLamp;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
-import com.android.internal.utils.eos.EosActionUtils;
-import com.android.internal.utils.eos.ActionConstants;
+import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.du.DUActionUtils;
 
 import android.content.Context;
 import android.content.res.Resources;
@@ -140,7 +140,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         }
     };
 
-    private final OnTouchListener mNxTouchListener = new OnTouchListener() {
+    private final OnTouchListener mFlingTouchListener = new OnTouchListener() {
 
         @Override
         public boolean onTouch(View v, MotionEvent event) {
@@ -149,7 +149,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                 mUserAutoHideListener.onTouch(FlingView.this, event);
             }
             if (action == MotionEvent.ACTION_DOWN) {
-                mPm.cpuBoost(1000 * 1000);
+//                mPm.cpuBoost(1000 * 1000);
                 mLogoController.onTouchHide(null);
             } else if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_CANCEL) {
@@ -189,7 +189,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         mActionHandler = new FlingActionHandler(context, this);
         mGestureHandler = new FlingGestureHandler(context, mActionHandler, this, configs);
         mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler, configs);
-        setOnTouchListener(mNxTouchListener);
+        setOnTouchListener(mFlingTouchListener);
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this, this);
@@ -230,8 +230,8 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     }
 
     private int findViewByIdName(String name) {
-        return EosActionUtils.getId(getContext(), name,
-                EosActionUtils.PACKAGE_SYSTEMUI);
+        return DUActionUtils.getId(getContext(), name,
+                DUActionUtils.PACKAGE_SYSTEMUI);
     }
 
     @Override
@@ -239,11 +239,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         return mBarTransitions;
     }
 
-    public View getNxContainer() {
-        return mCurrentView.findViewById(findViewByIdName("nav_buttons"));
-    }
-
-    public FlingLogoView getNxLogo() {
+    private FlingLogoView getFlingLogo() {
         return (FlingLogoView) mCurrentView.findViewById(findViewByIdName("fling_console"));
     }
 
@@ -316,9 +312,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         if (v != null && v instanceof ImageView) {
             ImageView iv = (ImageView) v;
             mLogo = getAvailableResources().getDrawable(
-                    EosActionUtils.getIdentifier(getContext(),
+                    DUActionUtils.getIdentifier(getContext(),
                             "ic_eos_fling", "drawable",
-                            EosActionUtils.PACKAGE_SYSTEMUI));
+                            DUActionUtils.PACKAGE_SYSTEMUI));
             iv.setImageDrawable(null);
             iv.setImageDrawable(mLogo);
         }
@@ -326,9 +322,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
         if (v != null && v instanceof ImageView) {
             ImageView iv = (ImageView) v;
             mLogoLand = getAvailableResources().getDrawable(
-                    EosActionUtils.getIdentifier(getContext(),
+                    DUActionUtils.getIdentifier(getContext(),
                             "ic_eos_fling_land", "drawable",
-                            EosActionUtils.PACKAGE_SYSTEMUI));
+                            DUActionUtils.PACKAGE_SYSTEMUI));
             iv.setImageDrawable(null);
             iv.setImageDrawable(mLogoLand);
         }
@@ -346,9 +342,9 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
                         // it will not update the drawable.
                         iv.setImageDrawable(null);
                         iv.setImageDrawable(getAvailableResources().getDrawable(
-                                EosActionUtils.getIdentifier(getContext(),
+                                DUActionUtils.getIdentifier(getContext(),
                                         "ic_sysbar_lights_out_dot_large", "drawable",
-                                        EosActionUtils.PACKAGE_SYSTEMUI)));                   
+                                        DUActionUtils.PACKAGE_SYSTEMUI)));                   
                     }
                 }
             }
@@ -383,7 +379,7 @@ public class FlingView extends BaseNavigationBar implements FlingModule.Callback
     public void reorient() {
         super.reorient();
         mBarTransitions.init(mVertical);
-        mLogoController.setLogoView(getNxLogo());
+        mLogoController.setLogoView(getFlingLogo());
         mGestureHandler.setIsVertical(mVertical);
         setDisabledFlags(mDisabledFlags, true /* force */);
     }
