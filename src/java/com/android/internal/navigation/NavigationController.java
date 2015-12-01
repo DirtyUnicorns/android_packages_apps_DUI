@@ -44,7 +44,6 @@ import android.view.View;
 
 public class NavigationController implements PackageChangedListener {
     private static final String TAG = NavigationController.class.getSimpleName();
-    private static final boolean DEBUG = "1".equals(SystemProperties.get("ro.fling.debug", "0"));
 
     public static final int NAVIGATION_MODE_AOSP = 0;
     public static final int NAVIGATION_MODE_FLING = 1;
@@ -82,6 +81,15 @@ public class NavigationController implements PackageChangedListener {
                 break;
             default:
                 layout = NAVBAR_LAYOUT;
+        }
+        // use for testing or lack of settings
+        String override = SystemProperties.get("ro.fling.debug");
+        if (override != null) {
+            if ("0".equals(override)) {
+                layout = NAVBAR_LAYOUT;
+            } else if ("1".equals(override)) {
+                layout = FLING_LAYOUT;
+            }
         }
         return inflateBar(mContext, layout);
     }
