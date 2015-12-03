@@ -161,12 +161,18 @@ public class NavigationController implements PackageChangedListener {
                 boolean navLeftInLandscape = Settings.System.getIntForUser(resolver,
                         Settings.System.NAVBAR_LEFT_IN_LANDSCAPE, 0, UserHandle.USER_CURRENT) == 1;
                 mBar.getNavigationBarView().setLeftInLandscape(navLeftInLandscape);
-            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_VISIBLE))) {
-                if (isBarShowingNow) {
-                    mBar.getNavigationBarView().dispose();
-                    mHandler.post(mRemoveNavbar);
-                    updateKeyDisabler();
-                }                
+			} else if (uri.equals(Settings.Secure
+					.getUriFor(Settings.Secure.NAVIGATION_BAR_VISIBLE))) {
+				boolean showing = Settings.Secure.getInt(resolver,
+						Settings.Secure.NAVIGATION_BAR_VISIBLE,
+						DUActionUtils.hasNavbarByDefault(mContext) ? 1 : 0) != 0;
+				if (isBarShowingNow && !showing) {
+					mBar.getNavigationBarView().dispose();
+					mHandler.post(mRemoveNavbar);
+				} else if (!isBarShowingNow && showing) {
+					mHandler.post(mAddNavbar);
+				}
+				updateKeyDisabler();
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVIGATION_BAR_MODE))) {
                 if (isBarShowingNow) {
                     mBar.getNavigationBarView().dispose();
