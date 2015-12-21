@@ -36,6 +36,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Bitmap.Config;
 import android.graphics.Matrix;
+import android.media.AudioManager;
 import android.media.IAudioService;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -69,6 +70,7 @@ public class PulseController {
     private Handler mHandler;
     private Bundle mConfig;
     private MediaMonitor mMediaMonitor;
+    private AudioManager mAudioManager;
     private PulseVisualizer mVisualizer;
     private PulseRenderer mRenderer;
     private StreamValidator mValidator;
@@ -80,6 +82,7 @@ public class PulseController {
     private boolean mPowerSaveModeEnabled;
     private boolean mPulseEnabled;
     private boolean mScreenOn;
+    private boolean mMusicStreamMuted;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -93,6 +96,21 @@ public class PulseController {
                         doLinkage();
                     }
                 });
+            } else if (AudioManager.STREAM_MUTE_CHANGED_ACTION.equals(intent.getAction())
+                    || (AudioManager.VOLUME_CHANGED_ACTION.equals(intent.getAction()))) {
+                int streamType = intent.getIntExtra(AudioManager.EXTRA_VOLUME_STREAM_TYPE, -1);
+                if (streamType == AudioManager.STREAM_MUSIC) {
+                    boolean muted = isMusicMuted(streamType);
+                    if (mMusicStreamMuted != muted) {
+                        mMusicStreamMuted = muted;
+                        mHandler.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                doLinkage();
+                            }
+                        });
+                    }
+                }
             }
         }
     };
@@ -198,9 +216,15 @@ public class PulseController {
         mConfig = config;
         mSettingsObserver = new PulseSettingsObserver(handler);
         mSettingsObserver.updateEnabled();
+        mAudioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+        mMusicStreamMuted = isMusicMuted(AudioManager.STREAM_MUSIC);
 
-        context.registerReceiver(mReceiver,
-                new IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING));
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
+        filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
+        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        context.registerReceiver(mReceiver, filter);
+
         PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mPowerSaveModeEnabled = pm.isPowerSaveMode();
 
@@ -267,6 +291,12 @@ public class PulseController {
         }
     }
 
+    private boolean isMusicMuted(int streamType) {
+        return streamType == AudioManager.STREAM_MUSIC &&
+                (mAudioManager.isStreamMute(streamType) ||
+                mAudioManager.getStreamVolume(streamType) == 0);
+    }
+
     private void setVisualizerLocked(boolean doLock) {
         try {
             IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
@@ -286,7 +316,8 @@ public class PulseController {
         return mKeyguardShowing
                 || !mScreenOn
                 || !mPulseEnabled
-                || mPowerSaveModeEnabled;
+                || mPowerSaveModeEnabled
+                || mMusicStreamMuted;
     }
 
     /**
@@ -301,7 +332,8 @@ public class PulseController {
                 && mMediaMonitor.isAnythingPlaying()
                 && !mLinked
                 && !mPowerSaveModeEnabled
-                && !mKeyguardShowing;
+                && !mKeyguardShowing
+                && !mMusicStreamMuted;
     }
 
     private void doLinkage() {
