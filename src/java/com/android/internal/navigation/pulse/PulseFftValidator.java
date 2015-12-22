@@ -1,6 +1,8 @@
-/*
- * Copyright (C) 2015 The TeamEos Project
- * Author: Randall Rushing aka Bigrushdog
+/**
+ * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +17,7 @@
  * limitations under the License.
  *
  * FFT byte stream analyzer and stream state management. Once a stream starts,
- * the stream must currently produce two valid frames in 500 millis to remove
+ * the stream must currently produce three valid frames in 1500 millis to remove
  * the invalid stream callback.
  *
  */

@@ -1,7 +1,8 @@
-/*
- * Copyright (C) 2015 The TeamEos Project
+/**
+ * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
  * 
- * Contributor: Randall Rushing aka Bigrushdog
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +17,7 @@
  * limitations under the License.
  * 
  * Interface for all the things that go in that navigation window and do
- * amazing things. This is all the rest of the work needs to see ;D
+ * amazing things. This is all the rest of the world needs to see ;D
  * 
  */
 
@@ -72,5 +73,6 @@ public interface Navigator extends Hintable {
     public boolean isInEditMode();
     public void setLayoutTransitionsEnabled(boolean enabled);
     public void setWakeAndUnlocking(boolean wakeAndUnlocking);
+    public void screenPinningStateChanged(boolean enabled);
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args);
 }

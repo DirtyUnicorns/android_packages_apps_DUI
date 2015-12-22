@@ -1,6 +1,8 @@
-/*
- * Copyright (C) 2015 The TeamEos Project
- * Author: Randall Rushing aka Bigrushdog
+/**
+ * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +17,7 @@
  * limitations under the License.
  *
  * Control class for Pulse media fuctions and visualizer state management
- * Basic logic flow inspired by Roman Burg aka romanbb in his Equalizer
+ * Basic logic flow inspired by Roman Birg aka romanbb in his Equalizer
  * tile produced for Cyanogenmod
  *
  */

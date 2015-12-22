@@ -1,3 +1,25 @@
+/**
+ * Copyright (C) 2014 SlimRoms
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
+ *
+ * Much love and respect to SlimRoms for some of these layout/padding
+ * related methods and static factory methods
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ */
 
 package com.android.internal.navigation.smartbar;
 
@@ -11,16 +33,15 @@ import android.widget.Space;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout.LayoutParams;
 
+import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.internal.navigation.Res;
 
 public class SmartBarHelper {
     static final boolean sIsTablet = !DUActionUtils.isNormalScreen();
-
-    static boolean buttonHasCustomIcon(SmartButtonView v) {
-        return v.getButtonConfig().hasCustomIcon();
-    }
 
     static int[] getAppIconPadding(Context ctx) {
         int[] padding = new int[4];
@@ -43,6 +64,49 @@ public class SmartBarHelper {
         return padding;
     }
 
+    public static int[] getViewPadding(ImageView v) {
+        int[] padding = new int[4];
+        padding[0] = v.getPaddingStart();
+        padding[1] = v.getPaddingTop();
+        padding[2] = v.getPaddingEnd();
+        padding[3] = v.getPaddingBottom();
+        return padding;
+    }
+
+    public static void applyPaddingToView(ImageView v, int[] padding) {
+        v.setPaddingRelative(padding[0], padding[1],
+                padding[2], padding[3]);
+    }
+
+    static boolean buttonNeedsCustomPadding(SmartButtonView v) {
+        boolean hasCustomIcon = v.getButtonConfig().hasCustomIcon();
+        boolean hasNonSystemIcon = !v.getButtonConfig().getActionConfig(ActionConfig.PRIMARY)
+                .getAction().startsWith(ActionHandler.SYSTEM_PREFIX);
+        return hasCustomIcon || hasNonSystemIcon;
+    }
+
+    public static void updateButtonScalingAndPadding(SmartButtonView v, boolean landscape) {
+        // all non-system action icons need some extra padding/scaling work
+        final int[] appIconPadding = getAppIconPadding(v.getContext());
+        if (buttonNeedsCustomPadding(v)) {
+            if (landscape && !sIsTablet) {
+                v.setPaddingRelative(appIconPadding[1], appIconPadding[0],
+                        appIconPadding[3], appIconPadding[2]);
+            } else {
+                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
+                        appIconPadding[2], appIconPadding[3]);
+            }
+            v.setScaleType(ScaleType.CENTER_INSIDE);
+        } else {
+            if (landscape && sIsTablet) {
+                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
+                        appIconPadding[2], appIconPadding[3]);
+                v.setScaleType(ScaleType.CENTER_INSIDE);
+            }
+            v.setScaleType(sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
+        }
+    }
+
     static SmartButtonView generatePrimaryKey(Context ctx, boolean landscape,
             SmartActionHandler handler, ButtonConfig config) {
         SmartButtonView v;
@@ -58,24 +122,16 @@ public class SmartBarHelper {
                 DUActionUtils.PACKAGE_SYSTEMUI);
         v.setLayoutParams(new LinearLayout.LayoutParams(
                 landscape && !sIsTablet ? LayoutParams.MATCH_PARENT
-                        : width, landscape && sIsTablet ? height : LayoutParams.MATCH_PARENT));
+                        : width, landscape && !sIsTablet ? height : LayoutParams.MATCH_PARENT));
         v.loadRipple();
 
-        // if iconUri equals a task name, and it is a key event task
-        // adjust button scaling for wonky stock icons
-        if (buttonHasCustomIcon(v)) {
-            final int[] appIconPadding = getAppIconPadding(ctx);
-            if (landscape & !sIsTablet) {
-                v.setPaddingRelative(appIconPadding[1], appIconPadding[0],
-                        appIconPadding[3], appIconPadding[2]);
-            } else {
-                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
-                        appIconPadding[2], appIconPadding[3]);
-            }
+        updateButtonScalingAndPadding(v, landscape);
+
+        if (config.getTag().equals(ActionConstants.Smartbar.BUTTON1_TAG)) {  // back
+            v.setImageDrawable(new SmartBackButtonDrawable(config.getCurrentIcon(ctx)));
         } else {
-            v.setScaleType(ScaleType.CENTER);
+            v.setImageDrawable(config.getCurrentIcon(ctx));
         }
-        v.setImageDrawable(config.getCurrentIcon(ctx));
         return v;
     }
 
@@ -117,11 +173,16 @@ public class SmartBarHelper {
     }
 
     static int getButtonSize(Context ctx, int numButtons, boolean landscape) {
-        int origSize = landscape && !sIsTablet ? DUActionUtils.getDimenPixelSize(ctx,
-                Res.Softkey.KEY_WIDTH,
-                DUActionUtils.PACKAGE_SYSTEMUI) : DUActionUtils.getDimenPixelSize(ctx,
-                Res.Softkey.KEY_HEIGHT,
-                DUActionUtils.PACKAGE_SYSTEMUI);
+        int origSize;        
+        if (landscape && !sIsTablet) { // vertical needs height
+            origSize = DUActionUtils.getDimenPixelSize(ctx,
+                    Res.Softkey.KEY_HEIGHT,
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+        } else { // horizontal needs width
+            origSize = DUActionUtils.getDimenPixelSize(ctx,
+                    Res.Softkey.KEY_WIDTH,
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+        }        
         // don't squish tablet buttons
         if (numButtons == 3 || sIsTablet) {
             return origSize;

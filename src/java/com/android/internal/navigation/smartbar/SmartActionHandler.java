@@ -1,7 +1,8 @@
-/*
+/**
  * Copyright (C) 2014 The TeamEos Project
- *
- * Author: Randall Rushing aka Bigrushdog (randall.rushing@gmail.com)
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +16,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Manage KeyButtonView action states and action dispatch
+ * Manage SmartButtonView action states and action dispatch
  *
  */
 
 package com.android.internal.navigation.smartbar;
 
+import java.util.Random;
+
 import com.android.internal.utils.du.ActionHandler;
 
+import android.app.ActivityManagerNative;
+import android.app.IActivityManager;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.os.Handler;
+import android.os.RemoteException;
+import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewConfiguration;
 
@@ -73,4 +83,5 @@ public class SmartActionHandler {
         return lpTimeout;
     }
 */
+
 }

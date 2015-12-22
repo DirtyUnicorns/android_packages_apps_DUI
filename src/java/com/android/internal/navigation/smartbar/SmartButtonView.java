@@ -1,5 +1,10 @@
-/*
- * Copyright (C) 2008 The Android Open Source Project
+/**
+ * Copyright (C) 2012 The Android Open Source Project
+ * Copyright (C) 2013 SlimRoms
+ * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +54,10 @@ public class SmartButtonView extends ImageView {
     // TODO: make this dynamic again
     private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
     private static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
+    private static int sSingleTapTimeout = ViewConfiguration.getTapTimeout();
+    private static int sSingleTapTimeoutWithDT = sSingleTapTimeout + 175;
+    private static int sLongPressTimeout = LP_TIMEOUT - 100;
+    private static int sDoubleTapTimeout = DT_TIMEOUT;
 
     // TODO: Get rid of this
     public static final float DEFAULT_QUIESCENT_ALPHA = 1f;
@@ -58,25 +67,11 @@ public class SmartButtonView extends ImageView {
     private int mTouchSlop;
     private float mDrawingAlpha = 1f;
     private float mQuiescentAlpha = DEFAULT_QUIESCENT_ALPHA;
-    private AudioManager mAudioManager;
     private Animator mAnimateToQuiescent = new ObjectAnimator();
-    private SmartButtonRipple mRipple;
     private boolean mInEditMode;
 
-    private PowerManager mPm;
-
-    private boolean mHasSingleAction = true, mHasDoubleAction, mHasLongAction;
-    private boolean mIsRecentsAction = false, mIsRecentsSingleAction, mIsRecentsLongAction,
-            mIsRecentsDoubleTapAction;
-
-    private final int mSingleTapTimeout = ViewConfiguration.getTapTimeout();
-    private final int mSingleTapTimeoutWithDT = mSingleTapTimeout + 175;
-    private int mLongPressTimeout = LP_TIMEOUT;
-    private int mDoubleTapTimeout = DT_TIMEOUT;
     private ButtonConfig mConfig;
     private SmartActionHandler mActionHandler;
-    public boolean mHasBlankSingleAction = false;
-    private boolean mDoOverrideSingleTap;
 
     public SmartButtonView(Context context, SmartActionHandler actionHandler) {
         this(context);
@@ -89,64 +84,64 @@ public class SmartButtonView extends ImageView {
         setClickable(true);
         setLongClickable(false);
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
-        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-        mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
     }
 
     public void loadRipple() {
-        setBackground(mRipple = new SmartButtonRipple(mContext, this));
+        setBackground(new SmartButtonRipple(mContext, this));
     }
 
     public void setEditMode(boolean editMode) {
         mInEditMode = editMode;
     }
 
-    public void setLongPressTimeout(int lpTimeout) {
-        mLongPressTimeout = lpTimeout;
+    public static void setLongPressTimeout(int lpTimeout) {
+        sLongPressTimeout = lpTimeout;
     }
 
-    public void setDoubleTapTimeout(int dtTimeout) {
-        mDoubleTapTimeout = dtTimeout;
+    public static void setDoubleTapTimeout(int dtTimeout) {
+        sDoubleTapTimeout = dtTimeout;
     }
 
-    public void setButtonConfig(ButtonConfig actions) {
-        this.mConfig = actions;
-        setTag(mConfig.getTag());
+    public void setButtonConfig(ButtonConfig config) {
+        mConfig = config;
+        setTag(config.getTag());
+        setLongClickable(hasLongAction());
+    }
 
-        mHasSingleAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.PRIMARY).hasNoAction();
-        mHasLongAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.SECOND).hasNoAction();
-        mHasDoubleAction = mConfig != null && !mConfig.getActionConfig(ActionConfig.THIRD).hasNoAction();
-        mHasBlankSingleAction = mHasSingleAction && mConfig.getActionConfig(ActionConfig.PRIMARY).hasNoAction();
+    private boolean hasSingleAction() {
+        return mConfig != null && !mConfig.getActionConfig(ActionConfig.PRIMARY).hasNoAction();
+    }
 
-        mIsRecentsSingleAction = (mHasSingleAction && mConfig.getActionConfig(ActionConfig.PRIMARY).isActionRecents());
-        mIsRecentsLongAction = (mHasLongAction && mConfig.getActionConfig(ActionConfig.SECOND).isActionRecents());
-        mIsRecentsDoubleTapAction = (mHasDoubleAction && mConfig.getActionConfig(ActionConfig.THIRD).isActionRecents());
+    private boolean hasLongAction() {
+        return mConfig != null && !mConfig.getActionConfig(ActionConfig.SECOND).hasNoAction();
+    }
 
-        if (mIsRecentsSingleAction || mIsRecentsLongAction || mIsRecentsDoubleTapAction) {
-            mIsRecentsAction = true;
-        }
+    private boolean hasDoubleAction() {
+        return mConfig != null && !mConfig.getActionConfig(ActionConfig.THIRD).hasNoAction();
+    }
 
-        setLongClickable(mHasLongAction);
+    private boolean hasRecentAction() {
+        return hasRecentsSingle() || hasRecentsLong() || hasRecentsDouble();
+    }
+
+    private boolean hasRecentsSingle() {
+        return mConfig != null && mConfig.getActionConfig(ActionConfig.PRIMARY).isActionRecents();
+    }
+
+    private boolean hasRecentsLong() {
+        return mConfig != null && mConfig.getActionConfig(ActionConfig.SECOND).isActionRecents();
+    }
+
+    private boolean hasRecentsDouble() {
+        return mConfig != null && mConfig.getActionConfig(ActionConfig.THIRD).isActionRecents();
     }
 
     public ButtonConfig getButtonConfig() {
         return mConfig;
     }
 
-    public String getSingleTapAction() {
-        if (mHasSingleAction) {
-            return mConfig.getActionConfig(ActionConfig.PRIMARY).getAction();
-        } else {
-            return null;
-        }
-    }
-
     private int getSingleTapTimeout() {
-        return mHasDoubleAction ? mSingleTapTimeoutWithDT : mSingleTapTimeout;
-    }
-
-    private boolean isLongPressStopScreenPinning() {
-        return false;
+        return hasDoubleAction() ? sSingleTapTimeoutWithDT : sSingleTapTimeout;
     }
 
     @Override
@@ -207,38 +202,31 @@ public class SmartButtonView extends ImageView {
         if (mInEditMode) {
             return false;
         }
-        if (mHasBlankSingleAction) {
-            return true;
-        }
 
         final int action = ev.getAction();
         int x, y;
 
-        // A lot of stuff is about to happen. Lets get ready.
-//        mPm.cpuBoost(750000);
-
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                if (mIsRecentsAction) {
+                if (hasRecentAction()) {
                     ActionHandler.preloadRecentApps();
                 }
                 mDownTime = SystemClock.uptimeMillis();
                 setPressed(true);
-                if (mHasSingleAction) {
+                if (hasSingleAction()) {
                     removeCallbacks(mSingleTap);
                 }
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                 long diff = mDownTime - mUpTime; // difference between last up
                                                  // and now
-                if (mHasDoubleAction && diff <= mDoubleTapTimeout) {
+                if (hasDoubleAction() && diff <= sDoubleTapTimeout) {
                     doDoubleTap();
                 } else {
-
-                    if (mHasLongAction || isLongPressStopScreenPinning()) {
+                    if (hasLongAction()) {
                         removeCallbacks(mCheckLongPress);
-                        postDelayed(mCheckLongPress, mLongPressTimeout);
+                        postDelayed(mCheckLongPress, sLongPressTimeout);
                     }
-                    if (mHasSingleAction) {
+                    if (hasSingleAction()) {
                         postDelayed(mSingleTap, getSingleTapTimeout());
                     }
                 }
@@ -253,14 +241,10 @@ public class SmartButtonView extends ImageView {
                 break;
             case MotionEvent.ACTION_CANCEL:
                 setPressed(false);
-                if (mHasSingleAction) {
+                if (hasSingleAction()) {
                     removeCallbacks(mSingleTap);
                 }
-                // hack to fix ripple getting stuck. exitHardware() starts an animation,
-                // but sometimes does not finish it.
-                // TODO: no-op now?
-                // mRipple.exitSoftware();
-                if (mHasLongAction || isLongPressStopScreenPinning()) {
+                if (hasLongAction()) {
                     removeCallbacks(mCheckLongPress);
                 }
                 ActionHandler.cancelPreloadRecentApps();
@@ -269,7 +253,7 @@ public class SmartButtonView extends ImageView {
                 mUpTime = SystemClock.uptimeMillis();
                 boolean playSound;
 
-                if (mHasLongAction || isLongPressStopScreenPinning()) {
+                if (hasLongAction()) {
                     removeCallbacks(mCheckLongPress);
                 }
                 playSound = isPressed();
@@ -279,76 +263,49 @@ public class SmartButtonView extends ImageView {
                     playSoundEffect(SoundEffectConstants.CLICK);
                 }
 
-                if (!mHasDoubleAction && !mHasLongAction && !mDoOverrideSingleTap) {
+                if (!hasDoubleAction() && !hasLongAction()) {
                     removeCallbacks(mSingleTap);
                     doSinglePress();
                 }
-                mDoOverrideSingleTap = false;
                 break;
         }
 
         return true;
     }
 
-    public void playSoundEffect(int soundConstant) {
-        mAudioManager.playSoundEffect(soundConstant, ActivityManager.getCurrentUser());
-    };
-
-    // respect the public call so we don't have to butcher PhoneStatusBar
-    public void sendEvent(int action, int flags) {}
-
     private void doSinglePress() {
-        if (callOnClick()) {
-            // cool
-            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
-        } else if (mActionHandler != null && mIsRecentsSingleAction && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY).getAction())) {
-            ActionHandler.toggleRecentApps();
-            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
-            return;
-        }
-
         if (mConfig != null) {
-            if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY).getAction())) {
-                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.PRIMARY).getAction());
+            if (mActionHandler != null
+                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY)
+                            .getAction())) {
+                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.PRIMARY)
+                        .getAction());
                 sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
             }
         }
     }
 
-    private void doDoubleTap() {
-        if (mHasDoubleAction) {
-            removeCallbacks(mSingleTap);
-            if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.THIRD).getAction())) {
-                if (mIsRecentsDoubleTapAction) {
-                    ActionHandler.toggleRecentApps();
-                } else {
-                    ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.THIRD).getAction());
-                }
+    private void doLongPress() {
+        if (mConfig != null) {
+            if (mActionHandler != null
+                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.SECOND)
+                            .getAction())) {
+                removeCallbacks(mSingleTap);
+                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.SECOND)
+                        .getAction());
+                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+                sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
             }
         }
     }
 
-    private void doLongPress() {
-        if (isLongPressStopScreenPinning()
-                && ActionHandler.isLockTaskOn()) {
-            ActionHandler.turnOffLockTask();
-            mDoOverrideSingleTap = true;
-            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-        } else {
-            if (mHasLongAction) {
-                removeCallbacks(mSingleTap);
-                if (mActionHandler != null && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.SECOND).getAction())) {
-                    if (mIsRecentsLongAction) {
-                        ActionHandler.toggleRecentApps();
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-                    } else {
-                        ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.SECOND).getAction());
-                        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-                    }
-                }
+    private void doDoubleTap() {
+        if (mConfig != null) {
+            if (mActionHandler != null
+                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.THIRD)
+                            .getAction())) {
+                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.THIRD)
+                        .getAction());
             }
         }
     }

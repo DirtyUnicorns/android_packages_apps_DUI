@@ -1,8 +1,9 @@
-/*
+/**
  * Copyright (C) 2008 The Android Open Source Project
  * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
  * 
- * Contributor: Randall Rushing aka Bigrushdog
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +37,8 @@ import com.android.internal.navigation.utils.SmartObserver;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.DUActionUtils;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringSystem;
 
 import android.animation.LayoutTransition;
 import android.app.StatusBarManager;
@@ -92,10 +95,13 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected boolean mLeftInLandscape;
     protected boolean mLayoutTransitionsEnabled;
     protected boolean mWakeAndUnlocking;
+    protected boolean mScreenPinningEnabled;
     protected final boolean mIsTablet;
     protected OnVerticalChangedListener mOnVerticalChangedListener;
     protected SmartObserver mSmartObserver;
     protected PulseController mPulse;
+//    protected SpringSystem mSpringSystem;
+//    protected Spring mSpring;
 
     // listeners from PhoneStatusBar
     protected View.OnTouchListener mHomeActionListener;
@@ -142,6 +148,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         mDisplay = ((WindowManager) context.getSystemService(
                 Context.WINDOW_SERVICE)).getDefaultDisplay();
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
+//        mSpringSystem = SpringSystem.create();
+//        mSpring = mSpringSystem.createSpring();
         mIsTablet = !DUActionUtils.isNormalScreen();
         mVertical = false;
     }
@@ -171,6 +179,11 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     public View getHomeButton() { return null; }
     public boolean isInEditMode() { return false; }
 
+    @Override
+    public void screenPinningStateChanged(boolean enabled) {
+        mScreenPinningEnabled = enabled;
+    }
+
 	@Override
 	public void setListeners(OnTouchListener homeActionListener,
 			OnLongClickListener homeLongClickListener,
@@ -192,6 +205,13 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         setUseFadingAnimations(wakeAndUnlocking);
         mWakeAndUnlocking = wakeAndUnlocking;
         updateLayoutTransitionsEnabled();
+    }
+
+    protected boolean areAnyHintsActive() {
+        return ((mDisabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0)
+                || ((mDisabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0)
+                || (((mDisabledFlags & View.STATUS_BAR_DISABLE_BACK) != 0 && ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) == 0)));
+
     }
 
 	protected void setUseFadingAnimations(boolean useFadingAnimations) {
@@ -216,6 +236,9 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected void updateLayoutTransitionsEnabled() {
         boolean enabled = !mWakeAndUnlocking && mLayoutTransitionsEnabled;
         ViewGroup navButtons = (ViewGroup) mCurrentView.findViewById(findViewByIdName("nav_buttons"));
+        if (navButtons == null) {
+            navButtons = (ViewGroup) mCurrentView.findViewWithTag(Res.Common.NAV_BUTTONS);
+        }
         LayoutTransition lt = navButtons.getLayoutTransition();
         if (lt != null) {
             if (enabled) {

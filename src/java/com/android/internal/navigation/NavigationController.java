@@ -1,5 +1,8 @@
-/*
+/**
  * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +15,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * Helper functions mostly for device configuration and some utilities
- * including a fun ViewGroup crawler and dpi conversion
- * 
+ *
+ * Middleware for providing bar implementation to PhoneStatusBar. Manage
+ * some global state changes affecting bars
+ *
  */
 
 package com.android.internal.navigation;
@@ -48,12 +51,10 @@ import android.view.View;
 public class NavigationController implements PackageChangedListener {
     private static final String TAG = NavigationController.class.getSimpleName();
 
-    public static final int NAVIGATION_MODE_AOSP = 0;
+    public static final int NAVIGATION_MODE_SMARTBAR = 0;
     public static final int NAVIGATION_MODE_FLING = 1;
-    public static final int NAVIGATION_MODE_SMARTBAR = 2;
-    private static final String NAVBAR_LAYOUT = "navigation_bar";
-    private static final String FLING_LAYOUT = "fling_bar";
     private static final String SMARTBAR_LAYOUT = "smart_bar";
+    private static final String FLING_LAYOUT = "fling_bar";
 
     private StatusbarImpl mBar;
     private NavbarObserver mNavbarObserver;
@@ -77,36 +78,39 @@ public class NavigationController implements PackageChangedListener {
 
     public Navigator getNavigationBarView() {
         int navMode = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.NAVIGATION_BAR_MODE, NAVIGATION_MODE_AOSP, UserHandle.USER_CURRENT);
+                Settings.Secure.NAVIGATION_BAR_MODE, NAVIGATION_MODE_SMARTBAR, UserHandle.USER_CURRENT);
+        if (navMode == 2) {
+            navMode = NAVIGATION_MODE_SMARTBAR;
+        }
         String layout;
         switch (navMode) {
-            case NAVIGATION_MODE_AOSP:
-                layout = NAVBAR_LAYOUT;
+            case NAVIGATION_MODE_SMARTBAR:
+                layout = SMARTBAR_LAYOUT;
                 break;
             case NAVIGATION_MODE_FLING:
                 layout = FLING_LAYOUT;
                 break;
-            case NAVIGATION_MODE_SMARTBAR:
-                layout = SMARTBAR_LAYOUT;
-                break;
             default:
-                layout = NAVBAR_LAYOUT;
-        }
-
-        // SmartBar was enabled but we turned off debugging
-        if (!"1".equals("ro.smartbar.debug") && TextUtils.equals(layout, SMARTBAR_LAYOUT)) {
-            layout = NAVBAR_LAYOUT;
+                layout = SMARTBAR_LAYOUT;
         }
 
         Navigator nav = null;
 
         if (TextUtils.equals(SMARTBAR_LAYOUT, layout)) {
-            nav = new SmartBarView(mContext);
-        } else {
+            try {
+                nav = new SmartBarView(mContext);
+            } catch (Exception e) {
+                e.printStackTrace();
+                layout = FLING_LAYOUT;
+            }
+        }
+
+        if (nav == null) {
             nav = (BaseNavigationBar) View.inflate(mContext,
                     DUActionUtils.getIdentifier(mContext, layout,
                             "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
         }
+
         nav.setControllers(mPulseController);
         return nav;
     }

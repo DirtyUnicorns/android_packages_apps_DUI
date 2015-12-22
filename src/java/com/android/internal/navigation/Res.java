@@ -1,3 +1,23 @@
+/**
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * 
+ * Some resource constants
+ *
+ */
 package com.android.internal.navigation;
 
 public class Res {
@@ -43,11 +63,14 @@ public class Res {
         public static final String CONTEXT_VIEW_LEFT = "context_view_left";
         public static final String MENU_BUTTON = "menu_button";
         public static final String IME_SWITCHER = "ime_switcher";
+        public static final String IME_ARROW_LEFT = "ime_arrow_left";
+        public static final String IME_ARROW_RIGHT = "ime_arrow_right";
+        public static final String STOP_SCREENPINNING = "stop_screenpinning";
         public static final String MENU_DESC = "accessibility_menu";
         public static final String IME_DESC = "accessibility_ime_switch_button";
-        public static final String BUTTON_BACK = "back";
-        public static final String BUTTON_HOME = "home";
-        public static final String BUTTON_OVERVIEW = "overview";
+        public static final String BUTTON_BACK = "smartbar_button_1";
+        public static final String BUTTON_HOME = "smartbar_button_2";
+        public static final String BUTTON_OVERVIEW = "smartbar_button_3";
     }
 
     public static final class Fling {

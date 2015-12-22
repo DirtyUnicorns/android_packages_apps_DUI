@@ -1,6 +1,8 @@
-/*
+/**
  * Copyright (C) 2014 The TeamEos Project
- * Author: Randall Rushing aka Bigrushdog
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +16,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * Handles binding utils.eos to events, and a simple public api for firing
- * events. Also handles observing user changes to utils.eos and a callback
+ * Handles binding actions to events, and a simple public api for firing
+ * events. Also handles observing user changes to actions and a callback
  * that's called action pre-execution. Let's motion handler know if double
- * tap is enabled in case of different touch handling
- * 
- * Split bar utils.eos: if only one side is enabled, the full bar executes the
- * enabled side action
+ * tap is enabled in case of different touch handling 
  *
  */
 
@@ -35,6 +34,7 @@ import java.util.Random;
 import java.util.Set;
 
 import com.android.internal.navigation.fling.FlingGestureHandler.Swipeable;
+import com.android.internal.navigation.smartbar.SmartButtonView;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.ActionHandler;
@@ -122,6 +122,10 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         mHost.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         mHost.playSoundEffect(SoundEffectConstants.CLICK);
         ActionHandler.performTask(mContext, theAction);
+        checkSoftKeyDevice();
+    }
+
+    public void onPrepareToFire(View v) {
         checkSoftKeyDevice();
     }
 

@@ -68,6 +68,8 @@ public class SmartButtonRipple extends Drawable {
 
     private int mRippleColor;
 
+    private static boolean sEnabled = true;
+
     public SmartButtonRipple(Context ctx, View targetView) {
         final Context context = ctx;
         mMaxWidth = DUActionUtils.getDimenPixelSize(context, "key_button_ripple_max_width" , DUActionUtils.PACKAGE_SYSTEMUI);
@@ -106,13 +108,19 @@ public class SmartButtonRipple extends Drawable {
         }
     }
 
+    public static void setEnabled(boolean enabled) {
+        sEnabled = enabled;
+    }
+
     @Override
     public void draw(Canvas canvas) {
-        mSupportHardware = canvas.isHardwareAccelerated();
-        if (mSupportHardware) {
-            drawHardware((DisplayListCanvas) canvas);
-        } else {
-            drawSoftware(canvas);
+        if (sEnabled) {
+            mSupportHardware = canvas.isHardwareAccelerated();
+            if (mSupportHardware) {
+                drawHardware((DisplayListCanvas) canvas);
+            } else {
+                drawSoftware(canvas);
+            }
         }
     }
 

@@ -5,7 +5,8 @@ include $(CLEAR_VARS)
 LOCAL_JAVA_LIBRARIES := org.dirtyunicorns.utils
 
 LOCAL_STATIC_JAVA_LIBRARIES := \
-    trail-drawing
+    trail-drawing \
+    rebound
 
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 

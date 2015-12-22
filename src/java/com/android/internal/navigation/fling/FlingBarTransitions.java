@@ -56,44 +56,10 @@ public final class FlingBarTransitions extends BarTransitions {
                 ServiceManager.getService(Context.STATUS_BAR_SERVICE));
     }
 
-    public void init(boolean isVertical) {
-        setVertical(isVertical);
+    public void init() {
         applyModeBackground(-1, getMode(), false /*animate*/);
         applyMode(getMode(), false /*animate*/, true /*force*/);
     }
-
-    public void setVertical(boolean isVertical) {
-        mVertical = isVertical;
-        transitionTo(mRequestedMode, false /*animate*/);
-    }
-/*
-    @Override
-    public void transitionTo(int mode, boolean animate) {
-        mRequestedMode = mode;
-        if (mVertical && !mTransparencyAllowedWhenVertical) {
-            // translucent mode not allowed when vertical
-            if (mode == MODE_TRANSLUCENT || mode == MODE_TRANSPARENT) {
-                mode = MODE_OPAQUE;
-            } else if (mode == MODE_LIGHTS_OUT_TRANSPARENT || mode == MODE_LIGHTS_OUT_TRANSLUCENT) {
-                mode = MODE_LIGHTS_OUT;
-            }
-        }
-        super.transitionTo(mode, animate);
-    }
-*/
-	@Override
-	public void transitionTo(int mode, boolean animate) {
-		mRequestedMode = mode;
-		if (mVertical) {
-			// translucent mode not allowed when vertical
-			if (mode == MODE_TRANSLUCENT || mode == MODE_TRANSPARENT) {
-				mode = MODE_OPAQUE;
-			} else if (mode == MODE_LIGHTS_OUT_TRANSPARENT) {
-				mode = MODE_LIGHTS_OUT;
-			}
-		}
-		super.transitionTo(mode, animate);
-	}
 
     @Override
     protected void onTransition(int oldMode, int newMode, boolean animate) {
@@ -103,7 +69,7 @@ public final class FlingBarTransitions extends BarTransitions {
 
     private void applyMode(int mode, boolean animate, boolean force) {
         // apply to lights out
-        applyLightsOut(mode == MODE_LIGHTS_OUT, animate, force);
+        applyLightsOut(isLightsOut(mode), animate, force);
     }
 
     private int findViewByIdName(String name) {

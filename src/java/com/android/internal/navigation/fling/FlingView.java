@@ -1,6 +1,8 @@
-/*
+/**
  * Copyright (C) 2014 The TeamEos Project
- * Author: Randall Rushing aka Bigrushdog
+ * Copyright (C) 2016 The DirtyUnicorns Project
+ * 
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -310,7 +312,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void reorient() {
         super.reorient();
-        mBarTransitions.init(mVertical);
+        mBarTransitions.init();
         mLogoController.setLogoView(getFlingLogo());
         mGestureHandler.setIsVertical(mVertical);
         setDisabledFlags(mDisabledFlags, true /* force */);

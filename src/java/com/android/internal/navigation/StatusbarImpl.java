@@ -1,8 +1,8 @@
-/*
- * Copyright (C) 2008 The Android Open Source Project
+/**
  * Copyright (C) 2014 The TeamEos Project
+ * Copyright (C) 2016 The DirtyUnicorns Project
  * 
- * Contributor: Randall Rushing aka Bigrushdog
+ * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * Callbacks into statusbar
+ * Callbacks into statusbar (likely deprecated soon)
  * 
  */
 
