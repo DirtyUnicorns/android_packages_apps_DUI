@@ -38,7 +38,7 @@ public class FlingLogoView extends ImageView {
 
     public static final String TAG = FlingLogoView.class.getSimpleName();
 
-    private int mLogoColor = Color.WHITE;
+    private int mLogoColor = -1;
 
     public FlingLogoView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -47,7 +47,6 @@ public class FlingLogoView extends ImageView {
     public FlingLogoView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         setBackground(null);
-        updateResources(context.getResources());
     }
 
     @Override
@@ -56,33 +55,17 @@ public class FlingLogoView extends ImageView {
         return false;
     }
 
-    public void updateResources(Resources res) {
-        // int color = res.getColor(R.color.status_bar_clock_color);
-        // setDrawableColorFilter(color);
-    }
-
     public int getLogoColor() {
         return mLogoColor;
     }
 
     public void setLogoColor(int color) {
-        if (mLogoColor == color) {
-            return;
-        } else if (color == -1) {
-            mLogoColor = -1;
+        mLogoColor = color;
+        if (color == -1) {
             getDrawable().setColorFilter(null);
-            return;
-        } else if (color == -2) {
-            mLogoColor = DUActionUtils.getColor(getContext(), "status_bar_clock_color",
-                    DUActionUtils.PACKAGE_SYSTEMUI);
         } else {
-            mLogoColor = color;
+            Drawable logo = getDrawable();
+            logo.setColorFilter(color, Mode.SRC_ATOP);
         }
-        setDrawableColorFilter(mLogoColor);
-    }
-
-    private void setDrawableColorFilter(int color) {
-        Drawable logo = getDrawable();
-        logo.setColorFilter(color, Mode.SRC_ATOP);
     }
 }

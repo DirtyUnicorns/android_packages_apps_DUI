@@ -261,7 +261,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         updateLayoutTransitionsEnabled();
     }
 
-    protected int findViewByIdName(String name) {
+    public int findViewByIdName(String name) {
         return DUActionUtils.getId(getContext(), name,
                 DUActionUtils.PACKAGE_SYSTEMUI);
     }
@@ -516,7 +516,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     }
 
     // returns themed resources is availabe, otherwise system resources
-    protected Resources getAvailableResources() {
+    public Resources getAvailableResources() {
         return mThemedResources != null ? mThemedResources : getContext().getResources();
     }
 

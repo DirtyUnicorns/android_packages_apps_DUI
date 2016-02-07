@@ -75,7 +75,6 @@ public class FlingView extends BaseNavigationBar {
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
-    private Drawable mLogo, mLogoLand;
 
     private SmartObservable mObservable = new SmartObservable() {
         @Override
@@ -152,7 +151,7 @@ public class FlingView extends BaseNavigationBar {
         mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         mRipple = new FlingRipple(this);
         mTrails = new FlingTrails(this);
-        mLogoController = new FlingLogoController(context);
+        mLogoController = new FlingLogoController(this);
 
         mSmartObserver.addListener(mActionHandler);
         mSmartObserver.addListener(mGestureHandler);
@@ -226,6 +225,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void onFinishInflate() {
         super.onFinishInflate();
+        mLogoController.setLogoIcon();
         updateFlingSettings();
     }
 
@@ -250,26 +250,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     protected void onUpdateResources(Resources res) {
 //        mRipple.updateResources(res);
-        View v = mRot0.findViewById(findViewByIdName("fling_console"));
-        if (v != null && v instanceof ImageView) {
-            ImageView iv = (ImageView) v;
-            mLogo = getAvailableResources().getDrawable(
-                    DUActionUtils.getIdentifier(getContext(),
-                            "ic_eos_fling", "drawable",
-                            DUActionUtils.PACKAGE_SYSTEMUI));
-            iv.setImageDrawable(null);
-            iv.setImageDrawable(mLogo);
-        }
-        v = mRot90.findViewById(findViewByIdName("fling_console"));
-        if (v != null && v instanceof ImageView) {
-            ImageView iv = (ImageView) v;
-            mLogoLand = getAvailableResources().getDrawable(
-                    DUActionUtils.getIdentifier(getContext(),
-                            "ic_eos_fling_land", "drawable",
-                            DUActionUtils.PACKAGE_SYSTEMUI));
-            iv.setImageDrawable(null);
-            iv.setImageDrawable(mLogoLand);
-        }
+        mLogoController.setLogoIcon();
         for (int i = 0; i < mRotatedViews.length; i++) {
             ViewGroup container = (ViewGroup) mRotatedViews[i];
             ViewGroup lightsOut = (ViewGroup) container.findViewById(findViewByIdName("lights_out"));
@@ -290,11 +271,6 @@ public class FlingView extends BaseNavigationBar {
                     }
                 }
             }
-//            ImageView ime = (ImageView) container.findViewById(R.id.ime_switcher);
-//            if (ime != null) {
-//                ime.setImageDrawable(null);
-//                ime.setImageDrawable(res.getDrawable(R.drawable.ic_ime_switcher_default));
-//            }
         }
     }
 
@@ -314,6 +290,7 @@ public class FlingView extends BaseNavigationBar {
         super.reorient();
         mBarTransitions.init();
         mLogoController.setLogoView(getFlingLogo());
+        mLogoController.setLogoIcon();
         mGestureHandler.setIsVertical(mVertical);
         setDisabledFlags(mDisabledFlags, true /* force */);
     }

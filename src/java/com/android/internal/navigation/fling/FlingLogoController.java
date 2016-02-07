@@ -23,22 +23,31 @@
 
 package com.android.internal.navigation.fling;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
+import com.android.internal.utils.du.Config.ActionConfig;
+import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.internal.utils.du.DUActionUtils;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.text.TextUtils;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
+import android.widget.ImageView;
 
 public class FlingLogoController implements SmartObservable {
     private static final int LOGO_ANIMATE_HIDE = 1;
@@ -48,33 +57,38 @@ public class FlingLogoController implements SmartObservable {
     private static final int LOCK_SHOW = 1;
     private static final int LOCK_HIDDEN = 2;
 
+    public static final String FLING_LOGO_RES = "ic_eos_fling";
+    public static final String FLING_LOGO_URI = "fling_custom_icon_config";
+
     private static Set<Uri> sUris = new HashSet<Uri>();
     static {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_VISIBLE));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_ANIMATES));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_COLOR));
+        sUris.add(Settings.Secure.getUriFor(FLING_LOGO_URI));
     }
 
     private Context mContext;
+    private FlingView mHost;
     private FlingLogoView mLogoView;
+    private ButtonConfig mLogoConfig;
 
     private boolean mLogoEnabled;
     private boolean mAnimateTouchEnabled;
+    private int mLogoColor;
     private int mVisibilityLock;
-    private int mLogoColor = 0;
     private AnimationSet mShow = getSpinAnimation(LOGO_ANIMATE_SHOW);
     private AnimationSet mHide = getSpinAnimation(LOGO_ANIMATE_HIDE);
 
-    public FlingLogoController(Context ctx) {
-        mContext = ctx;
+    public FlingLogoController(FlingView host) {
+        mHost = host;
+        mContext = host.getContext();
         initialize();
     }
 
     public void setLogoView(FlingLogoView view) {
         mLogoView = view;
-        if (mLogoColor != view.getLogoColor()) {
-            mLogoView.setLogoColor(mLogoColor);
-        }
+        mLogoView.setLogoColor(mLogoColor);
         animateToCurrentState();
     }
 
@@ -176,14 +190,11 @@ public class FlingLogoController implements SmartObservable {
                 Settings.Secure.FLING_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
         boolean spinOnTouch = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        int logoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+        mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
-        if (mLogoColor != logoColor) {
-            mLogoColor = logoColor;
-            if (mLogoColor != mLogoView.getLogoColor()) {
-                mLogoView.setLogoColor(mLogoColor);
-            }
-        }
+        mLogoConfig = ButtonConfig.getButton(mContext, FLING_LOGO_URI, true);
+        setLogoIcon();
+        mLogoView.setLogoColor(mLogoColor);
         if (mLogoEnabled != enabled) {
             setEnabled(enabled);
         }
@@ -199,6 +210,51 @@ public class FlingLogoController implements SmartObservable {
                 Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
         mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
+        mLogoConfig = ButtonConfig.getButton(mContext, FLING_LOGO_URI, true);
+    }
+
+    void setLogoIcon() {
+        final ViewGroup current = (ViewGroup) mHost.getCurrentView();
+        final ViewGroup hidden = (ViewGroup) mHost.getHiddenView();
+        ImageView currentLogo = (ImageView)current.findViewById(mHost.findViewByIdName("fling_console"));
+        ImageView hiddenLogo = (ImageView)hidden.findViewById(mHost.findViewByIdName("fling_console"));
+        currentLogo.setImageDrawable(null);
+        currentLogo.setImageDrawable(getCurrentDrawable());
+        hiddenLogo.setImageDrawable(null);
+        hiddenLogo.setImageDrawable(getCurrentDrawable());
+    }
+ 
+    Drawable getDefaultDrawable() {
+        return mHost.getAvailableResources().getDrawable(
+                DUActionUtils.getIdentifier(mContext,
+                        FLING_LOGO_RES, "drawable",
+                        DUActionUtils.PACKAGE_SYSTEMUI));
+    }
+
+    Drawable getCurrentDrawable() {
+        if (mLogoConfig.hasCustomIcon()) {
+            // manually parse and handle the icon info
+            // default handling will return the icon for the action if null
+            // we want different handling for null, i.e. the default Fling logo
+            String iconUri = mLogoConfig.getActionConfig(ActionConfig.PRIMARY).getIconUri();
+            ArrayList<String> items = new ArrayList<String>();
+            Drawable d;
+            items.addAll(Arrays.asList(iconUri.split("\\$")));
+            String type = items.get(0);
+            if (TextUtils.equals(type, "iconpack") && items.size() == 3) {
+                String packageName = items.get(1);
+                String iconName = items.get(2);
+                d = DUActionUtils.getDrawable(mContext, iconName, packageName);
+                if (d == null) {
+                    d = getDefaultDrawable();
+                }
+                return d;
+            } else {
+                return getDefaultDrawable();
+            }
+        } else {
+            return getDefaultDrawable();
+        }
     }
 
     public static AnimationSet getSpinAnimation(int mode) {
