@@ -54,17 +54,13 @@ public class SmartButtonView extends ImageView {
     // TODO: make this dynamic again
     private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
     private static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
-    private static int sSingleTapTimeout = ViewConfiguration.getTapTimeout();
-    private static int sSingleTapTimeoutWithDT = sSingleTapTimeout + 175;
     private static int sLongPressTimeout = LP_TIMEOUT - 100;
-    private static int sDoubleTapTimeout = DT_TIMEOUT;
 
     // TODO: Get rid of this
     public static final float DEFAULT_QUIESCENT_ALPHA = 1f;
 
-    private long mDownTime;
-    private long mUpTime;
-    private int mTouchSlop;
+    private boolean isDoubleTapPending;
+    private boolean wasConsumed;
     private float mDrawingAlpha = 1f;
     private float mQuiescentAlpha = DEFAULT_QUIESCENT_ALPHA;
     private Animator mAnimateToQuiescent = new ObjectAnimator();
@@ -83,7 +79,6 @@ public class SmartButtonView extends ImageView {
         setDrawingAlpha(mQuiescentAlpha);
         setClickable(true);
         setLongClickable(false);
-        mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
     }
 
     public void loadRipple() {
@@ -92,14 +87,6 @@ public class SmartButtonView extends ImageView {
 
     public void setEditMode(boolean editMode) {
         mInEditMode = editMode;
-    }
-
-    public static void setLongPressTimeout(int lpTimeout) {
-        sLongPressTimeout = lpTimeout;
-    }
-
-    public static void setDoubleTapTimeout(int dtTimeout) {
-        sDoubleTapTimeout = dtTimeout;
     }
 
     public void setButtonConfig(ButtonConfig config) {
@@ -138,10 +125,6 @@ public class SmartButtonView extends ImageView {
 
     public ButtonConfig getButtonConfig() {
         return mConfig;
-    }
-
-    private int getSingleTapTimeout() {
-        return hasDoubleAction() ? sSingleTapTimeoutWithDT : sSingleTapTimeout;
     }
 
     @Override
@@ -198,82 +181,62 @@ public class SmartButtonView extends ImageView {
         mDrawingAlpha = x;
     }
 
+    // special case: double tap for screen off we never capture up motion event
+    public void onScreenStateChanged(boolean screeOn) {
+        wasConsumed = false;
+        setPressed(false);
+    }
+
     public boolean onTouchEvent(MotionEvent ev) {
         if (mInEditMode) {
             return false;
         }
-
         final int action = ev.getAction();
-        int x, y;
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                if (hasRecentAction()) {
-                    ActionHandler.preloadRecentApps();
-                }
-                mDownTime = SystemClock.uptimeMillis();
                 setPressed(true);
-                if (hasSingleAction()) {
-                    removeCallbacks(mSingleTap);
-                }
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                long diff = mDownTime - mUpTime; // difference between last up
-                                                 // and now
-                if (hasDoubleAction() && diff <= sDoubleTapTimeout) {
+                if (isDoubleTapPending) {
+                    isDoubleTapPending = false;
+                    wasConsumed = true;
+                    removeCallbacks(mDoubleTapTimeout);
                     doDoubleTap();
                 } else {
+                    wasConsumed = false;
+                    if (hasRecentAction()) {
+                        ActionHandler.preloadRecentApps();
+                    }
                     if (hasLongAction()) {
                         removeCallbacks(mCheckLongPress);
                         postDelayed(mCheckLongPress, sLongPressTimeout);
                     }
-                    if (hasSingleAction()) {
-                        postDelayed(mSingleTap, getSingleTapTimeout());
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                setPressed(false);
+                if (hasLongAction()) {
+                    removeCallbacks(mCheckLongPress);
+                }
+                if (hasDoubleAction()) {
+                    if (wasConsumed) {
+                        wasConsumed = false;
+                        return true;
+                    }
+                    isDoubleTapPending = true;
+                    postDelayed(mDoubleTapTimeout, DT_TIMEOUT);
+                } else {
+                    if (!wasConsumed && hasSingleAction()) {
+                        doSinglePress();
                     }
                 }
                 break;
-            case MotionEvent.ACTION_MOVE:
-                x = (int) ev.getX();
-                y = (int) ev.getY();
-                setPressed(x >= -mTouchSlop
-                        && x < getWidth() + mTouchSlop
-                        && y >= -mTouchSlop
-                        && y < getHeight() + mTouchSlop);
-                break;
-            case MotionEvent.ACTION_CANCEL:
-                setPressed(false);
-                if (hasSingleAction()) {
-                    removeCallbacks(mSingleTap);
-                }
-                if (hasLongAction()) {
-                    removeCallbacks(mCheckLongPress);
-                }
-                ActionHandler.cancelPreloadRecentApps();
-                break;
-            case MotionEvent.ACTION_UP:
-                mUpTime = SystemClock.uptimeMillis();
-                boolean playSound;
-
-                if (hasLongAction()) {
-                    removeCallbacks(mCheckLongPress);
-                }
-                playSound = isPressed();
-                setPressed(false);
-
-                if (playSound) {
-                    playSoundEffect(SoundEffectConstants.CLICK);
-                }
-
-                if (!hasDoubleAction() && !hasLongAction()) {
-                    removeCallbacks(mSingleTap);
-                    doSinglePress();
-                }
-                break;
         }
-
         return true;
     }
 
     private void doSinglePress() {
+        isDoubleTapPending = false;
         if (mConfig != null) {
             if (mActionHandler != null
                     && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY)
@@ -286,11 +249,12 @@ public class SmartButtonView extends ImageView {
     }
 
     private void doLongPress() {
+        isDoubleTapPending = false;
+        wasConsumed = true;
         if (mConfig != null) {
             if (mActionHandler != null
                     && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.SECOND)
                             .getAction())) {
-                removeCallbacks(mSingleTap);
                 ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.SECOND)
                         .getAction());
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
@@ -300,6 +264,8 @@ public class SmartButtonView extends ImageView {
     }
 
     private void doDoubleTap() {
+        isDoubleTapPending = false;
+        wasConsumed = true;
         if (mConfig != null) {
             if (mActionHandler != null
                     && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.THIRD)
@@ -310,20 +276,22 @@ public class SmartButtonView extends ImageView {
         }
     }
 
-    private Runnable mCheckLongPress = new Runnable() {
+    private Runnable mDoubleTapTimeout = new Runnable() {
+        @Override
         public void run() {
-            if (isPressed()) {
-                removeCallbacks(mSingleTap);
-                doLongPress();
-            }
+            wasConsumed = false;
+            isDoubleTapPending = false;
+            doSinglePress();
         }
     };
 
-    private Runnable mSingleTap = new Runnable() {
-        @Override
+    private Runnable mCheckLongPress = new Runnable() {
         public void run() {
-            if (!isPressed()) {
-                doSinglePress();
+            if (isPressed()) {
+                wasConsumed = true;
+                isDoubleTapPending = false;
+                removeCallbacks(mDoubleTapTimeout);
+                doLongPress();
             }
         }
     };

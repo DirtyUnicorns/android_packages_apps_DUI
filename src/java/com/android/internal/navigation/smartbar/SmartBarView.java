@@ -394,6 +394,12 @@ public class SmartBarView extends BaseNavigationBar {
     public void notifyScreenOn(boolean screenOn) {
         super.notifyScreenOn(screenOn);
         mEditor.notifyScreenOn(screenOn);
+        for (String buttonTag : mCurrentSequence) {
+            SmartButtonView v = findCurrentButton(buttonTag);
+            if (v != null) {
+                v.onScreenStateChanged(screenOn);
+            }
+        }
     }
 
     @Override
