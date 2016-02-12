@@ -1,7 +1,4 @@
 /**
- * Copyright (C) 2012 The Android Open Source Project
- * Copyright (C) 2013 SlimRoms
- * Copyright (C) 2014 The TeamEos Project
  * Copyright (C) 2016 The DirtyUnicorns Project
  * 
  * @author: Randall Rushing <randall.rushing@gmail.com>
@@ -54,7 +51,10 @@ public class SmartButtonView extends ImageView {
     // TODO: make this dynamic again
     private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
     private static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
+
+    // AOSP values feel rather slow, shave off some slack
     private static int sLongPressTimeout = LP_TIMEOUT - 100;
+    private static int sDoubleTapTimeout = DT_TIMEOUT - 100;
     private static boolean sKeyguardShowing = false;
 
     // TODO: Get rid of this
@@ -229,7 +229,7 @@ public class SmartButtonView extends ImageView {
                         return true;
                     }
                     isDoubleTapPending = true;
-                    postDelayed(mDoubleTapTimeout, DT_TIMEOUT);
+                    postDelayed(mDoubleTapTimeout, sDoubleTapTimeout);
                 } else {
                     if (!wasConsumed && hasSingleAction()) {
                         doSinglePress();
