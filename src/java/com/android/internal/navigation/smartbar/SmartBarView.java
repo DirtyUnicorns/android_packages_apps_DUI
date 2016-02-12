@@ -99,7 +99,6 @@ public class SmartBarView extends BaseNavigationBar {
     int mNavigationIconHints = 0;
 
     private final SmartBarTransitions mBarTransitions;
-    private SmartActionHandler mActionHandler;
     private SmartBarEditor mEditor;
 
     // hold a reference to primary buttons in order of appearance on screen
@@ -110,7 +109,6 @@ public class SmartBarView extends BaseNavigationBar {
 
     public SmartBarView(Context context) {
         super(context);
-        mActionHandler = new SmartActionHandler(this);
         mBarTransitions = new SmartBarTransitions(this);
         mEditor = new SmartBarEditor(this);
         mSmartObserver.addListener(mObservable);
@@ -404,7 +402,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onKeyguardShowing(boolean showing) {
-        mActionHandler.setKeyguardShowing(showing);
+        SmartButtonView.setKeyguardShowing(showing);
         mEditor.setKeyguardShowing(showing);
     }
 
@@ -438,6 +436,7 @@ public class SmartBarView extends BaseNavigationBar {
                 ActionConstants.getDefaults(ActionConstants.SMARTBAR));
         recreateButtonLayout(buttonConfigs, false, true);
         recreateButtonLayout(buttonConfigs, true, false);
+        SmartButtonView.setKeyguardShowing(isKeyguardShowing());
         mContextLeft = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         mContextRight = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_RIGHT);
         mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
@@ -544,8 +543,7 @@ public class SmartBarView extends BaseNavigationBar {
 
         for (int j = 0; j < buttonConfigs.size(); j++) {
             buttonConfig = buttonConfigs.get(j);
-            SmartButtonView v = SmartBarHelper.generatePrimaryKey(mContext, landscape,
-                    mActionHandler, buttonConfig);
+            SmartButtonView v = SmartBarHelper.generatePrimaryKey(mContext, landscape, buttonConfig);
             SmartBarHelper.updateButtonSize(v, dimen, landscape);
             SmartBarHelper.addViewToRoot(navButtonLayout, v, landscape);
             SmartBarHelper.addLightsOutButton(mContext, lightsOut, v, landscape, false);
@@ -611,7 +609,7 @@ public class SmartBarView extends BaseNavigationBar {
     }
 
     private SmartButtonView generateContextKey(boolean landscape, String tag) {
-        SmartButtonView v = new SmartButtonView(mContext, mActionHandler);
+        SmartButtonView v = new SmartButtonView(mContext);
         ButtonConfig buttonConfig = new ButtonConfig(mContext);
         ActionConfig actionConfig;
 

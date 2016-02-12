@@ -55,6 +55,7 @@ public class SmartButtonView extends ImageView {
     private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout();
     private static final int LP_TIMEOUT = ViewConfiguration.getLongPressTimeout();
     private static int sLongPressTimeout = LP_TIMEOUT - 100;
+    private static boolean sKeyguardShowing = false;
 
     // TODO: Get rid of this
     public static final float DEFAULT_QUIESCENT_ALPHA = 1f;
@@ -65,20 +66,24 @@ public class SmartButtonView extends ImageView {
     private float mQuiescentAlpha = DEFAULT_QUIESCENT_ALPHA;
     private Animator mAnimateToQuiescent = new ObjectAnimator();
     private boolean mInEditMode;
-
     private ButtonConfig mConfig;
-    private SmartActionHandler mActionHandler;
-
-    public SmartButtonView(Context context, SmartActionHandler actionHandler) {
-        this(context);
-        mActionHandler = actionHandler;
-    }
 
     public SmartButtonView(Context context) {
         super(context);
         setDrawingAlpha(mQuiescentAlpha);
         setClickable(true);
         setLongClickable(false);
+    }
+
+    public static void setKeyguardShowing(boolean showing) {
+        sKeyguardShowing = showing;
+    }
+
+    private void fireActionIfSecure(String action) {
+        if (!sKeyguardShowing
+                || (sKeyguardShowing && ActionHandler.SYSTEMUI_TASK_BACK.equals(action))) {
+            ActionHandler.performTask(mContext, action);
+        }
     }
 
     public void loadRipple() {
@@ -238,13 +243,9 @@ public class SmartButtonView extends ImageView {
     private void doSinglePress() {
         isDoubleTapPending = false;
         if (mConfig != null) {
-            if (mActionHandler != null
-                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.PRIMARY)
-                            .getAction())) {
-                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.PRIMARY)
-                        .getAction());
-                sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
-            }
+            String action = mConfig.getActionConfig(ActionConfig.PRIMARY).getAction();
+            fireActionIfSecure(action);
+            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_CLICKED);
         }
     }
 
@@ -252,14 +253,10 @@ public class SmartButtonView extends ImageView {
         isDoubleTapPending = false;
         wasConsumed = true;
         if (mConfig != null) {
-            if (mActionHandler != null
-                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.SECOND)
-                            .getAction())) {
-                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.SECOND)
-                        .getAction());
-                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-            }
+            String action = mConfig.getActionConfig(ActionConfig.SECOND).getAction();
+            fireActionIfSecure(action);
+            performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
+            sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
         }
     }
 
@@ -267,12 +264,8 @@ public class SmartButtonView extends ImageView {
         isDoubleTapPending = false;
         wasConsumed = true;
         if (mConfig != null) {
-            if (mActionHandler != null
-                    && mActionHandler.isSecureToFire(mConfig.getActionConfig(ActionConfig.THIRD)
-                            .getAction())) {
-                ActionHandler.performTask(mContext, mConfig.getActionConfig(ActionConfig.THIRD)
-                        .getAction());
-            }
+            String action = mConfig.getActionConfig(ActionConfig.THIRD).getAction();
+            fireActionIfSecure(action);
         }
     }
 
