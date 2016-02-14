@@ -620,7 +620,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         loadTapMenuMap();
         loadIconMenuMap();
         mEditContainer = new FrameLayout(mContext);
-        mHidden = new SmartButtonView(mContext);
+        mHidden = new SmartButtonView(mContext, mHost);
         mQuick = new QuickAction(mContext, QuickAction.VERTICAL);
         mEditContainer.setOnTouchListener(mEditorWindowTouchListener);
         mHidden.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));

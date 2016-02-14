@@ -76,6 +76,7 @@ public class SmartBarView extends BaseNavigationBar {
     static {
         sUris.add(Settings.Secure.getUriFor("smartbar_context_menu_mode"));
         sUris.add(Settings.Secure.getUriFor("smartbar_ime_hint_mode"));
+        sUris.add(Settings.Secure.getUriFor("smartbar_button_animation_style"));
     }
 
     private SmartObservable mObservable = new SmartObservable() {
@@ -91,6 +92,8 @@ public class SmartBarView extends BaseNavigationBar {
             } else if (uri.equals(Settings.Secure.getUriFor("smartbar_ime_hint_mode"))) {
                 updateImeHintModeSettings();
                 refreshImeHintMode();
+            } else if (uri.equals(Settings.Secure.getUriFor("smartbar_button_animation_style"))) {
+                updateAnimationStyle();
             }
         }
     };
@@ -106,6 +109,7 @@ public class SmartBarView extends BaseNavigationBar {
     private View mContextRight, mContextLeft, mCurrentContext;
     private boolean mHasLeftContext;
     private int mImeHintMode;
+    private int mButtonAnimationStyle;
 
     public SmartBarView(Context context) {
         super(context);
@@ -392,8 +396,13 @@ public class SmartBarView extends BaseNavigationBar {
     public void notifyScreenOn(boolean screenOn) {
         super.notifyScreenOn(screenOn);
         mEditor.notifyScreenOn(screenOn);
+        ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
         for (String buttonTag : mCurrentSequence) {
             SmartButtonView v = findCurrentButton(buttonTag);
+            if (v != null) {
+                v.onScreenStateChanged(screenOn);
+            }
+            v = (SmartButtonView) hidden.findViewWithTag(buttonTag);
             if (v != null) {
                 v.onScreenStateChanged(screenOn);
             }
@@ -402,7 +411,6 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onKeyguardShowing(boolean showing) {
-        SmartButtonView.setKeyguardShowing(showing);
         mEditor.setKeyguardShowing(showing);
     }
 
@@ -436,7 +444,6 @@ public class SmartBarView extends BaseNavigationBar {
                 ActionConstants.getDefaults(ActionConstants.SMARTBAR));
         recreateButtonLayout(buttonConfigs, false, true);
         recreateButtonLayout(buttonConfigs, true, false);
-        SmartButtonView.setKeyguardShowing(isKeyguardShowing());
         mContextLeft = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         mContextRight = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_RIGHT);
         mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
@@ -445,6 +452,7 @@ public class SmartBarView extends BaseNavigationBar {
         setScreenPinningVisibility();
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
+        updateAnimationStyle();
     }
 
     @Override
@@ -487,6 +495,22 @@ public class SmartBarView extends BaseNavigationBar {
     private void updateImeHintModeSettings() {
         mImeHintMode = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 "smartbar_ime_hint_mode", IME_HINT_MODE_ARROWS, UserHandle.USER_CURRENT);
+    }
+
+    private void updateAnimationStyle() {
+        mButtonAnimationStyle = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                "smartbar_button_animation_style", SmartButtonView.ANIM_STYLE_RIPPLE, UserHandle.USER_CURRENT);
+        ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+        for (String buttonTag : mCurrentSequence) {
+            SmartButtonView v = findCurrentButton(buttonTag);
+            if (v != null) {
+                v.setAnimationStyle(mButtonAnimationStyle);
+            }
+            v = (SmartButtonView) hidden.findViewWithTag(buttonTag);
+            if (v != null) {
+                v.setAnimationStyle(mButtonAnimationStyle);
+            }
+        }
     }
 
     private void refreshImeHintMode() {
@@ -543,7 +567,7 @@ public class SmartBarView extends BaseNavigationBar {
 
         for (int j = 0; j < buttonConfigs.size(); j++) {
             buttonConfig = buttonConfigs.get(j);
-            SmartButtonView v = SmartBarHelper.generatePrimaryKey(mContext, landscape, buttonConfig);
+            SmartButtonView v = SmartBarHelper.generatePrimaryKey(mContext, this, landscape, buttonConfig);
             SmartBarHelper.updateButtonSize(v, dimen, landscape);
             SmartBarHelper.addViewToRoot(navButtonLayout, v, landscape);
             SmartBarHelper.addLightsOutButton(mContext, lightsOut, v, landscape, false);
@@ -609,7 +633,7 @@ public class SmartBarView extends BaseNavigationBar {
     }
 
     private SmartButtonView generateContextKey(boolean landscape, String tag) {
-        SmartButtonView v = new SmartButtonView(mContext);
+        SmartButtonView v = new SmartButtonView(mContext, this);
         ButtonConfig buttonConfig = new ButtonConfig(mContext);
         ActionConfig actionConfig;
 
@@ -647,6 +671,7 @@ public class SmartBarView extends BaseNavigationBar {
         v.setImageDrawable(null);
         v.setImageDrawable(buttonConfig.getCurrentIcon(mContext));
         v.setContentDescription(buttonConfig.getActionConfig(ActionConfig.PRIMARY).getLabel());
+        v.setAnimationStyle(SmartButtonView.ANIM_STYLE_RIPPLE);
         return v;
     }
 

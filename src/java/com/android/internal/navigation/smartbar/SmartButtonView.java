@@ -19,25 +19,24 @@
 package com.android.internal.navigation.smartbar;
 
 import android.animation.Animator;
+import android.animation.AnimatorSet;
+import android.animation.TimeInterpolator;
 
 import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
+import com.facebook.rebound.Spring;
+import com.facebook.rebound.SpringConfig;
+import com.facebook.rebound.SpringListener;
 
 import android.animation.ObjectAnimator;
-import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.content.res.ThemeConfig;
-import android.media.AudioManager;
-import android.os.PowerManager;
-import android.os.SystemClock;
-import android.util.AttributeSet;
 import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
-import android.view.SoundEffectConstants;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.accessibility.AccessibilityEvent;
@@ -55,7 +54,12 @@ public class SmartButtonView extends ImageView {
     // AOSP values feel rather slow, shave off some slack
     private static int sLongPressTimeout = LP_TIMEOUT - 100;
     private static int sDoubleTapTimeout = DT_TIMEOUT - 100;
-    private static boolean sKeyguardShowing = false;
+
+    // Rebound spring config
+    private static double TENSION = 120;
+    private static double FRICTION = 3;
+    public static final int ANIM_STYLE_RIPPLE = 0;
+    public static final int ANIM_STYLE_SPRING = 1;
 
     // TODO: Get rid of this
     public static final float DEFAULT_QUIESCENT_ALPHA = 1f;
@@ -67,21 +71,71 @@ public class SmartButtonView extends ImageView {
     private Animator mAnimateToQuiescent = new ObjectAnimator();
     private boolean mInEditMode;
     private ButtonConfig mConfig;
+    private SmartBarView mHost;
 
-    public SmartButtonView(Context context) {
+    private Spring mSpring;
+    private SpringListener mSpringListener = new SpringListener() {
+
+        @Override
+        public void onSpringActivate(Spring arg0) {}
+
+        @Override
+        public void onSpringAtRest(Spring arg0) {}
+
+        @Override
+        public void onSpringEndStateChange(Spring arg0) {}
+
+        @Override
+        public void onSpringUpdate(Spring spring) {
+            float value = (float) spring.getCurrentValue();
+            float scale = 1f - (value * 0.5f);
+            setScaleX(scale);
+            setScaleY(scale);
+        }    
+    };
+
+    public SmartButtonView(Context context, SmartBarView host) {
         super(context);
+        mHost = host;
         setDrawingAlpha(mQuiescentAlpha);
         setClickable(true);
         setLongClickable(false);
     }
 
-    public static void setKeyguardShowing(boolean showing) {
-        sKeyguardShowing = showing;
+    public void setAnimationStyle(int style) {
+        switch (style) {
+            case ANIM_STYLE_RIPPLE:
+                if (mSpring != null) {
+                    if (getScaleX() != 1f || getScaleY() != 1f) {
+                        mSpring.setCurrentValue(0f);
+                    }
+                    mSpring.removeListener(mSpringListener);
+                    mSpring.destroy();
+                    mSpring = null;
+                }
+                mHost.flushSpringSystem();
+                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
+                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
+                    background.setEnabled(true);
+                }
+                break;
+            case ANIM_STYLE_SPRING:
+                mSpring = mHost.getSpringSystem().createSpring();
+                mSpring.addListener(mSpringListener);
+                SpringConfig config = new SpringConfig(TENSION, FRICTION);
+                mSpring.setSpringConfig(config);
+                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
+                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
+                    background.setEnabled(false);
+                }
+                break;
+        }
     }
 
     private void fireActionIfSecure(String action) {
-        if (!sKeyguardShowing
-                || (sKeyguardShowing && ActionHandler.SYSTEMUI_TASK_BACK.equals(action))) {
+        final boolean keyguardShowing = mHost.isKeyguardShowing();
+        if (!keyguardShowing
+                || (keyguardShowing && ActionHandler.SYSTEMUI_TASK_BACK.equals(action))) {
             ActionHandler.performTask(mContext, action);
         }
     }
@@ -187,9 +241,20 @@ public class SmartButtonView extends ImageView {
     }
 
     // special case: double tap for screen off we never capture up motion event
-    public void onScreenStateChanged(boolean screeOn) {
+    // reset spring value and add/remove listeners if screen on/off
+    public void onScreenStateChanged(boolean screenOn) {
         wasConsumed = false;
         setPressed(false);
+        if (mSpring != null) {
+            if (screenOn) {
+                mSpring.addListener(mSpringListener);
+                if (getScaleX() != 1f || getScaleY() != 1f) {
+                    mSpring.setCurrentValue(0f);
+                }
+            } else {
+                mSpring.removeListener(mSpringListener);
+            }
+        }
     }
 
     public boolean onTouchEvent(MotionEvent ev) {
@@ -201,6 +266,9 @@ public class SmartButtonView extends ImageView {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 setPressed(true);
+                if (mSpring != null) {
+                    mSpring.setEndValue(1f);
+                }
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                 if (isDoubleTapPending) {
                     isDoubleTapPending = false;
@@ -220,6 +288,9 @@ public class SmartButtonView extends ImageView {
                 break;
             case MotionEvent.ACTION_UP:
                 setPressed(false);
+                if (mSpring != null) {
+                    mSpring.setEndValue(0f);
+                }
                 if (hasLongAction()) {
                     removeCallbacks(mCheckLongPress);
                 }

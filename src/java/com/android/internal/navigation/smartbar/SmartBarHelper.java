@@ -107,8 +107,8 @@ public class SmartBarHelper {
         }
     }
 
-    static SmartButtonView generatePrimaryKey(Context ctx, boolean landscape, ButtonConfig config) {
-        SmartButtonView v = new SmartButtonView(ctx);
+    static SmartButtonView generatePrimaryKey(Context ctx, SmartBarView host, boolean landscape, ButtonConfig config) {
+        SmartButtonView v = new SmartButtonView(ctx, host);
         v.setButtonConfig(config);
         int width = DUActionUtils.getDimenPixelSize(ctx, Res.Softkey.KEY_WIDTH,
                 DUActionUtils.PACKAGE_SYSTEMUI);

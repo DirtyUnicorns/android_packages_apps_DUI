@@ -67,8 +67,7 @@ public class SmartButtonRipple extends Drawable {
     private final ArrayList<Animator> mTmpArray = new ArrayList<>();
 
     private int mRippleColor;
-
-    private static boolean sEnabled = true;
+    private boolean mEnabled;
 
     public SmartButtonRipple(Context ctx, View targetView) {
         final Context context = ctx;
@@ -108,13 +107,13 @@ public class SmartButtonRipple extends Drawable {
         }
     }
 
-    public static void setEnabled(boolean enabled) {
-        sEnabled = enabled;
+    public void setEnabled(boolean enabled) {
+        mEnabled = enabled;
     }
 
     @Override
     public void draw(Canvas canvas) {
-        if (sEnabled) {
+        if (mEnabled) {
             mSupportHardware = canvas.isHardwareAccelerated();
             if (mSupportHardware) {
                 drawHardware((DisplayListCanvas) canvas);

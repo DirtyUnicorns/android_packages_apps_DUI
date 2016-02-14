@@ -100,8 +100,9 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected OnVerticalChangedListener mOnVerticalChangedListener;
     protected SmartObserver mSmartObserver;
     protected PulseController mPulse;
-//    protected SpringSystem mSpringSystem;
-//    protected Spring mSpring;
+
+    // use access methods to keep state proper
+    private SpringSystem mSpringSystem;
 
     // listeners from PhoneStatusBar
     protected View.OnTouchListener mHomeActionListener;
@@ -148,8 +149,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         mDisplay = ((WindowManager) context.getSystemService(
                 Context.WINDOW_SERVICE)).getDefaultDisplay();
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
-//        mSpringSystem = SpringSystem.create();
-//        mSpring = mSpringSystem.createSpring();
+        mSpringSystem = SpringSystem.create();
         mIsTablet = !DUActionUtils.isNormalScreen();
         mVertical = false;
     }
@@ -205,6 +205,25 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         setUseFadingAnimations(wakeAndUnlocking);
         mWakeAndUnlocking = wakeAndUnlocking;
         updateLayoutTransitionsEnabled();
+    }
+
+    public SpringSystem getSpringSystem() {
+        if (mSpringSystem == null) {
+            mSpringSystem = SpringSystem.create();
+        }
+        return mSpringSystem;
+    }
+
+    public void flushSpringSystem() {
+        if (mSpringSystem != null) {
+            for (Spring spring : mSpringSystem.getAllSprings()) {
+                spring.setAtRest();
+                spring.removeAllListeners();
+                spring.destroy();
+            }
+            mSpringSystem.removeAllListeners();
+            mSpringSystem = null;
+        }
     }
 
     protected boolean areAnyHintsActive() {
@@ -295,7 +314,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         }
     }
 
-    protected final boolean isKeyguardShowing() {
+    public final boolean isKeyguardShowing() {
         return mKeyguardShowing;
     }
 
@@ -368,6 +387,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         if (mPulse != null) {
             mPulse.removePulseObserver();
         }
+        flushSpringSystem();
         onDispose();
     }
 
