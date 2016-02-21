@@ -37,6 +37,8 @@ import com.android.internal.navigation.utils.SmartObserver;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.DUActionUtils;
+import com.android.internal.utils.du.ImageHelper;
+import com.android.internal.utils.du.ActionHandler.ActionIconMap;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringSystem;
 
@@ -100,6 +102,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected OnVerticalChangedListener mOnVerticalChangedListener;
     protected SmartObserver mSmartObserver;
     protected PulseController mPulse;
+    protected ActionIconMap mIconMap;
 
     // use access methods to keep state proper
     private SpringSystem mSpringSystem;
@@ -107,9 +110,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     // listeners from PhoneStatusBar
     protected View.OnTouchListener mHomeActionListener;
     protected View.OnTouchListener mUserAutoHideListener;
-
-    // call getAvailableResources() to safeguard against null
-    private Resources mThemedResources;
 
     private class H extends Handler {
         public void handleMessage(Message m) {
@@ -157,9 +157,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     // require implementation. Surely they have something to clean up
     protected abstract void onDispose();
 
-    // let subclass know theme changed
-    protected void onUpdateResources(Resources res) {}
-
     // any implementation specific handling can be handled here
     protected void onInflateFromUser() {}
 
@@ -178,6 +175,16 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     public View getBackButton() { return null; }
     public View getHomeButton() { return null; }
     public boolean isInEditMode() { return false; }
+
+    public void onRecreateStatusbar() {}
+
+    public void setIconMap(ActionIconMap iconMap) {
+        mIconMap = iconMap;
+    }
+
+    public void updateNavbarThemedResources(Resources res){
+        getBarTransitions().updateResources(res);
+    }
 
     @Override
     public void screenPinningStateChanged(boolean enabled) {
@@ -338,17 +345,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         onInflateFromUser();
     }
 
-    // handle updating bar transitions, lights out
-    // pass iterated container to subclass for
-    // handling implementation specific updates
-    // let subclass know we're done for non-view
-    // specific work
-    public final void updateResources(Resources res) {
-        mThemedResources = res;
-        getBarTransitions().updateResources(res);
-        onUpdateResources(res);
-    }
-
     public void setTransparencyAllowedWhenVertical(boolean allowed) {
 //        getBarTransitions().setTransparencyAllowedWhenVertical(allowed);
     }
@@ -436,8 +432,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     @Override
     public void onFinishInflate() {
-        int rot0id = DUActionUtils.getId(mContext, "rot0", DUActionUtils.PACKAGE_SYSTEMUI);
-        int rot90id = DUActionUtils.getId(mContext, "rot90", DUActionUtils.PACKAGE_SYSTEMUI);
+        int rot0id = DUActionUtils.getId(getContext(), "rot0", DUActionUtils.PACKAGE_SYSTEMUI);
+        int rot90id = DUActionUtils.getId(getContext(), "rot90", DUActionUtils.PACKAGE_SYSTEMUI);
 
         mRot0 = (FrameLayout) findViewById(rot0id);
         mRot90 = (FrameLayout) findViewById(rot90id);
@@ -471,7 +467,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     // for when we don't inflate xml
     protected void createBaseViews() {
-        LinearLayout rot0NavButton = new LinearLayout(mContext);
+        LinearLayout rot0NavButton = new LinearLayout(getContext());
         rot0NavButton.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
         rot0NavButton.setOrientation(LinearLayout.HORIZONTAL);
@@ -480,7 +476,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         rot0NavButton.setLayoutTransition(new LayoutTransition());
         rot0NavButton.setTag(Res.Common.NAV_BUTTONS);
 
-        LinearLayout rot90NavButton = new LinearLayout(mContext);
+        LinearLayout rot90NavButton = new LinearLayout(getContext());
         rot90NavButton.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
         rot90NavButton.setOrientation(mIsTablet ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
@@ -489,25 +485,25 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         rot90NavButton.setLayoutTransition(new LayoutTransition());
         rot90NavButton.setTag(Res.Common.NAV_BUTTONS);
 
-        LinearLayout rot0LightsOut = new LinearLayout(mContext);
+        LinearLayout rot0LightsOut = new LinearLayout(getContext());
         rot0LightsOut.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
         rot0LightsOut.setOrientation(LinearLayout.HORIZONTAL);
         rot0LightsOut.setVisibility(View.GONE);
         rot0LightsOut.setTag(Res.Common.LIGHTS_OUT);
 
-        LinearLayout rot90LightsOut = new LinearLayout(mContext);
+        LinearLayout rot90LightsOut = new LinearLayout(getContext());
         rot90LightsOut.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
         rot90LightsOut.setOrientation(mIsTablet ? LinearLayout.HORIZONTAL : LinearLayout.VERTICAL);
         rot0LightsOut.setVisibility(View.GONE);
         rot90LightsOut.setTag(Res.Common.LIGHTS_OUT);
 
-        mRot0 = new FrameLayout(mContext);
+        mRot0 = new FrameLayout(getContext());
         mRot0.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
 
-        mRot90 = new FrameLayout(mContext);
+        mRot90 = new FrameLayout(getContext());
         mRot90.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.MATCH_PARENT));
         mRot90.setVisibility(View.GONE);
@@ -515,7 +511,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
                 mRot90.getPaddingBottom());
 
         if (!BarTransitions.HIGH_END) {
-            setBackground(DUActionUtils.getDrawable(mContext, Res.Common.SYSTEM_BAR_BACKGROUND,
+            setBackground(DUActionUtils.getDrawable(getContext(), Res.Common.SYSTEM_BAR_BACKGROUND,
                     DUActionUtils.PACKAGE_SYSTEMUI));
         }
 
@@ -533,11 +529,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         mRotatedViews[Surface.ROTATION_90] = mRot90;
         mRotatedViews[Surface.ROTATION_270] = mRotatedViews[Surface.ROTATION_90];
         mCurrentView = mRotatedViews[Surface.ROTATION_0];
-    }
-
-    // returns themed resources is availabe, otherwise system resources
-    public Resources getAvailableResources() {
-        return mThemedResources != null ? mThemedResources : getContext().getResources();
     }
 
     protected void setVisibleOrGone(View view, boolean visible) {
@@ -577,12 +568,6 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     }
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(getMeasuredWidth(), getMeasuredHeight());
-    }
-
-    @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         if (mPulse != null) {
@@ -597,7 +582,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     protected String getResourceName(int resId) {
         if (resId != 0) {
-            final android.content.res.Resources res = mContext.getResources();
+            final android.content.res.Resources res = getContext().getResources();
             try {
                 return res.getResourceName(resId);
             } catch (android.content.res.Resources.NotFoundException ex) {
@@ -616,6 +601,25 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
                 return "GONE";
             default:
                 return "VISIBLE";
+        }
+    }
+
+    public Drawable getLocalDrawable(String resName, Resources res) {
+        int id = getDrawableId(resName);
+        Drawable icon = ImageHelper.getVector(res, id, false);
+        if (icon == null) {
+            icon = res.getDrawable(id);
+        }
+        return icon;
+    }
+
+    public int getDrawableId(String resName) {
+        try {
+            int ident = getContext().getResources().getIdentifier(resName, "drawable",
+                    getContext().getPackageName());
+            return ident;
+        } catch (Exception e) {
+            return -1;
         }
     }
 

@@ -225,10 +225,8 @@ public class FlingLogoController implements SmartObservable {
     }
  
     Drawable getDefaultDrawable() {
-        return mHost.getAvailableResources().getDrawable(
-                DUActionUtils.getIdentifier(mContext,
-                        FLING_LOGO_RES, "drawable",
-                        DUActionUtils.PACKAGE_SYSTEMUI));
+        return mHost.getResources().getDrawable(
+                mHost.getDrawableId(FLING_LOGO_RES));
     }
 
     Drawable getCurrentDrawable() {

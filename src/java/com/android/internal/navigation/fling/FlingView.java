@@ -248,7 +248,7 @@ public class FlingView extends BaseNavigationBar {
     }
 
     @Override
-    protected void onUpdateResources(Resources res) {
+    public void updateNavbarThemedResources(Resources res) {
 //        mRipple.updateResources(res);
         mLogoController.setLogoIcon();
         for (int i = 0; i < mRotatedViews.length; i++) {
@@ -264,7 +264,7 @@ public class FlingView extends BaseNavigationBar {
                         // ImageView keeps track of the resource ID and if it is the same
                         // it will not update the drawable.
                         iv.setImageDrawable(null);
-                        iv.setImageDrawable(getAvailableResources().getDrawable(
+                        iv.setImageDrawable(res.getDrawable(
                                 DUActionUtils.getIdentifier(getContext(),
                                         "ic_sysbar_lights_out_dot_large", "drawable",
                                         DUActionUtils.PACKAGE_SYSTEMUI)));                   

@@ -26,6 +26,7 @@ package com.android.internal.navigation;
 import com.android.internal.navigation.pulse.PulseController;
 import com.android.internal.navigation.smartbar.SmartBarView;
 import com.android.internal.utils.du.ActionConstants;
+import com.android.internal.utils.du.ActionHandler.ActionIconMap;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.UserContentObserver;
 import com.android.internal.utils.du.DUPackageMonitor.PackageChangedListener;
@@ -34,6 +35,7 @@ import com.android.internal.utils.du.DUPackageMonitor.PackageState;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.media.IAudioService;
 import android.net.Uri;
 import android.os.Handler;
@@ -63,11 +65,13 @@ public class NavigationController implements PackageChangedListener {
     private Runnable mRemoveNavbar;
     private Context mContext;
     private PulseController mPulseController;
+    private final ActionIconMap mIconMap;
 
-    public NavigationController(Context context, StatusbarImpl statusBar,
+    public NavigationController(Context context, Resources themedRes, StatusbarImpl statusBar,
             Runnable forceAddNavbar, Runnable removeNavbar) {
         mContext = context;
         mBar = statusBar;
+        mIconMap = new ActionIconMap(themedRes);
         mAddNavbar = forceAddNavbar;
         mRemoveNavbar = removeNavbar;
         unlockVisualizer();
@@ -76,8 +80,8 @@ public class NavigationController implements PackageChangedListener {
         mPulseController = new PulseController(mContext, mHandler, ActionConstants.getDefaults(ActionConstants.FLING).getConfigs(mContext));
     }
 
-    public Navigator getNavigationBarView() {
-        int navMode = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+    public Navigator getNavigationBarView(Context context) {
+        int navMode = Settings.Secure.getIntForUser(context.getContentResolver(),
                 Settings.Secure.NAVIGATION_BAR_MODE, NAVIGATION_MODE_SMARTBAR, UserHandle.USER_CURRENT);
         if (navMode == 2) {
             navMode = NAVIGATION_MODE_SMARTBAR;
@@ -98,7 +102,7 @@ public class NavigationController implements PackageChangedListener {
 
         if (TextUtils.equals(SMARTBAR_LAYOUT, layout)) {
             try {
-                nav = new SmartBarView(mContext);
+                nav = new SmartBarView(context);
             } catch (Exception e) {
                 e.printStackTrace();
                 layout = FLING_LAYOUT;
@@ -106,13 +110,22 @@ public class NavigationController implements PackageChangedListener {
         }
 
         if (nav == null) {
-            nav = (BaseNavigationBar) View.inflate(mContext,
-                    DUActionUtils.getIdentifier(mContext, layout,
+            nav = (BaseNavigationBar) View.inflate(context,
+                    DUActionUtils.getIdentifier(context, layout,
                             "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
         }
 
+        nav.setIconMap(mIconMap);
         nav.setControllers(mPulseController);
         return nav;
+    }
+
+    public void updateNavbarOverlay(Resources res) {
+        if (res == null) return;
+        mIconMap.updateIcons(res);
+        if (mBar.getNavigationBarView() != null) {
+            mBar.getNavigationBarView().updateNavbarThemedResources(res);
+        }
     }
 
     public void destroy() {

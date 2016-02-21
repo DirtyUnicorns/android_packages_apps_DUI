@@ -208,22 +208,10 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         currentButton.setButtonConfig(currentConfig);
         otherButton.setButtonConfig(otherConfig);
 
-        if (currentConfig.getTag().equals(BACK)) { // back
-            currentButton.setImageDrawable(new SmartBackButtonDrawable(currentConfig
-                    .getCurrentIcon(mContext)));
-        } else {
-            currentButton.setImageDrawable(null);
-            currentButton.setImageDrawable(currentConfig.getCurrentIcon(mContext));
-        }
+        mHost.setButtonDrawable(currentButton);
         SmartBarHelper.updateButtonScalingAndPadding(currentButton, isLandscape());
 
-        if (otherConfig.getTag().equals(BACK)) { // back
-            otherButton.setImageDrawable(new SmartBackButtonDrawable(otherConfig
-                    .getCurrentIcon(mContext)));
-        } else {
-            otherButton.setImageDrawable(null);
-            otherButton.setImageDrawable(otherConfig.getCurrentIcon(mContext));
-        }
+        mHost.setButtonDrawable(otherButton);
         SmartBarHelper.updateButtonScalingAndPadding(otherButton, !isLandscape());
 
         onCommitChanges();
@@ -242,22 +230,10 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         currentButton.setButtonConfig(currentConfig);
         otherButton.setButtonConfig(otherConfig);
 
-        if (currentConfig.getTag().equals(BACK)) { // back
-            currentButton.setImageDrawable(new SmartBackButtonDrawable(currentConfig
-                    .getCurrentIcon(mContext)));
-        } else {
-            currentButton.setImageDrawable(null);
-            currentButton.setImageDrawable(currentConfig.getCurrentIcon(mContext));
-        }
+        mHost.setButtonDrawable(currentButton);
         SmartBarHelper.updateButtonScalingAndPadding(currentButton, isLandscape());
 
-        if (otherConfig.getTag().equals(BACK)) { // back
-            otherButton.setImageDrawable(new SmartBackButtonDrawable(otherConfig
-                    .getCurrentIcon(mContext)));
-        } else {
-            otherButton.setImageDrawable(null);
-            otherButton.setImageDrawable(otherConfig.getCurrentIcon(mContext));
-        }
+        mHost.setButtonDrawable(otherButton);
         SmartBarHelper.updateButtonScalingAndPadding(otherButton, !isLandscape());
 
         onCommitChanges();
@@ -279,11 +255,9 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         currentButton.setButtonConfig(currentConfig);
         otherButton.setButtonConfig(otherConfig);
         if (tapFocus == ActionConfig.PRIMARY) { // update icon for single tap only
-            currentButton.setImageDrawable(null);
-            currentButton.setImageDrawable(currentConfig.getCurrentIcon(mContext));
+            mHost.setButtonDrawable(currentButton);
             SmartBarHelper.updateButtonScalingAndPadding(currentButton, isLandscape());
-            otherButton.setImageDrawable(null);
-            otherButton.setImageDrawable(otherConfig.getCurrentIcon(mContext));
+            mHost.setButtonDrawable(otherButton);
             SmartBarHelper.updateButtonScalingAndPadding(otherButton, !isLandscape());
         }
         onCommitChanges();
@@ -553,7 +527,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
             mHidden.setY(mOriginPoint.y - parent.getTop());
         }
 
-        mQuick = new QuickAction(mContext, QuickAction.VERTICAL);
+        mQuick = new QuickAction(mHost.getContext(), QuickAction.VERTICAL);
         boolean hasMaxButtons = getHasMaxButtons();
         String tag = mHidden.getButtonConfig().getTag();
         ActionItem item;
@@ -610,6 +584,9 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         if (mQuick != null) {
             mQuick.dismiss();
         }
+        // NOTE: the popup windows match statusbar overlay, not navigation overlay
+        // matching navbar overlay would produce inconsistent style
+        // we receive the new navbar overlay here but don't use it
         loadPrimaryMenuMap();
         loadTapMenuMap();
         loadIconMenuMap();
@@ -619,9 +596,9 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         loadPrimaryMenuMap();
         loadTapMenuMap();
         loadIconMenuMap();
-        mEditContainer = new FrameLayout(mContext);
-        mHidden = new SmartButtonView(mContext, mHost);
-        mQuick = new QuickAction(mContext, QuickAction.VERTICAL);
+        mEditContainer = new FrameLayout(mHost.getContext());
+        mHidden = new SmartButtonView(mHost.getContext(), mHost);
+        mQuick = new QuickAction(mHost.getContext(), QuickAction.VERTICAL);
         mEditContainer.setOnTouchListener(mEditorWindowTouchListener);
         mHidden.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
         mHidden.setVisibility(View.INVISIBLE);
@@ -633,74 +610,74 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
     private void loadPrimaryMenuMap() {
         mPrimaryMenuItems.clear();
         ActionItem action = new ActionItem(1,
-                DUActionUtils.getString(mContext, "label_smartbar_actions", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_actions", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_actions", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_actions", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(1, action);
 
         action = new ActionItem(2,
-                DUActionUtils.getString(mContext, "label_smartbar_icon", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_icon", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(2, action);
 
         action = new ActionItem(3,
-                DUActionUtils.getString(mContext, "label_smartbar_add", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_add", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_add", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_add", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(3, action);
 
         action = new ActionItem(4,
-                DUActionUtils.getString(mContext, "label_smartbar_remove", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_remove", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_remove", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_remove", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(4, action);
 
         action = new ActionItem(5,
-                DUActionUtils.getString(mContext, "label_smartbar_cancel", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_cancel", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_cancel", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_cancel", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(5, action);
 
         action = new ActionItem(6,
-                DUActionUtils.getString(mContext, "label_smartbar_finish", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_finish", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_finish", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_finish", DUActionUtils.PACKAGE_SYSTEMUI));
         mPrimaryMenuItems.put(6, action);
     }
 
     private void loadTapMenuMap() {
         mTapMenuItems.clear();
         ActionItem action = new ActionItem(7,
-                DUActionUtils.getString(mContext, "label_smartbar_single_tap", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_single_tap", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_single_tap", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_single_tap", DUActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(1, action);
 
         action = new ActionItem(8,
-                DUActionUtils.getString(mContext, "label_smartbar_double_tap", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_double_tap", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_double_tap", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_double_tap", DUActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(2, action);
 
         action = new ActionItem(9,
-                DUActionUtils.getString(mContext, "label_smartbar_long_press", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_long_press", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_long_press", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_long_press", DUActionUtils.PACKAGE_SYSTEMUI));
         mTapMenuItems.put(3, action);
     }
 
     private void loadIconMenuMap() {
         mIconMenuItems.clear();
         ActionItem action = new ActionItem(10,
-                DUActionUtils.getString(mContext, "label_smartbar_icon_pack", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_icon_pack", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_pack", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_pack", DUActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(1, action);
 
         action = new ActionItem(11,
-                DUActionUtils.getString(mContext, "label_smartbar_icon_gallery", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_icon_gallery", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_gallery", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_gallery", DUActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(2, action);
 
         action = new ActionItem(12,
-                DUActionUtils.getString(mContext, "label_smartbar_icon_color", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_icon_color", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_color", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_color", DUActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(3, action);
 
         action = new ActionItem(13,
-                DUActionUtils.getString(mContext, "label_smartbar_icon_reset", DUActionUtils.PACKAGE_SYSTEMUI),
-                DUActionUtils.getDrawable(mContext, "ic_smartbar_editor_icon_reset", DUActionUtils.PACKAGE_SYSTEMUI));
+                DUActionUtils.getString(mHost.getContext(), "label_smartbar_icon_reset", DUActionUtils.PACKAGE_SYSTEMUI),
+                DUActionUtils.getDrawable(mHost.getContext(), "ic_smartbar_editor_icon_reset", DUActionUtils.PACKAGE_SYSTEMUI));
         mIconMenuItems.put(3, action);
     }
 
@@ -782,8 +759,8 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         ScaleType scale2 = v2.getScaleType();
         v1.setButtonConfig(config2);
         v2.setButtonConfig(config1);
-        v1.setImageDrawable(config2.getCurrentIcon(mContext));
-        v2.setImageDrawable(config1.getCurrentIcon(mContext));
+        mHost.setButtonDrawable(v1);
+        mHost.setButtonDrawable(v2);
         SmartBarHelper.applyPaddingToView(v1, padding2);
         SmartBarHelper.applyPaddingToView(v2, padding1);
         v1.setScaleType(scale2);

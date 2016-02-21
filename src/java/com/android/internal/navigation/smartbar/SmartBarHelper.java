@@ -80,8 +80,7 @@ public class SmartBarHelper {
 
     static boolean buttonNeedsCustomPadding(SmartButtonView v) {
         boolean hasCustomIcon = v.getButtonConfig().hasCustomIcon();
-        boolean hasNonSystemIcon = !v.getButtonConfig().getActionConfig(ActionConfig.PRIMARY)
-                .getAction().startsWith(ActionHandler.SYSTEM_PREFIX);
+        boolean hasNonSystemIcon = !v.getButtonConfig().isSystemAction();
         return hasCustomIcon || hasNonSystemIcon;
     }
 
@@ -118,14 +117,8 @@ public class SmartBarHelper {
                 landscape && !sIsTablet ? LayoutParams.MATCH_PARENT
                         : width, landscape && !sIsTablet ? height : LayoutParams.MATCH_PARENT));
         v.loadRipple();
-
         updateButtonScalingAndPadding(v, landscape);
-
-        if (config.getTag().equals(ActionConstants.Smartbar.BUTTON1_TAG)) {  // back
-            v.setImageDrawable(new SmartBackButtonDrawable(config.getCurrentIcon(ctx)));
-        } else {
-            v.setImageDrawable(config.getCurrentIcon(ctx));
-        }
+        host.setButtonDrawable(v);
         return v;
     }
 
