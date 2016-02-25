@@ -57,7 +57,6 @@ public class FlingLogoController implements SmartObservable {
     private static final int LOCK_SHOW = 1;
     private static final int LOCK_HIDDEN = 2;
 
-    public static final String FLING_LOGO_RES = "ic_eos_fling";
     public static final String FLING_LOGO_URI = "fling_custom_icon_config";
 
     private static Set<Uri> sUris = new HashSet<Uri>();
@@ -223,11 +222,6 @@ public class FlingLogoController implements SmartObservable {
         hiddenLogo.setImageDrawable(null);
         hiddenLogo.setImageDrawable(getCurrentDrawable());
     }
- 
-    Drawable getDefaultDrawable() {
-        return mHost.getResources().getDrawable(
-                mHost.getDrawableId(FLING_LOGO_RES));
-    }
 
     Drawable getCurrentDrawable() {
         if (mLogoConfig.hasCustomIcon()) {
@@ -244,14 +238,14 @@ public class FlingLogoController implements SmartObservable {
                 String iconName = items.get(2);
                 d = DUActionUtils.getDrawable(mContext, iconName, packageName);
                 if (d == null) {
-                    d = getDefaultDrawable();
+                    return mHost.mResourceMap.mFlingLogo;
                 }
                 return d;
             } else {
-                return getDefaultDrawable();
+                return mHost.mResourceMap.mFlingLogo;
             }
         } else {
-            return getDefaultDrawable();
+            return mHost.mResourceMap.mFlingLogo;
         }
     }
 

@@ -48,7 +48,6 @@ import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config;
-import com.android.internal.utils.du.ActionHandler.ActionIconMap;
 import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.internal.navigation.BarTransitions;
@@ -56,6 +55,7 @@ import com.android.internal.navigation.BaseEditor;
 import com.android.internal.navigation.BaseNavigationBar;
 import com.android.internal.navigation.Res;
 import com.android.internal.navigation.StatusbarImpl;
+import com.android.internal.navigation.NavigationController.NavbarOverlayResources;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 
 import java.util.ArrayList;
@@ -126,8 +126,8 @@ public class SmartBarView extends BaseNavigationBar {
     }
 
     @Override
-    public void setIconMap(ActionIconMap iconMap) {
-        super.setIconMap(iconMap);
+    public void setResourceMap(NavbarOverlayResources resourceMap) {
+        super.setResourceMap(resourceMap);
         recreateLayouts();
         updateImeHintModeSettings();
         updateContextLayoutSettings();
@@ -184,7 +184,7 @@ public class SmartBarView extends BaseNavigationBar {
                         // ImageView keeps track of the resource ID and if it is the same
                         // it will not update the drawable.
                         iv.setImageDrawable(null);
-                        iv.setImageDrawable(getLocalDrawable(Res.Common.LIGHTS_OUT_LARGE, res));
+                        iv.setImageDrawable(mResourceMap.mLightsOutLarge);
                     }
                 }
             }
@@ -205,7 +205,7 @@ public class SmartBarView extends BaseNavigationBar {
             // a system navigation action icon is showing, get it locally
             if (!config.hasCustomIcon()
                     && config.isSystemAction()) {
-                    d = mIconMap.getDrawable(config.getActionConfig(ActionConfig.PRIMARY).getAction());
+                    d = mResourceMap.getActionDrawable(config.getActionConfig(ActionConfig.PRIMARY).getAction());
             } else {
                 // custom icon or intent icon, get from library
                 d = config.getCurrentIcon(getContext());

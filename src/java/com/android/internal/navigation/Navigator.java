@@ -26,8 +26,8 @@ package com.android.internal.navigation;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
+import com.android.internal.navigation.NavigationController.NavbarOverlayResources;
 import com.android.internal.navigation.pulse.PulseController;
-import com.android.internal.utils.du.ActionHandler.ActionIconMap;
 
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
@@ -56,7 +56,7 @@ public interface Navigator extends Hintable {
     public void notifyInflateFromUser();
     public void updateNavbarThemedResources(Resources res);
     public void onRecreateStatusbar();
-    public void setIconMap(ActionIconMap iconMap);
+    public void setResourceMap(NavbarOverlayResources resourceMap);
     public void setTransparencyAllowedWhenVertical(boolean allowed);
     public void abortCurrentGesture();
     public void setStatusBarCallbacks(StatusbarImpl statusbar);

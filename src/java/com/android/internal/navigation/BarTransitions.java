@@ -16,6 +16,7 @@
 
 package com.android.internal.navigation;
 
+import com.android.internal.navigation.NavigationController.NavbarOverlayResources;
 import com.android.internal.utils.du.DUActionUtils;
 
 import android.animation.TimeInterpolator;
@@ -76,6 +77,13 @@ public class BarTransitions {
     }
 
     public void updateResources(Resources res) {
+        mBarBackground.updateResources(res);
+    }
+
+    /*
+     * This is only called when navbar overlay changes and does not impact Statusbar transitions
+     */
+    public void updateResources(NavbarOverlayResources res) {
         mBarBackground.updateResources(res);
     }
 
@@ -202,6 +210,22 @@ public class BarTransitions {
             Rect bounds = mGradient.getBounds();
             mGradient = res.getDrawable(mGradientResourceId);
             mGradient.setBounds(bounds);
+        }
+
+        /*
+         * This is only called when navbar overlay changes and does not impact Statusbar transitions
+         */
+        public void updateResources(NavbarOverlayResources res) {
+            mOpaque = res.mOpaque;
+            mSemiTransparent = res.mSemiTransparent;
+            mTransparent = res.mTransparent;
+            mWarning = res.mWarning;
+            // Retrieve the current bounds for mGradient so they can be set to
+            // the new drawable being loaded, otherwise the bounds will be (0, 0, 0, 0)
+            // and the gradient will not be drawn.
+            //
+            // NOTE: NavbarOverlayResources handles setting fresh bounds
+            mGradient = res.mGradient;
         }
 
         @Override

@@ -30,6 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.android.internal.navigation.BarTransitions;
+import com.android.internal.navigation.NavigationController.NavbarOverlayResources;
 import com.android.internal.navigation.pulse.PulseController;
 import com.android.internal.navigation.pulse.PulseController.PulseObserver;
 import com.android.internal.navigation.utils.ColorAnimator;
@@ -38,7 +39,6 @@ import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.ActionConstants;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.ImageHelper;
-import com.android.internal.utils.du.ActionHandler.ActionIconMap;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringSystem;
 
@@ -102,7 +102,8 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
     protected OnVerticalChangedListener mOnVerticalChangedListener;
     protected SmartObserver mSmartObserver;
     protected PulseController mPulse;
-    protected ActionIconMap mIconMap;
+
+    public NavbarOverlayResources mResourceMap;
 
     // use access methods to keep state proper
     private SpringSystem mSpringSystem;
@@ -178,12 +179,13 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     public void onRecreateStatusbar() {}
 
-    public void setIconMap(ActionIconMap iconMap) {
-        mIconMap = iconMap;
+    public void setResourceMap(NavbarOverlayResources resourceMap) {
+        mResourceMap = resourceMap;
+        getBarTransitions().updateResources(mResourceMap);
     }
 
     public void updateNavbarThemedResources(Resources res){
-        getBarTransitions().updateResources(res);
+        getBarTransitions().updateResources(mResourceMap);
     }
 
     @Override

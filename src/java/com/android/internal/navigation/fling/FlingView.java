@@ -28,6 +28,7 @@ import java.util.Set;
 import com.android.internal.navigation.BarTransitions;
 import com.android.internal.navigation.BaseNavigationBar;
 import com.android.internal.navigation.StatusbarImpl;
+import com.android.internal.navigation.NavigationController.NavbarOverlayResources;
 import com.android.internal.navigation.fling.FlingGestureDetector;
 import com.android.internal.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.ActionConstants;
@@ -223,8 +224,8 @@ public class FlingView extends BaseNavigationBar {
     }
 
     @Override
-    public void onFinishInflate() {
-        super.onFinishInflate();
+    public void setResourceMap(NavbarOverlayResources resourceMap) {
+        super.setResourceMap(resourceMap);
         mLogoController.setLogoIcon();
         updateFlingSettings();
     }
@@ -250,6 +251,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void updateNavbarThemedResources(Resources res) {
 //        mRipple.updateResources(res);
+        super.updateNavbarThemedResources(res);
         mLogoController.setLogoIcon();
         for (int i = 0; i < mRotatedViews.length; i++) {
             ViewGroup container = (ViewGroup) mRotatedViews[i];
@@ -264,10 +266,7 @@ public class FlingView extends BaseNavigationBar {
                         // ImageView keeps track of the resource ID and if it is the same
                         // it will not update the drawable.
                         iv.setImageDrawable(null);
-                        iv.setImageDrawable(res.getDrawable(
-                                DUActionUtils.getIdentifier(getContext(),
-                                        "ic_sysbar_lights_out_dot_large", "drawable",
-                                        DUActionUtils.PACKAGE_SYSTEMUI)));                   
+                        iv.setImageDrawable(mResourceMap.mLightsOutLarge);                   
                     }
                 }
             }

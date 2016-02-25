@@ -26,7 +26,7 @@ package com.android.internal.navigation;
 import com.android.internal.navigation.pulse.PulseController;
 import com.android.internal.navigation.smartbar.SmartBarView;
 import com.android.internal.utils.du.ActionConstants;
-import com.android.internal.utils.du.ActionHandler.ActionIconMap;
+import com.android.internal.utils.du.ActionHandler.ActionIconResources;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.UserContentObserver;
 import com.android.internal.utils.du.DUPackageMonitor.PackageChangedListener;
@@ -36,6 +36,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
 import android.media.IAudioService;
 import android.net.Uri;
 import android.os.Handler;
@@ -65,13 +67,74 @@ public class NavigationController implements PackageChangedListener {
     private Runnable mRemoveNavbar;
     private Context mContext;
     private PulseController mPulseController;
-    private final ActionIconMap mIconMap;
+    private final NavbarOverlayResources mResourceMap;
+
+    public static class NavbarOverlayResources extends ActionIconResources {
+        private int mGradientResourceId;
+        private final int mOpaqueColorResourceId;
+        private final int mSemiTransparentColorResourceId;
+        private final int mTransparentColorResourceId;
+        private final int mWarningColorResourceId;
+        private final int mFlingLogoId;
+        private final int mLightsOutLargeId;
+        public int mOpaque;
+        public int mSemiTransparent;
+        public int mTransparent;
+        public int mWarning;
+        public Drawable mGradient;
+        public Drawable mFlingLogo;
+        public Drawable mLightsOutLarge;
+
+        public NavbarOverlayResources(Context ctx, Resources res) {
+            super(res);
+            mGradientResourceId = DUActionUtils.getIdentifier(ctx, "nav_background", "drawable",
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+            mOpaqueColorResourceId = DUActionUtils.getIdentifier(ctx,
+                    "navigation_bar_background_opaque",
+                    "color", DUActionUtils.PACKAGE_SYSTEMUI);
+            mSemiTransparentColorResourceId = DUActionUtils.getIdentifier(ctx,
+                    "navigation_bar_background_semi_transparent", "color",
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+            mTransparentColorResourceId = DUActionUtils.getIdentifier(ctx,
+                    "navigation_bar_background_transparent", "color",
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+            mWarningColorResourceId = DUActionUtils.getIdentifier(ctx, "battery_saver_mode_color",
+                    "color",
+                    "android");
+            mFlingLogoId = DUActionUtils.getIdentifier(ctx, "ic_eos_fling", "drawable",
+                    DUActionUtils.PACKAGE_SYSTEMUI);
+            mLightsOutLargeId = DUActionUtils.getIdentifier(ctx,
+                    "ic_sysbar_lights_out_dot_large", "drawable",
+                    DUActionUtils.PACKAGE_SYSTEMUI); 
+            mOpaque = res.getColor(mOpaqueColorResourceId);
+            mSemiTransparent = res.getColor(mSemiTransparentColorResourceId);
+            mTransparent = res.getColor(mTransparentColorResourceId);
+            mWarning = res.getColor(mWarningColorResourceId);
+            mGradient = res.getDrawable(mGradientResourceId);
+            mFlingLogo = res.getDrawable(mFlingLogoId);
+            mLightsOutLarge = res.getDrawable(mLightsOutLargeId);
+        }
+
+        public void updateResources(Resources res) {
+            super.updateResources(res);
+            mOpaque = res.getColor(mOpaqueColorResourceId);
+            mSemiTransparent = res.getColor(mSemiTransparentColorResourceId);
+            mTransparent = res.getColor(mTransparentColorResourceId);
+            mWarning = res.getColor(mWarningColorResourceId);
+            mFlingLogo = res.getDrawable(mFlingLogoId);
+            Rect bounds = mGradient.getBounds();
+            mGradient = res.getDrawable(mGradientResourceId);
+            mGradient.setBounds(bounds);
+            mFlingLogo = res.getDrawable(mFlingLogoId);
+            mLightsOutLarge = res.getDrawable(mLightsOutLargeId);
+        }
+    }
 
     public NavigationController(Context context, Resources themedRes, StatusbarImpl statusBar,
             Runnable forceAddNavbar, Runnable removeNavbar) {
         mContext = context;
         mBar = statusBar;
-        mIconMap = new ActionIconMap(themedRes);
+        mResourceMap = new NavbarOverlayResources(context, themedRes);
         mAddNavbar = forceAddNavbar;
         mRemoveNavbar = removeNavbar;
         unlockVisualizer();
@@ -115,14 +178,14 @@ public class NavigationController implements PackageChangedListener {
                             "layout", DUActionUtils.PACKAGE_SYSTEMUI), null);
         }
 
-        nav.setIconMap(mIconMap);
+        nav.setResourceMap(mResourceMap);
         nav.setControllers(mPulseController);
         return nav;
     }
 
     public void updateNavbarOverlay(Resources res) {
         if (res == null) return;
-        mIconMap.updateIcons(res);
+        mResourceMap.updateResources(res);
         if (mBar.getNavigationBarView() != null) {
             mBar.getNavigationBarView().updateNavbarThemedResources(res);
         }
