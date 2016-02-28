@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  Copyright (C) 2014-2015 The Dirty Unicorns Project
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Bindable action labels -->
+    <string name="label_action_no_action">No action</string>
+    <string name="label_action_settings_panel">Settings panel</string>
+    <string name="label_action_notification_panel">Notification panel</string>
+    <string name="label_action_screenshot">Screenshot</string>
+    <string name="label_action_screenrecord">Record screen</string>
+    <string name="label_action_expanded_desktop">Expanded desktop</string>
+    <string name="label_action_screen_off">Turn off screen</string>
+    <string name="label_action_force_close_app">Force close app</string>
+    <string name="label_action_search_assistant">Search assistant</string>
+    <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+    <string name="label_action_voice_search">Voice search</string>
+    <string name="label_action_flashlight">Flashlight</string>
+    <string name="label_action_bluetooth">Bluetooth</string>
+    <string name="label_action_wifi">WiFi</string>
+    <string name="label_action_hotspot">Hotspot</string>
+    <string name="label_action_last_app">Last app</string>
+    <string name="label_action_overview">Overview</string>
+    <string name="label_action_power_menu">Power menu</string>
+    <string name="label_action_menu">Menu</string>
+    <string name="label_action_back">Back</string>
+    <string name="label_action_home">Home</string>
+    <string name="label_action_ime_switcher">IME Changer</string>
+    <string name="label_action_stop_screenpinning">Stop screen pinning</string>
+    <string name="label_action_ime_down">Input method cursor down</string>
+    <string name="label_action_ime_left">Input method cursor left</string>
+    <string name="label_action_ime_right">Input method cursor right</string>
+    <string name="label_action_ime_up">Input method cursor up</string>
+
+    <!-- Smartbar -->
+    <string name="label_smartbar_actions">Actions</string>
+    <string name="label_smartbar_icon">Icon</string>
+    <string name="label_smartbar_add">Add</string>
+    <string name="label_smartbar_remove">Remove</string>
+    <string name="label_smartbar_cancel">Cancel</string>
+    <string name="label_smartbar_finish">Finish</string>
+    <string name="label_smartbar_single_tap">Single tap</string>
+    <string name="label_smartbar_double_tap">Double tap</string>
+    <string name="label_smartbar_long_press">Long press</string>
+    <string name="label_smartbar_icon_pack">Icon pack</string>
+    <string name="label_smartbar_icon_gallery">Gallery</string>
+    <string name="label_smartbar_icon_color">Color</string>
+    <string name="label_smartbar_icon_reset">Reset</string>
+    <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
+    <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
+    <string name="smartbar_editor_toast_unavailable">Navigation editor unavailable</string>
+
+</resources>
