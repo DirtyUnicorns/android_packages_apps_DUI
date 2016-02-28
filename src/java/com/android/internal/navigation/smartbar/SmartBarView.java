@@ -266,6 +266,10 @@ public class SmartBarView extends BaseNavigationBar {
         return (SmartBackButtonDrawable) getBackButton().getDrawable();
     }
 
+    private ViewGroup getHiddenContext() {
+        return (ViewGroup) (mCurrentContext == mContextRight ? mContextLeft : mContextRight);
+    }
+
     private void setImeArrowsVisibility(View currentOrHidden, int visibility) {
         ViewGroup contextLeft = (ViewGroup)currentOrHidden.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         contextLeft.findViewWithTag(Res.Softkey.IME_ARROW_LEFT).setVisibility(visibility);
@@ -295,6 +299,7 @@ public class SmartBarView extends BaseNavigationBar {
                 setImeArrowsVisibility(mCurrentView, View.INVISIBLE);
                 break;
             case IME_HINT_MODE_PICKER:
+                getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
                 getImeSwitchButton().setVisibility(showImeButton ? View.VISIBLE : View.INVISIBLE);
                 setImeArrowsVisibility(mCurrentView, View.INVISIBLE);
                 break;
@@ -429,6 +434,9 @@ public class SmartBarView extends BaseNavigationBar {
             getMenuButton().setVisibility(INVISIBLE);
             getImeSwitchButton().setVisibility(INVISIBLE);
             getScreenPinningButton().setVisibility(INVISIBLE);
+            getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
+            getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
+            getHiddenContext().findViewWithTag(Res.Softkey.STOP_SCREENPINNING).setVisibility(INVISIBLE);
             mHasLeftContext = onLeft;
             mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
             setDisabledFlags(mDisabledFlags, true);
@@ -463,6 +471,9 @@ public class SmartBarView extends BaseNavigationBar {
         getMenuButton().setVisibility(INVISIBLE);
         getImeSwitchButton().setVisibility(INVISIBLE);
         getScreenPinningButton().setVisibility(INVISIBLE);
+        getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
+        getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
+        getHiddenContext().findViewWithTag(Res.Softkey.STOP_SCREENPINNING).setVisibility(INVISIBLE);
         setNavigationIconHints(mNavigationIconHints, true);
     }
 
