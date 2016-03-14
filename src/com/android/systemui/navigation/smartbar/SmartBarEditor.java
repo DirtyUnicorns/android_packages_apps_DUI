@@ -49,6 +49,7 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
+import android.net.Uri;
 import android.os.UserHandle;
 import android.text.TextUtils;
 import android.view.Gravity;
@@ -126,6 +127,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         @Override
         public void onItemClick(QuickAction source, int pos, int actionId) {
             mQuick.dismiss();
+            Intent intent;
             switch (actionId) {
                 case MENU_MAP_ACTIONS:
                     bindButtonToCloneAndShowEditor(mHidden, POPUP_TYPE_TAP);
@@ -154,12 +156,16 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
                     startActionPicker(ActionConfig.THIRD);
                     break;
                 case MENU_MAP_ICON_ICON_PACK:
-                    Intent intent = new Intent();
+                    intent = new Intent();
                     intent.setAction(Intent.ACTION_MAIN);
                     intent.setClassName(INTENT_ACTION_EDIT_CLASS, INTENT_ACTION_ICON_PICKER_COMPONENT);
                     mContext.startActivityAsUser(intent, UserHandle.CURRENT);
                     break;
                 case MENU_MAP_ICON_ICON_GALLERY:
+                    intent = new Intent();
+                    intent.setAction(Intent.ACTION_MAIN);
+                    intent.setClassName(INTENT_ACTION_EDIT_CLASS, INTENT_ACTION_GALLERY_PICKER_COMPONENT);
+                    mContext.startActivityAsUser(intent, UserHandle.CURRENT);
                     break;
                 case MENU_MAP_ICON_ICON_COLOR:
                     break;
@@ -231,6 +237,27 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         ButtonConfig otherConfig = otherButton.getButtonConfig();
         currentConfig.setCustomIconUri(type, packageName, iconName);
         otherConfig.setCustomIconUri(type, packageName, iconName);
+        currentButton.setButtonConfig(currentConfig);
+        otherButton.setButtonConfig(otherConfig);
+
+        mHost.setButtonDrawable(currentButton);
+        SmartBarHelper.updateButtonScalingAndPadding(currentButton, isLandscape());
+
+        mHost.setButtonDrawable(otherButton);
+        SmartBarHelper.updateButtonScalingAndPadding(otherButton, !isLandscape());
+
+        onCommitChanges();
+    }
+
+    protected void onImagePicked(String uri) {
+        final String buttonFocus = mButtonHasFocusTag;
+        SmartButtonView currentButton = mHost.findCurrentButton(buttonFocus);
+        SmartButtonView otherButton = (SmartButtonView) getHiddenNavButtons().findViewWithTag(
+                buttonFocus);
+        ButtonConfig currentConfig = currentButton.getButtonConfig();
+        ButtonConfig otherConfig = otherButton.getButtonConfig();
+        currentConfig.setCustomImageUri(Uri.parse(uri));
+        otherConfig.setCustomImageUri(Uri.parse(uri));
         currentButton.setButtonConfig(currentConfig);
         otherButton.setButtonConfig(otherConfig);
 
@@ -551,8 +578,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
             for (int i = 1; i < mIconMenuItems.size() + 1; i++) {
                 item = mIconMenuItems.get(i);
                 int id = item.getActionId();
-                if (id == MENU_MAP_ICON_ICON_GALLERY ||
-                        id == MENU_MAP_ICON_ICON_COLOR) {
+                if (id == MENU_MAP_ICON_ICON_COLOR) {
                     continue;
                 }
                 mQuick.addActionItem(item);
