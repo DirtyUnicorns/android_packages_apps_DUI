@@ -301,7 +301,7 @@ public class SmartBarView extends BaseNavigationBar {
                 break;
             default: // arrows
                 getImeSwitchButton().setVisibility(View.INVISIBLE);
-                setImeArrowsVisibility(mCurrentView, showImeButton ? View.VISIBLE : View.INVISIBLE);
+                setImeArrowsVisibility(mCurrentView, backAlt ? View.VISIBLE : View.INVISIBLE);
         }
 
         // Update menu button in case the IME state has changed.
