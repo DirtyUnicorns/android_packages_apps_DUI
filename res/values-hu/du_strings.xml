@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--  Copyright (C) 2014-2015 The Dirty Unicorns Project
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ -->
+
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <!-- Bindable action labels -->
+    <string name="label_action_no_action">Nincs művelet</string>
+    <string name="label_action_settings_panel">Beállítások panel</string>
+    <string name="label_action_notification_panel">Értesítési panel</string>
+    <string name="label_action_screenshot">Képernyőmentés</string>
+    <string name="label_action_screenrecord">Képernyő felvétel</string>
+    <string name="label_action_expanded_desktop">Kiterjesztett képernyő</string>
+    <string name="label_action_screen_off">Képernyő kikapcsolása</string>
+    <string name="label_action_force_close_app">Alkalmazás kényszerített bezárása</string>
+    <string name="label_action_search_assistant">Keresési segéd</string>
+    <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+    <string name="label_action_voice_search">hangalapú keresés</string>
+    <string name="label_action_flashlight">Zseblámpa</string>
+    <string name="label_action_bluetooth">Bluetooth</string>
+    <string name="label_action_wifi">WiFi</string>
+    <string name="label_action_hotspot">Hotspot</string>
+    <string name="label_action_last_app">Utolsó alkalmazás</string>
+    <string name="label_action_overview">Előzmények</string>
+    <string name="label_action_power_menu">Kikapcsoló menü</string>
+    <string name="label_action_menu">Menü</string>
+    <string name="label_action_back">Vissza</string>
+    <string name="label_action_home">Kezdőlap</string>
+    <string name="label_action_ime_switcher">IME váltó</string>
+    <string name="label_action_stop_screenpinning">Képernyő rögzítés feloldása</string>
+    <string name="label_action_ime_down">Beviteli mód kurzor le</string>
+    <string name="label_action_ime_left">Beviteli mód kurzor balra</string>
+    <string name="label_action_ime_right">Beviteli mód kurzor jobbra</string>
+    <string name="label_action_ime_up">Beviteli mód kurzor fel</string>
+
+    <!-- Smartbar -->
+    <string name="label_smartbar_actions">Műveletek</string>
+    <string name="label_smartbar_icon">Ikon</string>
+    <string name="label_smartbar_add">Hozzáadás</string>
+    <string name="label_smartbar_remove">Eltávolítás</string>
+    <string name="label_smartbar_cancel">Mégsem</string>
+    <string name="label_smartbar_finish">Befejezés</string>
+    <string name="label_smartbar_single_tap">Egyszerű érintés</string>
+    <string name="label_smartbar_double_tap">Dupla érintés</string>
+    <string name="label_smartbar_long_press">Hosszan nyomva</string>
+    <string name="label_smartbar_icon_pack">Ikon csomag</string>
+    <string name="label_smartbar_icon_gallery">Galéria</string>
+    <string name="label_smartbar_icon_color">Szín</string>
+    <string name="label_smartbar_icon_reset">Visszaállítás</string>
+    <string name="smartbar_editor_toast_starting">Navigációs sáv szerkesztő elindítva</string>
+    <string name="smartbar_editor_toast_stopping">Navigációs sáv szerkesztő megállítva</string>
+    <string name="smartbar_editor_toast_unavailable">Navigációs sáv szerkesztő nem érhető el</string>
+
+</resources>
