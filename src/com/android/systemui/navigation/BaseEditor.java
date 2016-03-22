@@ -36,6 +36,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -43,7 +44,9 @@ public abstract class BaseEditor implements Editor {
     public static final String INTENT_ACTION_EDIT_CLASS = "com.android.settings";
     public static final String INTENT_ACTION_EDIT_COMPONENT = "com.dirtyunicorns.dutweaks.ActionPickerDialogActivity";
     public static final String INTENT_ACTION_ICON_PICKER_COMPONENT = "com.dirtyunicorns.dutweaks.IconPickerActivity";
+    public static final String INTENT_ACTION_GALLERY_PICKER_COMPONENT = "com.dirtyunicorns.dutweaks.IconPickerGallery";
     public static final String INTENT_ICON_PICKER = "intent_icon_picker";
+    public static final String INTENT_GALLERY_PICKER = "intent_gallery_picker";
     public static final String INTENT_ACTION_PICKER = "intent_action_action_picker";
     public static final String INTENT_NAVBAR_EDIT = "intent_navbar_edit";
     public static final String EXTRA_NAVBAR_EDIT_RESET_LAYOUT = "extra_navbar_edit_reset_layout";
@@ -100,6 +103,15 @@ public abstract class BaseEditor implements Editor {
                     String iconName = intent.getStringExtra("icon_data_name");
                     onIconPicked(iconType, iconPackage, iconName);
                 }
+            } else if (TextUtils.equals(INTENT_GALLERY_PICKER, action)) {
+                Log.d("BASEEDITOR", "ICON SELECTED");
+                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
+                if (result == Activity.RESULT_OK) {
+                    String uri = intent.getStringExtra("uri");
+                    onImagePicked(uri);
+                }
+
+
             }
         }
     };
@@ -128,6 +140,7 @@ public abstract class BaseEditor implements Editor {
         filter.addAction(INTENT_NAVBAR_EDIT);
         filter.addAction(INTENT_ACTION_PICKER);
         filter.addAction(INTENT_ICON_PICKER);
+        filter.addAction(INTENT_GALLERY_PICKER);
         mContext.registerReceiver(mReceiver, filter);
     }
 
@@ -144,6 +157,8 @@ public abstract class BaseEditor implements Editor {
     protected void onActionPicked(String action, ActionConfig actionConfig) {}
 
     protected void onIconPicked(String type, String packageName, String iconName) {}
+
+    protected void onImagePicked(String uri) {}
 
     protected void updateResources(Resources res) {}
 

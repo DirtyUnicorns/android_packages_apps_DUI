@@ -226,6 +226,20 @@ public class FlingLogoController implements SmartObservable {
     }
 
     Drawable getCurrentDrawable() {
+
+        if (mLogoConfig.hasCustomIcon()) {
+            Drawable icon = mLogoConfig
+                    .getActionConfig(ActionConfig.PRIMARY)
+                    .getCurrentCustomIcon(mContext);
+            if (icon != null) {
+                return icon;
+            }
+        }
+
+        return mHost.mResourceMap.mFlingLogo;
+
+
+        /*
         if (mLogoConfig.hasCustomIcon()) {
             // manually parse and handle the icon info
             // default handling will return the icon for the action if null
@@ -249,6 +263,9 @@ public class FlingLogoController implements SmartObservable {
         } else {
             return mHost.mResourceMap.mFlingLogo;
         }
+
+*/
+
     }
 
     public static AnimationSet getSpinAnimation(int mode) {
