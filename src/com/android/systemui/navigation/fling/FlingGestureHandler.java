@@ -38,6 +38,7 @@ import android.net.Uri;
 import android.os.Handler;
 import android.os.UserHandle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.view.View;
@@ -46,19 +47,29 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
 
     public interface Swipeable {
         public boolean onDoubleTapEnabled();
+
         public void onSingleLeftPress();
+
         public void onSingleRightPress();
+
         public void onDoubleLeftTap();
+
         public void onDoubleRightTap();
+
         public void onLongLeftPress();
+
         public void onLongRightPress();
+
         public void onShortLeftSwipe();
+
         public void onLongLeftSwipe();
+
         public void onShortRightSwipe();
+
         public void onLongRightSwipe();
     }
 
-    private static Set<Uri> sUris = new HashSet<Uri>();    
+    private static Set<Uri> sUris = new HashSet<Uri>();
     static {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_LAND));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_LAND));
@@ -67,6 +78,9 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_UP_LAND));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGSWIPE_THRESHOLD_DOWN_LAND));
     }
+
+    private static String TAG = "FlingGestureHandler";
+    private static boolean DEBUG = false;
 
     // AOSP DT timeout feels a bit slow on nx
     private static final int DT_TIMEOUT = ViewConfiguration.getDoubleTapTimeout() - 100;
@@ -123,7 +137,8 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         mReceiver = swiper;
         mHost = host;
         mLeftLandDef = context.getResources().getFloat(R.dimen.config_FlingLongSwipeLandscapeLeft);
-        mRightLandDef = context.getResources().getFloat(R.dimen.config_FlingLongSwipeLandscapeRight);
+        mRightLandDef = context.getResources()
+                .getFloat(R.dimen.config_FlingLongSwipeLandscapeRight);
         mLeftPortDef = context.getResources().getFloat(R.dimen.config_FlingLongSwipePortraitLeft);
         mRightPortDef = context.getResources().getFloat(R.dimen.config_FlingLongSwipePortraitRight);
         mUpVertDef = context.getResources().getFloat(R.dimen.config_FlingLongSwipeVerticalUp);
@@ -210,44 +225,30 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
             float velocityY) {
 
-        final boolean isVertical = mVertical;
-        final boolean isLandscape = DUActionUtils.isLandscape(mContext);
+        if (DEBUG)
+            Log.d(TAG,
+                    String.format("(%f,%f) -> (%f,%f)", e1.getX(), e1.getY(), e2.getX(), e2.getY()));
 
-        final float deltaParallel = isVertical ? e2.getY() - e1.getY() : e2
-                .getX() - e1.getX();
+        FlingSwipe swipe = new FlingSwipe(e1, e2);
 
-        boolean isLongSwipe = isLongSwipe(mHost.getWidth(), mHost.getHeight(),
-                deltaParallel, isVertical, isLandscape);
+        if (swipe.swipeDirection == SwipeDirection.LEFT) {
 
-        if (deltaParallel > 0) {
-            if (isVertical) {
-                if (isLongSwipe) {
-                    mReceiver.onLongLeftSwipe();
-                } else {
-                    mReceiver.onShortLeftSwipe();
-                }
+            if (swipe.isThisLongSwipe()) {
+                mReceiver.onLongLeftSwipe();
             } else {
-                if (isLongSwipe) {
-                    mReceiver.onLongRightSwipe();
-                } else {
-                    mReceiver.onShortRightSwipe();
-                }
+                mReceiver.onShortLeftSwipe();
             }
+
         } else {
-            if (isVertical) {
-                if (isLongSwipe) {
-                    mReceiver.onLongRightSwipe();
-                } else {
-                    mReceiver.onShortRightSwipe();
-                }
+
+            if (swipe.isThisLongSwipe()) {
+                mReceiver.onLongRightSwipe();
             } else {
-                if (isLongSwipe) {
-                    mReceiver.onLongLeftSwipe();
-                } else {
-                    mReceiver.onShortLeftSwipe();
-                }
+                mReceiver.onShortRightSwipe();
             }
+
         }
+
         return true;
     }
 
@@ -260,56 +261,6 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         float pos = mVertical ? y : x;
         length /= 2;
         return mVertical ? pos < length : pos > length;
-    }
-
-    private boolean isLongSwipe(float width, float height, float distance,
-            boolean isVertical, boolean isLandscape) {
-        float size;
-        float longPressThreshold;
-
-        // determine correct bar dimensions to calculate against
-        if (isLandscape) {
-            if (isVertical) {
-                size = height;
-            } else {
-                size = width;
-            }
-        } else {
-            size = width;
-        }
-        // determine right or left
-        // greater than zero is either right or up
-        if (distance > 0) {
-            if (isLandscape) {
-                // must be landscape for vertical bar
-                if (isVertical) {
-                    // landscape with vertical bar
-                    longPressThreshold = mUpVert;
-                } else {
-                    // landscape horizontal bar
-                    longPressThreshold = mRightLand;
-                }
-            } else {
-                // portrait: can't have vertical navbar
-                longPressThreshold = mRightPort;
-            }
-        } else {
-            // left or down
-            if (isLandscape) {
-                // must be landscape for vertical bar
-                if (isVertical) {
-                    // landscape with vertical bar
-                    longPressThreshold = mDownVert;
-                } else {
-                    // landscape horizontal bar
-                    longPressThreshold = mLeftLand;
-                }
-            } else {
-                // portrait: can't have vertical navbar
-                longPressThreshold = mLeftPort;
-            }
-        }
-        return Math.abs(distance) > (size * longPressThreshold);
     }
 
     private void updateSettings() {
@@ -347,6 +298,91 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
 
     @Override
     public void onChange(Uri uri) {
-        updateSettings();        
+        updateSettings();
     }
+
+    private enum SwipeDirection {
+        LEFT,
+        RIGHT
+    }
+
+    // This class will help despagettify motion handling
+    private class FlingSwipe {
+
+        private final SwipeDirection swipeDirection;
+
+        // Between -1.0 to 1.0 - percent of bar swiped - however we explose only absolute value -
+        // direction should be checked with getSwipeDirection
+        private final float horizontalSwipeLength;
+
+        // Not used (for now at least) - I thought we can detect swipe outside of navbar, but we
+        // can't :-(
+        private final float verticalSwipeLength;
+
+        private final float longSwipeThreshold;
+
+        public FlingSwipe(MotionEvent start, MotionEvent end) {
+
+            boolean isNavbarHorizontal = mHost.getWidth() > mHost.getHeight();
+
+            float x1 = start.getX();
+            float y1 = start.getY();
+
+            float x2 = end.getX();
+            float y2 = end.getY();
+
+            // Right -> Up;Left -> Down
+            horizontalSwipeLength = isNavbarHorizontal ? (x2 - x1) / mHost.getWidth() :
+                    (y1 - y2) / mHost.getHeight();
+
+            verticalSwipeLength = isNavbarHorizontal ? (y2 - y1) / mHost.getWidth() :
+                    (x2 - x1) / mHost.getHeight();
+
+            // Tablets have "isNavbarHorizontal" always true
+            if (horizontalSwipeLength >= 0) {
+                swipeDirection = SwipeDirection.RIGHT;
+
+                if (isNavbarHorizontal) {
+                    longSwipeThreshold = DUActionUtils.isNormalScreen() ? mRightPort : mRightLand;
+                } else {
+                    longSwipeThreshold = mUpVert;
+                }
+
+            } else {
+                swipeDirection = SwipeDirection.LEFT;
+
+                if (isNavbarHorizontal) {
+                    longSwipeThreshold = DUActionUtils.isNormalScreen() ? mLeftPort : mLeftLand;
+                } else {
+                    longSwipeThreshold = mDownVert;
+                }
+
+            }
+
+            if (DEBUG)
+                Log.d("FlingGestureHandler:", String.format("Direction: %s, " +
+                        "horizontal length: %f, vertical length: %f, threshold: %f",
+                        swipeDirection.name(), horizontalSwipeLength,
+                        verticalSwipeLength, longSwipeThreshold));
+
+        }
+
+        public float getVerticalSwipeLength() {
+            return Math.abs(verticalSwipeLength);
+        }
+
+        public float getHorizontalSwipeLength() {
+            return Math.abs(horizontalSwipeLength);
+        }
+
+        public boolean isThisLongSwipe() {
+            return getHorizontalSwipeLength() > longSwipeThreshold;
+        }
+
+        public SwipeDirection getSwipeDirection() {
+            return swipeDirection;
+        }
+
+    }
+
 }
