@@ -37,9 +37,11 @@ import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
 import com.android.systemui.R;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
@@ -71,6 +73,22 @@ public class NavigationController implements PackageChangedListener {
     private Context mContext;
     private PulseController mPulseController;
     private final NavbarOverlayResources mResourceMap;
+
+    /**
+     * TODO: this is a temporary makeshift solution. In the future, query theme service for processing themes,
+     * if it is still processing, register IThemeProcessingListener, and query again on callbacks. When all themes
+     * are finished processing, unregister the listener and poke navigation bar to update drawables
+     */
+    private BroadcastReceiver mThemeCompleteReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mBar.getNavigationBarView() != null) {
+                // a one-time shot to update icons and be finished
+                mBar.getNavigationBarView().onRecreateStatusbar();
+            }
+            mContext.unregisterReceiver(mThemeCompleteReceiver);
+        }
+    };
 
     public static class NavbarOverlayResources extends ActionIconResources {
         public int mOpaque;
@@ -117,6 +135,9 @@ public class NavigationController implements PackageChangedListener {
         mNavbarObserver = new NavbarObserver(mHandler);
         mNavbarObserver.observe();
         mPulseController = new PulseController(mContext, mHandler);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        mContext.registerReceiver(mThemeCompleteReceiver, filter);
     }
 
     public Navigator getNavigationBarView(Context context) {
