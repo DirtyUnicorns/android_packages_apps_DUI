@@ -35,12 +35,12 @@ import android.widget.LinearLayout.LayoutParams;
 
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.navigation.smartbar.SmartButtonView;
 import com.android.systemui.R;
 
 public class SmartBarHelper {
-    static final boolean sIsTablet = !DUActionUtils.isNormalScreen();
 
     static int[] getAppIconPadding(Context ctx) {
         int[] padding = new int[4];
@@ -87,7 +87,7 @@ public class SmartBarHelper {
         // all non-system action icons need some extra padding/scaling work
         final int[] appIconPadding = getAppIconPadding(v.getContext());
         if (buttonNeedsCustomPadding(v)) {
-            if (landscape && !sIsTablet) {
+            if (landscape && !BaseNavigationBar.sIsTablet) {
                 v.setPaddingRelative(appIconPadding[1], appIconPadding[0],
                         appIconPadding[3], appIconPadding[2]);
             } else {
@@ -96,12 +96,12 @@ public class SmartBarHelper {
             }
             v.setScaleType(ScaleType.CENTER_INSIDE);
         } else {
-            if (landscape && sIsTablet) {
+            if (landscape && BaseNavigationBar.sIsTablet) {
                 v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
                         appIconPadding[2], appIconPadding[3]);
                 v.setScaleType(ScaleType.CENTER_INSIDE);
             }
-            v.setScaleType(sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
+            v.setScaleType(BaseNavigationBar.sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
         }
     }
 
@@ -112,8 +112,8 @@ public class SmartBarHelper {
         int width = ctx.getResources().getDimensionPixelSize(R.dimen.navigation_key_width);
         int height = ctx.getResources().getDimensionPixelSize(R.dimen.navigation_key_height);
         v.setLayoutParams(new LinearLayout.LayoutParams(
-                landscape && !sIsTablet ? LayoutParams.MATCH_PARENT
-                        : width, landscape && !sIsTablet ? height : LayoutParams.MATCH_PARENT));
+                landscape && !BaseNavigationBar.sIsTablet ? LayoutParams.MATCH_PARENT
+                        : width, landscape && !BaseNavigationBar.sIsTablet ? height : LayoutParams.MATCH_PARENT));
         v.loadRipple();
         updateButtonScalingAndPadding(v, landscape);
         host.setButtonDrawable(v);
@@ -134,7 +134,7 @@ public class SmartBarHelper {
 
     static View makeSeparator(Context ctx) {
         View v;
-        if (sIsTablet) {
+        if (BaseNavigationBar.sIsTablet) {
             v = new Space(ctx);
         } else {
             v = new View(ctx);
@@ -146,7 +146,7 @@ public class SmartBarHelper {
     }
 
     static void addViewToRoot(ViewGroup root, View toAdd, boolean landscape) {
-        if (landscape && !sIsTablet) {
+        if (landscape && !BaseNavigationBar.sIsTablet) {
             root.addView(toAdd, 0);
         } else {
             root.addView(toAdd);
@@ -154,7 +154,7 @@ public class SmartBarHelper {
     }
 
     static int getButtonSize(Context ctx, int numButtons, boolean landscape) {
-        if (sIsTablet) {
+        if (BaseNavigationBar.sIsTablet) {
             return getTabletButtonSize(ctx, numButtons, landscape);
         } else {
             return getPhoneButtonSize(ctx, numButtons, landscape);
@@ -189,7 +189,7 @@ public class SmartBarHelper {
     }
 
     static void updateButtonSize(View v, int size, boolean landscape) {
-        if (sIsTablet) {
+        if (BaseNavigationBar.sIsTablet) {
             updateTabletButtonSize(v, size, landscape);
         } else {
             updatePhoneButtonSize(v, size, landscape);

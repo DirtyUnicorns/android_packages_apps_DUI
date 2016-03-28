@@ -34,6 +34,7 @@ import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config;
 import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.systemui.navigation.BaseEditor;
+import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.Res;
 import com.android.systemui.navigation.smartbar.SmartBarEditor;
 import com.android.systemui.navigation.smartbar.SmartBarHelper;
@@ -103,7 +104,6 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
     private static final int[] sLocation = new int[2];
 
     private SmartBarView mHost;
-    private boolean mIsTablet;
 
     private FrameLayout mEditContainer;
     private SmartButtonView mHidden;
@@ -202,7 +202,6 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
     public SmartBarEditor(SmartBarView host) {
         super(host);
         mHost = host;
-        mIsTablet = !DUActionUtils.isNormalScreen();
         initPopup();
     }
 
@@ -311,7 +310,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
     }
 
     private int getMaxButtons() {
-        return mIsTablet ? TABLET_MAX_BUTTONS : PHONE_MAX_BUTTONS;
+        return BaseNavigationBar.sIsTablet ? TABLET_MAX_BUTTONS : PHONE_MAX_BUTTONS;
     }
 
     private boolean getHasMaxButtons() {

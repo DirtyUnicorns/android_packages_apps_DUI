@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.android.systemui.R;
+import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.DUActionUtils;
@@ -343,7 +344,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
                 swipeDirection = SwipeDirection.RIGHT;
 
                 if (isNavbarHorizontal) {
-                    longSwipeThreshold = DUActionUtils.isNormalScreen() ? mRightPort : mRightLand;
+                    longSwipeThreshold = !BaseNavigationBar.sIsTablet ? mRightPort : mRightLand;
                 } else {
                     longSwipeThreshold = mUpVert;
                 }
@@ -352,7 +353,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
                 swipeDirection = SwipeDirection.LEFT;
 
                 if (isNavbarHorizontal) {
-                    longSwipeThreshold = DUActionUtils.isNormalScreen() ? mLeftPort : mLeftLand;
+                    longSwipeThreshold = !BaseNavigationBar.sIsTablet ? mLeftPort : mLeftLand;
                 } else {
                     longSwipeThreshold = mDownVert;
                 }
