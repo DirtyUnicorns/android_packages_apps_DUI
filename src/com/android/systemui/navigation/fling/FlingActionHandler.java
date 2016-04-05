@@ -66,7 +66,17 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     public FlingActionHandler(Context context, View host) {
         mContext = context;
         mHost = host;
-        loadConfigs();
+
+        try {
+            loadConfigs();
+        } catch (Exception ex) {
+            //Something is wrong, let's reset config
+            ArrayList<ButtonConfig> defConfig =
+                    Config.getDefaultConfig(mContext, ActionConstants.getDefaults(ActionConstants.FLING));
+
+            Config.setConfig(mContext, ActionConstants.getDefaults(ActionConstants.FLING), defConfig);
+            loadConfigs();
+        }
     }
 
     void loadConfigs() {
@@ -131,6 +141,24 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     @Override
     public void onLongRightSwipe() {
         fireAction((ActionConfig) mActionMap.get(ActionConstants.Fling.FLING_LONG_RIGHT_TAG));
+    }
+
+    @Override
+    public void onUpRightSwipe() {
+        ActionConfig left_swipe = (ActionConfig) mActionMap
+                .get(ActionConstants.Fling.FLING_LEFT_UP_TAG);
+        ActionConfig right_swipe = (ActionConfig) mActionMap
+                .get(ActionConstants.Fling.FLING_RIGHT_UP_TAG);
+        fireAction(!right_swipe.hasNoAction() ? right_swipe : left_swipe);
+    }
+
+    @Override
+    public void onUpLeftSwipe() {
+        ActionConfig left_swipe = (ActionConfig) mActionMap
+                .get(ActionConstants.Fling.FLING_LEFT_UP_TAG);
+        ActionConfig right_swipe = (ActionConfig) mActionMap
+                .get(ActionConstants.Fling.FLING_RIGHT_UP_TAG);
+        fireAction(!left_swipe.hasNoAction() ? left_swipe : right_swipe);
     }
 
     @Override

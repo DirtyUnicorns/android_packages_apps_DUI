@@ -216,6 +216,12 @@ public class FlingView extends BaseNavigationBar {
     }
 
     @Override
+    public void setLeftInLandscape(boolean leftInLandscape) {
+        super.setLeftInLandscape(leftInLandscape);
+        mGestureHandler.setLeftInLandscape(leftInLandscape);
+    }
+
+    @Override
     protected void onKeyguardShowing(boolean showing) {
         mActionHandler.setKeyguardShowing(showing);
         setDisabledFlags(mDisabledFlags, true /* force */);
@@ -288,7 +294,6 @@ public class FlingView extends BaseNavigationBar {
         mBarTransitions.init();
         mLogoController.setLogoView(getFlingLogo());
         mLogoController.setLogoIcon();
-        mGestureHandler.setIsVertical(mVertical);
         setDisabledFlags(mDisabledFlags, true /* force */);
     }
 
