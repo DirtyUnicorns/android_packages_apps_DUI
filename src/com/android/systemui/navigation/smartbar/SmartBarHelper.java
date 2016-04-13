@@ -165,7 +165,7 @@ public class SmartBarHelper {
         int origSize = ctx.getResources().getDimensionPixelSize(
                 landscape ? R.dimen.navigation_key_tablet_width_land
                         : R.dimen.navigation_key_tablet_width_port);
-        if (numButtons == 3) {
+        if (numButtons < 4) {
             return origSize;
         } else {
             // the more buttons we have the less we shave per button
@@ -179,7 +179,7 @@ public class SmartBarHelper {
         // in this case, landscape refers to the vertical bar layout
         int origSize = ctx.getResources().getDimensionPixelSize(
                 landscape ? R.dimen.navigation_key_height : R.dimen.navigation_key_width);
-        if (numButtons == 3) {
+        if (numButtons < 4) {
             return origSize;
         } else {
             // create an even distribution
