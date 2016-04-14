@@ -236,10 +236,6 @@ public class SmartBarView extends BaseNavigationBar {
         return (SmartButtonView) mCurrentView.findViewWithTag(Res.Softkey.BUTTON_HOME);
     }
 
-    public SmartButtonView getRecentsButton() {
-        return (SmartButtonView) mCurrentView.findViewWithTag(Res.Softkey.BUTTON_OVERVIEW);
-    }
-
     public SmartButtonView getMenuButton() {
         return (SmartButtonView) mCurrentContext.findViewWithTag(Res.Softkey.MENU_BUTTON);
     }
@@ -322,14 +318,12 @@ public class SmartBarView extends BaseNavigationBar {
 
         getBackButton().setVisibility(disableBack ? View.INVISIBLE : View.VISIBLE);
         getHomeButton().setVisibility(disableHome ? View.INVISIBLE : View.VISIBLE);
-        getRecentsButton().setVisibility(disableRecent ? View.INVISIBLE : View.VISIBLE);
 
         // if any stock buttons are disabled, it's likely proper
         // to disable custom buttons as well
         for (String buttonTag : mCurrentSequence) {
             SmartButtonView v = findCurrentButton(buttonTag);
-            if (v != null && v != getBackButton() && v != getHomeButton()
-                    && v != getRecentsButton()) {
+            if (v != null && v != getBackButton() && v != getHomeButton()) {
                 if (disableHome || disableBack || disableRecent) {
                     v.setVisibility(View.INVISIBLE);
                 } else {
