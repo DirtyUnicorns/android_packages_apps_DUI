@@ -17,13 +17,13 @@
  -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
-  <string name="label_action_no_action">No action</string>
-  <string name="label_action_settings_panel">Settings panel</string>
-  <string name="label_action_notification_panel">Notification panel</string>
-  <string name="label_action_screenshot">Screenshot</string>
-  <string name="label_action_screenrecord">Record screen</string>
-  <string name="label_action_expanded_desktop">Expanded desktop</string>
-  <string name="label_action_screen_off">Turn off screen</string>
+  <string name="label_action_no_action">Ingen åtgärd</string>
+  <string name="label_action_settings_panel">Inställnings panel</string>
+  <string name="label_action_notification_panel">Notifierings panel</string>
+  <string name="label_action_screenshot">Skärmbild</string>
+  <string name="label_action_screenrecord">Skärminspelning</string>
+  <string name="label_action_expanded_desktop">Utökat skrivbord</string>
+  <string name="label_action_screen_off">Stänga av skärmen</string>
   <string name="label_action_force_close_app">Force close app</string>
   <string name="label_action_search_assistant">Search assistant</string>
   <string name="label_action_google_now_on_tap">Google Now On Tap</string>
