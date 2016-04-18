@@ -18,13 +18,13 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Keine Aktion</string>
-  <string name="label_action_settings_panel">Einstellungs-Feld</string>
-  <string name="label_action_notification_panel">Benachrichtigungs-Feld</string>
+  <string name="label_action_settings_panel">Schnelleinstellungen</string>
+  <string name="label_action_notification_panel">Benachrichtigungsfeld</string>
   <string name="label_action_screenshot">Bildschirmfoto</string>
   <string name="label_action_screenrecord">Bildschirmaufnahme</string>
   <string name="label_action_expanded_desktop">Erweiterter Desktop</string>
   <string name="label_action_screen_off">Bildschirm ausschalten</string>
-  <string name="label_action_force_close_app">App killen</string>
+  <string name="label_action_force_close_app">App beenden</string>
   <string name="label_action_search_assistant">Suchassistent</string>
   <string name="label_action_google_now_on_tap">Google Now On Tap</string>
   <string name="label_action_voice_search">Sprachsuche</string>
