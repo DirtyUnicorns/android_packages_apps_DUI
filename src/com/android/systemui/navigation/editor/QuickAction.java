@@ -51,6 +51,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
     private int mChildPos;
     private int mInsertPos;
     private int rootWidth = 0;
+    private int mAnimStyle;
 
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
@@ -82,6 +83,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
         mInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         setRootViewId(R.layout.popup_vertical);
         mChildPos = 0;
+        mAnimStyle = ANIM_AUTO;
     }
 
     /**
@@ -248,8 +250,57 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 
         showArrow(((onTop) ? R.id.arrow_down : R.id.arrow_up), arrowPos);
 
-        mWindow.setAnimationStyle(0);
+        setAnimationStyle(screenWidth, anchorRect.centerX());
         mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
+    }
+
+    /**
+     * Set animation style
+     * 
+     * @param screenWidth screen width
+     * @param requestedX distance from left edge
+     * @param onTop flag to indicate where the popup should be displayed. Set TRUE if displayed on
+     *            top of anchor view and vice versa
+     */
+    private void setAnimationStyle(int screenWidth, int requestedX) {
+        int arrowPos = requestedX - mArrowUp.getMeasuredWidth() / 2;
+
+        switch (mAnimStyle) {
+            case ANIM_GROW_FROM_LEFT:
+                mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Left);
+                break;
+
+            case ANIM_GROW_FROM_RIGHT:
+                mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Right);
+                break;
+
+            case ANIM_GROW_FROM_CENTER:
+                mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Center);
+                break;
+
+            case ANIM_REFLECT:
+                mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Reflect);
+                break;
+
+            case ANIM_AUTO:
+                if (arrowPos <= screenWidth / 4) {
+                    mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Left);
+                } else if (arrowPos > screenWidth / 4 && arrowPos < 3 * (screenWidth / 4)) {
+                    mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Center);
+                } else {
+                    mWindow.setAnimationStyle(R.style.Animations_PopUpMenu_Right);
+                }
+                break;
+        }
+    }
+
+    /**
+     * Set animation style
+     * 
+     * @param mAnimStyle animation style, default is set to ANIM_AUTO
+     */
+    public void setAnimStyle(int mAnimStyle) {
+        this.mAnimStyle = mAnimStyle;
     }
 
     /**
