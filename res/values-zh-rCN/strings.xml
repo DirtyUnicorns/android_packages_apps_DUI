@@ -28,6 +28,7 @@
   <string name="label_action_search_assistant">搜索助手</string>
   <string name="label_action_google_now_on_tap">Google Now On Tap</string>
   <string name="label_action_voice_search">语音搜索</string>
+  <string name="label_action_in_app_search">In-app search</string>
   <string name="label_action_flashlight">手电筒</string>
   <string name="label_action_bluetooth">蓝牙</string>
   <string name="label_action_wifi">WiFi</string>
