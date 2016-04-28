@@ -54,17 +54,25 @@
     <!-- Width of each eq bar
          Wider values generates fewer, but wider bars -->
     <dimen name="config_pulsePathStrokeWidth">14dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth1">15dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth2">16dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth3">17dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth4">18dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth5">19dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth6">20dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth7">21dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth8">22dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth9">23dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth10">24dp</dimen>
-    <dimen name="config_pulsePathStrokeWidth11">25dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth1">7dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth2">8dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth3">9dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth4">10dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth5">11dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth6">12dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth7">13dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth8">15dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth9">16dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth10">17dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth11">18dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth12">19dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth13">20dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth14">21dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth15">22dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth16">23dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth17">24dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth18">25dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth19">26dp</dimen>
     <!-- Default bar fill
          User can define this in settings
          Here for reference-->
@@ -90,6 +98,10 @@
          it creates higher highs that fall faster. Sane values
          are from 2 to 5 -->
     <integer name="config_pulseDbFuzzFactor">4</integer>
+    <integer name="config_pulseDbFuzzFactor1">2</integer>
+    <integer name="config_pulseDbFuzzFactor2">3</integer>
+    <integer name="config_pulseDbFuzzFactor3">5</integer>
+    <integer name="config_pulseDbFuzzFactor4">6</integer>
 
     <!-- DbFuzz adds it's value in pixels to the magnitude
          It is recommended to set this value so that it is

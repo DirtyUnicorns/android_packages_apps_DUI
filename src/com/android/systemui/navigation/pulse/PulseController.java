@@ -188,6 +188,9 @@ public class PulseController {
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -198,7 +201,8 @@ public class PulseController {
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN))
                     || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIV))
                     || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_FILLED_BLOCK_SIZE))
-                    || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE))) {
+                    || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE))
+                    ||uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR))) {
                 resetVisualizer();
             } else {
                 update();
