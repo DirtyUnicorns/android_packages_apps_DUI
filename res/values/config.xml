@@ -38,10 +38,18 @@
     <!-- Height of each filled in block
          recommended leave as is -->
     <dimen name="config_pulsePathEffect_1">4dp</dimen>
+    <dimen name="config_pulsePathEffect1_1">5dp</dimen>
+    <dimen name="config_pulsePathEffect2_1">6dp</dimen>
+    <dimen name="config_pulsePathEffect3_1">7dp</dimen>
+    <dimen name="config_pulsePathEffect4_1">8dp</dimen>
 
     <!-- Height of each empty block
          recommmended leave as is -->
     <dimen name="config_pulsePathEffect_2">1dp</dimen>
+    <dimen name="config_pulsePathEffect1_2">2dp</dimen>
+    <dimen name="config_pulsePathEffect2_2">3dp</dimen>
+    <dimen name="config_pulsePathEffect3_2">4dp</dimen>
+    <dimen name="config_pulsePathEffect4_2">0dp</dimen>
 
     <!-- Width of each eq bar
          Wider values generates fewer, but wider bars -->
