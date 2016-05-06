@@ -41,10 +41,10 @@
   <string name="label_action_home">Inicio</string>
   <string name="label_action_ime_switcher">Selector IME</string>
   <string name="label_action_stop_screenpinning">Detener fijado de pantalla</string>
-  <string name="label_action_ime_down">Input method cursor down</string>
-  <string name="label_action_ime_left">Input method cursor left</string>
-  <string name="label_action_ime_right">Input method cursor right</string>
-  <string name="label_action_ime_up">Input method cursor up</string>
+  <string name="label_action_ime_down">Método de entrada el cursor hacia abajo</string>
+  <string name="label_action_ime_left">Método de entrada el cursor hacia izquierda</string>
+  <string name="label_action_ime_right">Método de entrada el cursor hacia derecha</string>
+  <string name="label_action_ime_up">Método de entrada el cursor hacia arriba</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Acciones</string>
   <string name="label_smartbar_icon">Icono</string>
