@@ -53,9 +53,9 @@
   <string name="label_smartbar_cancel">Cancelar</string>
   <string name="label_smartbar_finish">Concluir</string>
   <string name="label_smartbar_single_tap">Toque único</string>
-  <string name="label_smartbar_double_tap">Double tap</string>
-  <string name="label_smartbar_long_press">Long press</string>
-  <string name="label_smartbar_icon_pack">Icon pack</string>
+  <string name="label_smartbar_double_tap">Toque duplo</string>
+  <string name="label_smartbar_long_press">Segurar</string>
+  <string name="label_smartbar_icon_pack">Pacote de ícones</string>
   <string name="label_smartbar_icon_gallery">Galeria</string>
   <string name="label_smartbar_icon_color">Cor</string>
   <string name="label_smartbar_icon_reset">Redefinir</string>
