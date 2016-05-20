@@ -60,6 +60,6 @@
   <string name="label_smartbar_icon_color">Cor</string>
   <string name="label_smartbar_icon_reset">Redefinir</string>
   <string name="smartbar_editor_toast_starting">Iniciando edição do navegador</string>
-  <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
-  <string name="smartbar_editor_toast_unavailable">Navigation editor unavailable</string>
+  <string name="smartbar_editor_toast_stopping">Parando edição do navegador</string>
+  <string name="smartbar_editor_toast_unavailable">Editor de navegação não está disponível</string>
 </resources>
