@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2014 The TeamEos Project
  * Copyright (C) 2016 The DirtyUnicorns Project
- * 
+ *
  * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,11 +31,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.os.UserHandle;
 
 import com.android.systemui.navigation.pulse.Renderer;
 import com.android.systemui.navigation.pulse.StreamValidator;
 import com.android.systemui.navigation.utils.ColorAnimator;
 import com.android.systemui.R;
+
+import android.provider.Settings;
 
 public class PulseRenderer implements Renderer {
     private static final int DEF_PAINT_ALPHA = (byte) 188;
@@ -48,14 +51,13 @@ public class PulseRenderer implements Renderer {
     private int mDbFuzz;
     private int mPathEffect1;
     private int mPathEffect2;
-
+    private int mCustomDimen;
     private Paint mPaint;
     private StreamValidator mValidator;
 
     public PulseRenderer(Context ctx, StreamValidator validator) {
         super();
         mValidator = validator;
-
         mDivisions = ctx.getResources().getInteger(R.integer.config_pulseDivisions);
         mDefColor = ctx.getResources().getColor(R.color.config_pulseFillColor);
         mDbFuzzFactor = ctx.getResources().getInteger(R.integer.config_pulseDbFuzzFactor);
@@ -63,9 +65,8 @@ public class PulseRenderer implements Renderer {
         mPathEffect1 = ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathEffect_1);
         mPathEffect2 = ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathEffect_2);
         mUserColor = mDefColor;
-
         mPaint = new Paint();
-        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth));
+        updatedimens(ctx);
         mPaint.setAntiAlias(true);
         mPaint.setPathEffect(new android.graphics.DashPathEffect(new float[] {
                 mPathEffect1,
@@ -132,5 +133,46 @@ public class PulseRenderer implements Renderer {
     @Override
     public void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {
         setColor(mUserColor, true);
+    }
+
+    public void updatedimens(Context ctx) {
+        mCustomDimen = Settings.Secure.getIntForUser(
+        ctx.getContentResolver(), Settings.Secure.PULSE_CUSTOM_DIMEN, 0, UserHandle.USER_CURRENT);
+        if (mCustomDimen == 0) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth));
+        }
+        else if (mCustomDimen == 1) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth1));
+        }
+        else if (mCustomDimen == 2) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth2));
+        }
+        else if (mCustomDimen == 3) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth3));
+        }
+        else if (mCustomDimen == 4) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth4));
+        }
+        else if (mCustomDimen == 5) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth5));
+        }
+        else if (mCustomDimen == 6) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth6));
+        }
+        else if (mCustomDimen == 7) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth7));
+        }
+        else if (mCustomDimen == 8) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth8));
+        }
+        else if (mCustomDimen == 9) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth9));
+        }
+        else if (mCustomDimen == 10) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth10));
+        }
+        else if (mCustomDimen == 11) {
+        mPaint.setStrokeWidth(ctx.getResources().getDimensionPixelSize(R.dimen.config_pulsePathStrokeWidth11));
+        }
     }
 }

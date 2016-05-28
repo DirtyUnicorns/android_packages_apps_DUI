@@ -46,7 +46,17 @@
     <!-- Width of each eq bar
          Wider values generates fewer, but wider bars -->
     <dimen name="config_pulsePathStrokeWidth">14dp</dimen>
-
+    <dimen name="config_pulsePathStrokeWidth1">15dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth2">16dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth3">17dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth4">18dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth5">19dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth6">20dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth7">21dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth8">22dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth9">23dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth10">24dp</dimen>
+    <dimen name="config_pulsePathStrokeWidth11">25dp</dimen>
     <!-- Default bar fill
          User can define this in settings
          Here for reference-->

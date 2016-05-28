@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2014 The TeamEos Project
  * Copyright (C) 2016 The DirtyUnicorns Project
- * 
+ *
  * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -156,7 +156,7 @@ public class PulseController {
         }
     };
 
-    private class PulseSettingsObserver extends ContentObserver {        
+    private class PulseSettingsObserver extends ContentObserver {
         public PulseSettingsObserver(Handler handler) {
             super(handler);
             register();
@@ -176,6 +176,9 @@ public class PulseController {
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_SPEED), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -183,6 +186,8 @@ public class PulseController {
             if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED))) {
                 updateEnabled();
                 doLinkage();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN))) {
+                resetVisualizer();
             } else {
                 update();
             }
@@ -239,6 +244,13 @@ public class PulseController {
 
     public void setPulseObserver(PulseObserver observer) {
         mPulseObserver = observer;
+        initVisualizer();
+    }
+
+    public void initVisualizer() {
+        if (mPulseObserver == null) {
+            return;
+        }
         mValidator = new PulseFftValidator();
         mValidator.addCallbacks(mStreamValidatorCallbacks);
         mLavaLamp = new PulseColorAnimator();
@@ -276,7 +288,7 @@ public class PulseController {
 
     /**
      * Current rendering state: There is a visualizer link and the fft stream is validated
-     * 
+     *
      * @return true if bar elements should be hidden, false if not
      */
     public boolean shouldDrawPulse() {
@@ -309,7 +321,7 @@ public class PulseController {
 
     /**
      * if any of these conditions are met, we unlink regardless of any other states
-     * 
+     *
      * @return true if unlink is required, false if unlinking is not mandatory
      */
     private boolean isUnlinkRequired() {
@@ -322,7 +334,7 @@ public class PulseController {
 
     /**
      * All of these conditions must be met to allow a visualizer link
-     * 
+     *
      * @return true if all conditions are met to allow link, false if and conditions are not met
      */
     private boolean isAbleToLink() {
@@ -375,8 +387,12 @@ public class PulseController {
     }
 
     private void doLinkVisualizer() {
+        doLinkVisualizer(false);
+    }
+
+    private void doLinkVisualizer(boolean force) {
         if (mVisualizer != null) {
-            if (!mLinked) {
+            if (!mLinked || force) {
                 setVisualizerLocked(true);
                 mValidator.reset(); // reset validation flags
                 mVisualizer.resetDrawing(); // clear stale bitmaps
@@ -390,6 +406,17 @@ public class PulseController {
     public void onDraw(Canvas canvas) {
         if (mLinked) {
             mVisualizer.onDraw(canvas);
+        }
+    }
+
+    public void resetVisualizer() {
+        final boolean wasLinked = mLinked;
+        if (wasLinked) {
+            doSilentUnlinkVisualizer();
+        }
+        initVisualizer();
+        if (wasLinked) {
+            doLinkVisualizer(true);
         }
     }
 }
