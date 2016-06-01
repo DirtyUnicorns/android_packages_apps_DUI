@@ -59,7 +59,7 @@
   <string name="label_smartbar_icon_gallery">Галерея</string>
   <string name="label_smartbar_icon_color">Цвет</string>
   <string name="label_smartbar_icon_reset">Сброс</string>
-  <string name="smartbar_editor_toast_starting">Запуск редактора навигации</string>
-  <string name="smartbar_editor_toast_stopping">Остановка редактора навигации</string>
-  <string name="smartbar_editor_toast_unavailable">Редактор навигации недоступен</string>
+  <string name="smartbar_editor_toast_starting">Запуск редактора панели навигации</string>
+  <string name="smartbar_editor_toast_stopping">Остановка редактора панели навигации</string>
+  <string name="smartbar_editor_toast_unavailable">Редактор панели навигации недоступен</string>
 </resources>
