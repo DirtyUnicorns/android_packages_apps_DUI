@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2016 The DirtyUnicorns Project
- * 
+ *
  * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +14,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * Core implementation of a inline navigation editor. Respond to many of the
  * same events BaseNavigationBar does and provide subclasses with information
  * regarding state changes
@@ -35,12 +35,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Resources;
+import android.graphics.PixelFormat;
+import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 public abstract class BaseEditor implements Editor {
+
     public static final String INTENT_ACTION_EDIT_CLASS = "com.android.settings";
     public static final String INTENT_ACTION_EDIT_COMPONENT = "com.dirtyunicorns.dutweaks.ActionPickerDialogActivity";
     public static final String INTENT_ACTION_ICON_PICKER_COMPONENT = "com.dirtyunicorns.dutweaks.IconPickerActivity";
@@ -54,6 +62,7 @@ public abstract class BaseEditor implements Editor {
     public static int MODE_OFF = 2;
 
     protected Context mContext;
+    protected FrameLayout mFrameLayout;
     protected WindowManager mWindowManager;
 
     // we want any incoming hints (menu/ime/disabled) to automatcally
@@ -110,8 +119,6 @@ public abstract class BaseEditor implements Editor {
                     String uri = intent.getStringExtra("uri");
                     onImagePicked(uri);
                 }
-
-
             }
         }
     };
@@ -124,15 +131,39 @@ public abstract class BaseEditor implements Editor {
     }
 
     private void toastState(int state) {
-        String txt;
         if (state == MODE_ON) {
-            txt = mContext.getResources().getString(R.string.smartbar_editor_toast_starting);
+            editHint();
         } else if (state == MODE_OFF) {
-            txt = mContext.getResources().getString(R.string.smartbar_editor_toast_stopping);
+            mWindowManager.removeView(mFrameLayout);
         } else {
-            txt = mContext.getResources().getString(R.string.smartbar_editor_toast_unavailable);
+            Toast.makeText(mContext, R.string.smartbar_editor_toast_unavailable,
+            Toast.LENGTH_SHORT).show();
         }
-        Toast.makeText(mContext, txt, Toast.LENGTH_SHORT).show();
+    }
+
+    private void editHint() {
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_PHONE,
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                PixelFormat.TRANSLUCENT);
+        params.gravity = Gravity.TOP;
+
+        mFrameLayout = new FrameLayout(mContext);
+
+        mWindowManager = (WindowManager) mContext.getSystemService(mContext.WINDOW_SERVICE);
+        mWindowManager.addView(mFrameLayout, params);
+
+        LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(mContext.LAYOUT_INFLATER_SERVICE);
+        layoutInflater.inflate(R.layout.edit_hint, mFrameLayout);
+
+        final ImageView imageView = (ImageView) mFrameLayout.findViewById(R.id.imageView);
+        imageView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                mContext.sendBroadcastAsUser(new Intent("intent_navbar_edit"), UserHandle.CURRENT);
+            }
+        });
     }
 
     public void registerReceiver() {

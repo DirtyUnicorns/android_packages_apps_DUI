@@ -66,5 +66,6 @@
     <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
     <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
     <string name="smartbar_editor_toast_unavailable">Navigation editor unavailable</string>
+    <string name="edit_mode">Edit Mode</string>
 
 </resources>
