@@ -268,6 +268,18 @@ public class SmartButtonView extends ImageView {
                     }
                 }
                 break;
+            case MotionEvent.ACTION_CANCEL:
+                if (hasLongAction()) {
+                    removeCallbacks(mCheckLongPress);
+                }
+                removeCallbacks(mDoubleTapTimeout);
+                wasConsumed = true;
+                isDoubleTapPending = false;
+                setPressed(false);
+                if (mSpring != null) {
+                    mSpring.setEndValue(0f);
+                }
+                break;
             case MotionEvent.ACTION_UP:
                 setPressed(false);
                 if (mSpring != null) {
