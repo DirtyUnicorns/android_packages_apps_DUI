@@ -25,11 +25,6 @@
 package com.android.systemui.navigation.pulse;
 
 import com.android.systemui.navigation.pulse.PulseController;
-import com.android.systemui.navigation.pulse.PulseFftValidator;
-import com.android.systemui.navigation.pulse.PulseRenderer;
-import com.android.systemui.navigation.pulse.PulseVisualizer;
-import com.android.systemui.navigation.pulse.StreamValidator;
-import com.android.systemui.navigation.utils.ColorAnimator;
 import com.android.systemui.navigation.utils.MediaMonitor;
 
 import android.content.BroadcastReceiver;
@@ -38,6 +33,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.database.ContentObserver;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.media.AudioManager;
@@ -57,7 +53,7 @@ public class PulseController {
     public interface PulseObserver {
         public int getWidth();
         public int getHeight();
-        public void invalidate();
+        public void postInvalidate();
 
         // return false to immediately begin Pulse
         // return true to do pre-processing. Implementation MUST
@@ -67,23 +63,27 @@ public class PulseController {
     }
 
     private static final String TAG = PulseController.class.getSimpleName();
+    private static final int RENDER_STYLE_LEGACY = 0;
+    private static final int RENDER_STYLE_CM = 1;
 
     private Context mContext;
     private Handler mHandler;
     private MediaMonitor mMediaMonitor;
     private AudioManager mAudioManager;
-    private PulseVisualizer mVisualizer;
     private Renderer mRenderer;
-    private StreamValidator mValidator;
+    private VisualizerStreamHandler mStreamHandler;
     private PulseObserver mPulseObserver;
-    private PulseColorAnimator mLavaLamp;
-    private PulseSettingsObserver mSettingsObserver;
+    private SettingsObserver mSettingsObserver;
+    private Bitmap mAlbumArt;
+    private int mAlbumArtColor;
+    private boolean mPulseEnabled;
     private boolean mKeyguardShowing;
     private boolean mLinked;
     private boolean mPowerSaveModeEnabled;
-    private boolean mPulseEnabled;
     private boolean mScreenOn;
     private boolean mMusicStreamMuted;
+    private boolean mLeftInLandscape;
+    private int mPulseStyle;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -116,9 +116,10 @@ public class PulseController {
         }
     };
 
-    private final StreamValidator.Callbacks mStreamValidatorCallbacks = new StreamValidator.Callbacks() {
+    private final VisualizerStreamHandler.Listener mStreamListener = new VisualizerStreamHandler.Listener() {
         @Override
         public void onStreamAnalyzed(boolean isValid) {
+            mRenderer.onStreamAnalyzed(isValid);
             if (isValid) {
                 if (!mPulseObserver.onStartPulse(null)) {
                     turnOnPulse();
@@ -127,69 +128,30 @@ public class PulseController {
                 doSilentUnlinkVisualizer();
             }
         }
-    };
 
-    private class PulseColorAnimator extends ColorAnimator {
-        private boolean mEnabled;
-
-        public PulseColorAnimator() {
-            super();
-        }
-
-        public void setLavaLampEnabled(boolean enabled) {
-            if (mEnabled != enabled) {
-                mEnabled = enabled;
-                if (mValidator.isValidStream()) {
-                    if (enabled) {
-                        start();
-                    } else {
-                        stop();
-                    }
-                }
-            }
+        @Override
+        public void onFFTUpdate(byte[] bytes) {
+            mRenderer.onFFTUpdate(bytes);
         }
 
         @Override
-        public void start() {
-            if (mEnabled)
-                super.start();
+        public void onWaveFormUpdate(byte[] bytes) {
+            mRenderer.onWaveFormUpdate(bytes);
         }
     };
 
-    private class PulseSettingsObserver extends ContentObserver {
-        public PulseSettingsObserver(Handler handler) {
+    private class SettingsObserver extends ContentObserver {
+        public SettingsObserver(Handler handler) {
             super(handler);
             register();
         }
 
         void register() {
-            ContentResolver resolver = mContext.getContentResolver();
-            resolver.registerContentObserver(
+            mContext.getContentResolver().registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED), false, this,
                     UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_COLOR), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_SPEED), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIV), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_FILLED_BLOCK_SIZE), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE), false, this,
-                    UserHandle.USER_ALL);
-            resolver.registerContentObserver(
-                    Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR), false, this,
+            mContext.getContentResolver().registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_RENDER_STYLE_URI), false, this,
                     UserHandle.USER_ALL);
         }
 
@@ -198,46 +160,36 @@ public class PulseController {
             if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_ENABLED))) {
                 updateEnabled();
                 doLinkage();
-            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIMEN))
-                    || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_DIV))
-                    || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_FILLED_BLOCK_SIZE))
-                    || uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_EMPTY_BLOCK_SIZE))
-                    ||uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR))) {
-                resetVisualizer();
-            } else {
-                update();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_RENDER_STYLE_URI))) {
+                updateRenderMode();
+                if (mPulseObserver != null) {
+                    loadRenderer();
+                }
             }
         }
 
+        void updateSettings() {
+            updateEnabled();
+            updateRenderMode();
+        }
+
         void updateEnabled() {
-            ContentResolver resolver = mContext.getContentResolver();
-            mPulseEnabled = Settings.Secure.getIntForUser(resolver,
+            mPulseEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                     Settings.Secure.FLING_PULSE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
         }
 
-        void update() {
-            ContentResolver resolver = mContext.getContentResolver();
-            int color = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_COLOR, Color.WHITE, UserHandle.USER_CURRENT);
-            mRenderer.setColor(color, false);
-
-            boolean doLava = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
-            mLavaLamp.setLavaLampEnabled(doLava);
-
-            int time = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, ColorAnimator.ANIM_DEF_DURATION,
-                    UserHandle.USER_CURRENT);
-            mLavaLamp.setAnimationTime(time);
+        void updateRenderMode() {
+            mPulseStyle = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                    Settings.Secure.PULSE_RENDER_STYLE_URI, RENDER_STYLE_CM, UserHandle.USER_CURRENT);
         }
     };
 
     public PulseController(Context context, Handler handler) {
         mContext = context;
         mHandler = handler;
-        mSettingsObserver = new PulseSettingsObserver(handler);
-        mSettingsObserver.updateEnabled();
-        mAudioManager = (AudioManager)context.getSystemService(Context.AUDIO_SERVICE);
+        mSettingsObserver = new SettingsObserver(handler);
+        mSettingsObserver.updateSettings();
+        mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mMusicStreamMuted = isMusicMuted(AudioManager.STREAM_MUSIC);
 
         IntentFilter filter = new IntentFilter();
@@ -256,29 +208,36 @@ public class PulseController {
             }
         };
         mMediaMonitor.setListening(true);
+        mStreamHandler = new VisualizerStreamHandler(mContext, this, mStreamListener);
+        mAlbumArtColor = Color.TRANSPARENT;
     }
 
     public void setPulseObserver(PulseObserver observer) {
         mPulseObserver = observer;
-        initVisualizer();
+        loadRenderer();
+        // why not check for linkage? No need! If this is a bar
+        // change, PhoneStatusBar will call notifyInflateFromUser()
+        // which calls notifyScreenOn ;D
     }
 
-    public void initVisualizer() {
+    private void loadRenderer() {
         if (mPulseObserver == null) {
             return;
         }
-        mValidator = new PulseFftValidator();
-        mValidator.addCallbacks(mStreamValidatorCallbacks);
-        mLavaLamp = new PulseColorAnimator();
-        mRenderer = new PulseRenderer(mContext, mValidator);
-        mLavaLamp.setColorAnimatorListener(mRenderer);
-        mVisualizer = new PulseVisualizer(mPulseObserver);
-        mVisualizer.addRenderer(mRenderer);
-        mSettingsObserver.update();
-    }
-
-    public void removePulseObserver() {
-        doUnlinkVisualizer();
+        final boolean isRendering = shouldDrawPulse();
+        if (isRendering) {
+            mStreamHandler.pause();
+        }
+        if (mRenderer != null) {
+            mRenderer.destroy();
+            mRenderer = null;
+        }
+        mRenderer = getRenderer(mPulseObserver);
+        mRenderer.setLeftInLandscape(mLeftInLandscape);
+        if (isRendering) {
+            mRenderer.onStreamAnalyzed(true);
+            mStreamHandler.resume();
+        }
     }
 
     public void setKeyguardShowing(boolean showing) {
@@ -292,7 +251,14 @@ public class PulseController {
     }
 
     public void setLeftInLandscape(boolean leftInLandscape) {
-        mVisualizer.setLeftInLandscape(leftInLandscape);
+        if (mLeftInLandscape != leftInLandscape) {
+            mLeftInLandscape = leftInLandscape;
+            mRenderer.setLeftInLandscape(leftInLandscape);
+        }
+    }
+
+    public void onSizeChanged(int w, int h, int oldw, int oldh) {
+        mRenderer.onSizeChanged(w, h, oldw, oldh);
     }
 
     /**
@@ -308,14 +274,44 @@ public class PulseController {
      * @return true if bar elements should be hidden, false if not
      */
     public boolean shouldDrawPulse() {
-        return mLinked && mValidator.isValidStream();
+        return mLinked && mStreamHandler.isValidStream();
     }
 
     public void turnOnPulse() {
-        if (mPulseEnabled && shouldDrawPulse()) {
-            mLavaLamp.start(); // start lava lamp
-            mVisualizer.setDrawingEnabled(true); // enable visualizer drawing
-            mPulseObserver.invalidate(); // all systems go: start pulsing
+        if (isPulseEnabled() && shouldDrawPulse()) {
+            mStreamHandler.resume(); // let bytes hit visualizer
+        }
+    }
+
+    public void onDraw(Canvas canvas) {
+        if (isPulseEnabled()&& shouldDrawPulse()) {
+            mRenderer.draw(canvas);
+        }
+    }
+
+    public void doUnlinkVisualizer() {
+        if (mStreamHandler != null) {
+            if (mLinked) {
+                mStreamHandler.unlink();
+                setVisualizerLocked(false);
+                mLinked = false;
+                if (mRenderer != null) {
+                    mRenderer.onVisualizerLinkChanged(false);
+                }
+                mPulseObserver.postInvalidate();
+                mPulseObserver.onStopPulse(null);
+            }
+        }
+    }
+
+    private Renderer getRenderer(PulseObserver observer) {
+        switch (mPulseStyle) {
+            case RENDER_STYLE_LEGACY:
+                return new FadingBlockRenderer(mContext, mHandler, observer);
+            case RENDER_STYLE_CM:
+                return new SolidLineRenderer(mContext, mHandler, observer);
+            default:
+                return new FadingBlockRenderer(mContext, mHandler, observer);
         }
     }
 
@@ -343,7 +339,7 @@ public class PulseController {
     private boolean isUnlinkRequired() {
         return mKeyguardShowing
                 || !mScreenOn
-                || !mPulseEnabled
+                || !isPulseEnabled()
                 || mPowerSaveModeEnabled
                 || mMusicStreamMuted;
     }
@@ -355,7 +351,7 @@ public class PulseController {
      */
     private boolean isAbleToLink() {
         return mMediaMonitor != null
-                && mPulseEnabled
+                && isPulseEnabled()
                 && mScreenOn
                 && mMediaMonitor.isAnythingPlaying()
                 && !mLinked
@@ -364,6 +360,10 @@ public class PulseController {
                 && !mMusicStreamMuted;
     }
 
+    /**
+     * Incoming event in which we need to
+     * toggle our link state.
+     */
     private void doLinkage() {
         if (isUnlinkRequired()) {
             if (mLinked) {
@@ -379,60 +379,36 @@ public class PulseController {
         }
     }
 
-    private void doUnlinkVisualizer() {
-        if (mVisualizer != null) {
-            if (mLinked) {
-                mVisualizer.unlink();
-                setVisualizerLocked(false);
-                mLinked = false;
-                mLavaLamp.stop();
-                mPulseObserver.invalidate();
-                mPulseObserver.onStopPulse(null);
-            }
-        }
-    }
-
+    /**
+     * Invalid media event not providing
+     * a data stream to visualizer. Unlink
+     * without calling into navbar. Like it
+     * never happened
+     */
     private void doSilentUnlinkVisualizer() {
-        if (mVisualizer != null) {
+        if (mStreamHandler != null) {
             if (mLinked) {
-                mVisualizer.unlink();
+                mStreamHandler.unlink();
                 setVisualizerLocked(false);
                 mLinked = false;
             }
         }
     }
 
+    /**
+     * Link to visualizer after conditions
+     * are confirmed
+     */
     private void doLinkVisualizer() {
-        doLinkVisualizer(false);
-    }
-
-    private void doLinkVisualizer(boolean force) {
-        if (mVisualizer != null) {
-            if (!mLinked || force) {
+        if (mStreamHandler != null) {
+            if (!mLinked) {
                 setVisualizerLocked(true);
-                mValidator.reset(); // reset validation flags
-                mVisualizer.resetDrawing(); // clear stale bitmaps
-                mVisualizer.setDrawingEnabled(false);
-                mVisualizer.link(0);
+                mStreamHandler.link(0);
                 mLinked = true;
+                if (mRenderer != null) {
+                    mRenderer.onVisualizerLinkChanged(true);
+                }
             }
-        }
-    }
-
-    public void onDraw(Canvas canvas) {
-        if (mLinked) {
-            mVisualizer.onDraw(canvas);
-        }
-    }
-
-    public void resetVisualizer() {
-        final boolean wasLinked = mLinked;
-        if (wasLinked) {
-            doSilentUnlinkVisualizer();
-        }
-        initVisualizer();
-        if (wasLinked) {
-            doLinkVisualizer(true);
         }
     }
 }

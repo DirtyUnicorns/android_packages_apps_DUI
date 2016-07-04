@@ -21,27 +21,28 @@
 
 package com.android.systemui.navigation.utils;
 
-import com.android.systemui.navigation.utils.ColorAnimatable.AnimatorControls;
-import com.android.systemui.navigation.utils.ColorAnimatable.ColorAnimationListener;
-import com.android.systemui.navigation.utils.ColorAnimatable.ColorAnimatorMachine;
-
 import android.animation.ValueAnimator;
-import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.graphics.Color;
 
-public class ColorAnimator implements AnimatorUpdateListener, AnimatorControls,
-        ColorAnimatorMachine {
+public class ColorAnimator implements ValueAnimator.AnimatorUpdateListener {
+    public interface ColorAnimationListener {
+        public void onColorChanged(ColorAnimator colorAnimator, int color);
+        public void onStartAnimation(ColorAnimator colorAnimator, int firstColor);
+        public void onStopAnimation(ColorAnimator colorAnimator, int lastColor);
+    }
+
     public static final int ANIM_DEF_DURATION = 10 * 1000;
     public static final String RED = "#ffff8080";
     public static final String BLUE = "#ff8080ff";
 
     protected final float[] from = new float[3], to = new float[3], hsv = new float[3];
 
-    protected  ValueAnimator mColorAnim;
+    protected ValueAnimator mColorAnim;
     protected long mAnimTime = ANIM_DEF_DURATION;
     protected int mFromColor = Color.parseColor(RED);
     protected int mToColor = Color.parseColor(BLUE);
     protected int mLastColor = Color.parseColor(RED);
+    protected boolean mIsRunning;
 
     protected  ColorAnimationListener mListener;
 
@@ -66,7 +67,6 @@ public class ColorAnimator implements AnimatorUpdateListener, AnimatorControls,
         mColorAnim.addUpdateListener(this);
     }
 
-    @Override
     public void start() {
         stop();
         Color.colorToHSV(mFromColor, from);
@@ -78,19 +78,23 @@ public class ColorAnimator implements AnimatorUpdateListener, AnimatorControls,
             mListener.onStartAnimation(this, mFromColor);
         }
         mColorAnim.start();
+        mIsRunning = true;
     }
 
-    @Override
     public void stop() {
         if (mColorAnim.isStarted()) {
             mColorAnim.end();
+            mIsRunning = false;
             if (mListener != null) {
                 mListener.onStopAnimation(this, mLastColor);
             }
         }
     }
 
-    @Override
+    public boolean isRunning() {
+        return mIsRunning;
+    }
+
     public void setAnimationTime(long millis) {
         if (mAnimTime != millis) {
             mAnimTime = millis;
@@ -100,17 +104,14 @@ public class ColorAnimator implements AnimatorUpdateListener, AnimatorControls,
         }
     }
 
-    @Override
     public void setColorAnimatorListener(ColorAnimationListener listener) {
         mListener = listener;
     }
 
-    @Override
     public void removeColorAnimatorListener(ColorAnimationListener listener) {
         mListener = null;
     }
 
-    @Override
     public void onAnimationUpdate(ValueAnimator animation) {
         // Transition along each axis of HSV (hue, saturation, value)
         hsv[0] = from[0] + (to[0] - from[0]) * animation.getAnimatedFraction();
@@ -124,7 +125,6 @@ public class ColorAnimator implements AnimatorUpdateListener, AnimatorControls,
         }
     }
 
-    @Override
     public int getCurrentColor() {
         return mLastColor;
     }

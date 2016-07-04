@@ -1,7 +1,6 @@
 /**
- * Copyright (C) 2014 The TeamEos Project
  * Copyright (C) 2016 The DirtyUnicorns Project
- * 
+ *
  * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +15,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Definition of a renderer. Currently unused, may need to be expanded
+ * Base class of things that render eye candy
  *
  */
 
 package com.android.systemui.navigation.pulse;
 
-import com.android.systemui.navigation.utils.ColorAnimatable.ColorAnimationListener;
+import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
 
+import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Rect;
+import android.os.Handler;
 
-// TODO: This should probably just be an abstract class
-public interface Renderer extends ColorAnimationListener {
-    public void render(Canvas canvas, byte[] bytes, Rect rect);
-    public void setColor(int color, boolean fromAnimator);
+public abstract class Renderer implements VisualizerStreamHandler.Listener {
+    protected Context mContext;
+    protected Handler mHandler;
+    protected PulseObserver mCallback;
+
+    public Renderer(Context context, Handler handler, PulseObserver callback) {
+        mContext = context;
+        mHandler = handler;
+        mCallback = callback;
+    }
+
+    public abstract void draw(Canvas canvas);
+
+    @Override
+    public void onWaveFormUpdate(byte[] bytes) {}
+
+    @Override
+    public void onFFTUpdate(byte[] fft) {}
+
+    public void onVisualizerLinkChanged(boolean linked) {}
+
+    public void destroy() {}
+
+    public void setLeftInLandscape(boolean leftInLandscape) {}
+
+    public void onSizeChanged(int w, int h, int oldw, int oldh) {}
 }
