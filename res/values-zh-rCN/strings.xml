@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">输入法光标左</string>
   <string name="label_action_ime_right">输入法光标右</string>
   <string name="label_action_ime_up">输入法光标上</string>
+  <string name="label_action_volume_panel">声音面板</string>
+  <string name="label_action_clear_notifications">清除通知</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">动作</string>
   <string name="label_smartbar_icon">图标</string>
@@ -62,4 +65,5 @@
   <string name="smartbar_editor_toast_starting">开始编辑导航栏</string>
   <string name="smartbar_editor_toast_stopping">停止编辑导航栏</string>
   <string name="smartbar_editor_toast_unavailable">导航编辑器不可用</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

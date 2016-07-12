@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">Curseur gauche</string>
   <string name="label_action_ime_right">Curseur droit</string>
   <string name="label_action_ime_up">Curseur haut</string>
+  <string name="label_action_volume_panel">Panneau de volume</string>
+  <string name="label_action_clear_notifications">Supprimer les notifications</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Actions</string>
   <string name="label_smartbar_icon">Icône</string>
@@ -62,4 +65,5 @@
   <string name="smartbar_editor_toast_starting">Démarrage du menu d\'édition de SmartBar</string>
   <string name="smartbar_editor_toast_stopping">Arrêt du menu d\'édition de SmartBar</string>
   <string name="smartbar_editor_toast_unavailable">Menu d\'édition de SmartBar non disponible</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

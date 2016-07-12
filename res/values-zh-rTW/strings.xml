@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">輸入游標向左</string>
   <string name="label_action_ime_right">輸入游標向右</string>
   <string name="label_action_ime_up">輸入游標向上</string>
+  <string name="label_action_volume_panel">音量面板</string>
+  <string name="label_action_clear_notifications">清除通知</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">動作</string>
   <string name="label_smartbar_icon">圖示</string>
@@ -62,4 +65,5 @@
   <string name="smartbar_editor_toast_starting">開始導覽編輯器</string>
   <string name="smartbar_editor_toast_stopping">停止導覽編輯器</string>
   <string name="smartbar_editor_toast_unavailable">無法使用導覽編輯器</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

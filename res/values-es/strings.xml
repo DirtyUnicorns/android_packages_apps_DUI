@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">Método de entrada el cursor hacia izquierda</string>
   <string name="label_action_ime_right">Método de entrada el cursor hacia derecha</string>
   <string name="label_action_ime_up">Método de entrada el cursor hacia arriba</string>
+  <string name="label_action_volume_panel">Panel de volumen</string>
+  <string name="label_action_clear_notifications">Borrar notificaciones</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Acciones</string>
   <string name="label_smartbar_icon">Icono</string>
@@ -62,4 +65,5 @@
   <string name="smartbar_editor_toast_starting">Empezar editor de barra de navegacion</string>
   <string name="smartbar_editor_toast_stopping">Terminando editor de barra de navegacion</string>
   <string name="smartbar_editor_toast_unavailable">Editor de barra de navegacion no disponible</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

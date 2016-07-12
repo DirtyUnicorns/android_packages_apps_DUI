@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">Invoermethode cursor links</string>
   <string name="label_action_ime_right">Invoermethode cursor rechts</string>
   <string name="label_action_ime_up">Invoermethode cursor omhoog</string>
+  <string name="label_action_volume_panel">Volume paneel</string>
+  <string name="label_action_clear_notifications">Melding wissen</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Acties</string>
   <string name="label_smartbar_icon">Pictogram</string>
@@ -62,4 +65,5 @@
   <string name="smartbar_editor_toast_starting">Navigatie editor aan het starten</string>
   <string name="smartbar_editor_toast_stopping">Navigatie editor aan het stoppen</string>
   <string name="smartbar_editor_toast_unavailable">Navigatie editor niet beschiktbaar</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

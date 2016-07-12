@@ -27,8 +27,8 @@
   <string name="label_action_force_close_app">Kapatmaya zorla</string>
   <string name="label_action_search_assistant">Arama asistanı</string>
   <string name="label_action_google_now_on_tap">Google Now On Tap</string>
-  <string name="label_action_voice_search">Voice search</string>
-  <string name="label_action_in_app_search">In-app search</string>
+  <string name="label_action_voice_search">Sesli arama</string>
+  <string name="label_action_in_app_search">Uygulama içi arama</string>
   <string name="label_action_flashlight">El Feneri</string>
   <string name="label_action_bluetooth">Bluetooth</string>
   <string name="label_action_wifi">WiFi</string>
@@ -36,8 +36,8 @@
   <string name="label_action_last_app">Son uygulama</string>
   <string name="label_action_overview">Son İşlemler</string>
   <string name="label_action_power_menu">Güç menüsü</string>
-  <string name="label_action_menu">Menu</string>
-  <string name="label_action_back">Back</string>
+  <string name="label_action_menu">Menü</string>
+  <string name="label_action_back">Geri</string>
   <string name="label_action_home">Ana Ekran</string>
   <string name="label_action_ime_switcher">IME değiştirici</string>
   <string name="label_action_stop_screenpinning">Ekran sabitlemeyi durdur</string>
@@ -45,21 +45,25 @@
   <string name="label_action_ime_left">Input method cursor left</string>
   <string name="label_action_ime_right">Input method cursor right</string>
   <string name="label_action_ime_up">Input method cursor up</string>
+  <string name="label_action_volume_panel">Ses paneli</string>
+  <string name="label_action_clear_notifications">Bildirimleri temizle</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Eylemler</string>
   <string name="label_smartbar_icon">Ikon</string>
   <string name="label_smartbar_add">Ekle</string>
   <string name="label_smartbar_remove">Kaldır</string>
-  <string name="label_smartbar_cancel">Cancel</string>
+  <string name="label_smartbar_cancel">İptal</string>
   <string name="label_smartbar_finish">Finish</string>
-  <string name="label_smartbar_single_tap">Single tap</string>
+  <string name="label_smartbar_single_tap">Tek dokunma</string>
   <string name="label_smartbar_double_tap">Çift dokunma</string>
   <string name="label_smartbar_long_press">Uzun basma</string>
   <string name="label_smartbar_icon_pack">Simge Paketi</string>
   <string name="label_smartbar_icon_gallery">Galeri</string>
-  <string name="label_smartbar_icon_color">Color</string>
-  <string name="label_smartbar_icon_reset">Reset</string>
+  <string name="label_smartbar_icon_color">Renk</string>
+  <string name="label_smartbar_icon_reset">Sıfırla</string>
   <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
   <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
   <string name="smartbar_editor_toast_unavailable">Gezinti düzenleyici kullanılamaz</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>

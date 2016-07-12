@@ -35,7 +35,7 @@
   <string name="label_action_hotspot">Hotspot</string>
   <string name="label_action_last_app">Letzte App</string>
   <string name="label_action_overview">Anwendungsverlauf</string>
-  <string name="label_action_power_menu">Power-Menü</string>
+  <string name="label_action_power_menu">Startmenü</string>
   <string name="label_action_menu">Menü</string>
   <string name="label_action_back">Zurück</string>
   <string name="label_action_home">Startbildschirm</string>
@@ -45,6 +45,9 @@
   <string name="label_action_ime_left">Eingabemethode Cursor links</string>
   <string name="label_action_ime_right">Eingabemethode Cursor rechts</string>
   <string name="label_action_ime_up">Eingabemethode Cursor oben</string>
+  <string name="label_action_volume_panel">Lautstärkeregler</string>
+  <string name="label_action_clear_notifications">Benachrichtigungen löschen</string>
+  <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Aktionen</string>
   <string name="label_smartbar_icon">Symbol</string>
@@ -52,14 +55,15 @@
   <string name="label_smartbar_remove">Entfernen</string>
   <string name="label_smartbar_cancel">Abbrechen</string>
   <string name="label_smartbar_finish">Beenden</string>
-  <string name="label_smartbar_single_tap">Einfaches drücken</string>
-  <string name="label_smartbar_double_tap">Doppeltes drücken</string>
+  <string name="label_smartbar_single_tap">Einmal tippen</string>
+  <string name="label_smartbar_double_tap">Doppelt tippen</string>
   <string name="label_smartbar_long_press">Lang drücken</string>
   <string name="label_smartbar_icon_pack">Symbol-Paket</string>
-  <string name="label_smartbar_icon_gallery">Gallerie</string>
+  <string name="label_smartbar_icon_gallery">Galerie</string>
   <string name="label_smartbar_icon_color">Farbe</string>
   <string name="label_smartbar_icon_reset">Zurücksetzen</string>
   <string name="smartbar_editor_toast_starting">Navigation-Editor starten</string>
   <string name="smartbar_editor_toast_stopping">Navigation-Editor stoppen</string>
   <string name="smartbar_editor_toast_unavailable">Navigation-Editor nicht verfügbar</string>
+  <string name="edit_mode">Edit Mode</string>
 </resources>
