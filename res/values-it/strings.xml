@@ -47,7 +47,7 @@
   <string name="label_action_ime_up">Metodo di input cursore sù</string>
   <string name="label_action_volume_panel">Pannello volume</string>
   <string name="label_action_clear_notifications">Cancella le notifiche</string>
-  <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_editing_smartbar">Modifica SmartBar</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Azioni</string>
   <string name="label_smartbar_icon">Icona</string>
@@ -65,5 +65,5 @@
   <string name="smartbar_editor_toast_starting">Avvio editor di navigazione</string>
   <string name="smartbar_editor_toast_stopping">Arresto editor di navigazione</string>
   <string name="smartbar_editor_toast_unavailable">Editor di navigazione non disponibile</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Modalità modifica</string>
 </resources>

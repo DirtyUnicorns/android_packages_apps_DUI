@@ -47,7 +47,7 @@
   <string name="label_action_ime_up">Способ ввода курсор вверх</string>
   <string name="label_action_volume_panel">Панель громкости</string>
   <string name="label_action_clear_notifications">Удалить уведомление</string>
-  <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_editing_smartbar">Редактор Smartbar</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Действия</string>
   <string name="label_smartbar_icon">Значок</string>
@@ -65,5 +65,5 @@
   <string name="smartbar_editor_toast_starting">Запуск редактора панели навигации</string>
   <string name="smartbar_editor_toast_stopping">Остановка редактора панели навигации</string>
   <string name="smartbar_editor_toast_unavailable">Редактор панели навигации недоступен</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Режим редактирования</string>
 </resources>

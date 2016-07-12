@@ -41,13 +41,13 @@
   <string name="label_action_home">Ana Ekran</string>
   <string name="label_action_ime_switcher">IME değiştirici</string>
   <string name="label_action_stop_screenpinning">Ekran sabitlemeyi durdur</string>
-  <string name="label_action_ime_down">Input method cursor down</string>
-  <string name="label_action_ime_left">Input method cursor left</string>
-  <string name="label_action_ime_right">Input method cursor right</string>
-  <string name="label_action_ime_up">Input method cursor up</string>
+  <string name="label_action_ime_down">Aşagı imleç giriş yöntemi</string>
+  <string name="label_action_ime_left">Sol imleç giriş yontemi</string>
+  <string name="label_action_ime_right">Sağ imleç giriş yöntemi</string>
+  <string name="label_action_ime_up">Yukarı imleç giriş yöntemi</string>
   <string name="label_action_volume_panel">Ses paneli</string>
   <string name="label_action_clear_notifications">Bildirimleri temizle</string>
-  <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_editing_smartbar">Smartbar düzenleyici</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Eylemler</string>
   <string name="label_smartbar_icon">Ikon</string>
@@ -62,8 +62,8 @@
   <string name="label_smartbar_icon_gallery">Galeri</string>
   <string name="label_smartbar_icon_color">Renk</string>
   <string name="label_smartbar_icon_reset">Sıfırla</string>
-  <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
-  <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
+  <string name="smartbar_editor_toast_starting">Gezinti çubuğu düzenleyici başlatılıyor</string>
+  <string name="smartbar_editor_toast_stopping">Gezinti çubuğu düzenleyici durduruluyor</string>
   <string name="smartbar_editor_toast_unavailable">Gezinti düzenleyici kullanılamaz</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Düzenleme Modu</string>
 </resources>
