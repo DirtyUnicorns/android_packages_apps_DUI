@@ -47,7 +47,7 @@
   <string name="label_action_ime_up">Metoda wprowadzania kursor w górę</string>
   <string name="label_action_volume_panel">Panel głośności</string>
   <string name="label_action_clear_notifications">Usuń powiadomienia</string>
-  <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_editing_smartbar">Edycja SmartBar</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Akcje</string>
   <string name="label_smartbar_icon">Ikona</string>
@@ -65,5 +65,5 @@
   <string name="smartbar_editor_toast_starting">Rozpoczęto edycję paska nawigacji</string>
   <string name="smartbar_editor_toast_stopping">Zakończono edycję paska nawigacji</string>
   <string name="smartbar_editor_toast_unavailable">Edytor paska nawigacji jest niedostępny</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Tryb edycji</string>
 </resources>

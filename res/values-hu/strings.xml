@@ -47,7 +47,7 @@
   <string name="label_action_ime_up">Beviteli mód kurzor fel</string>
   <string name="label_action_volume_panel">Hangerő panel</string>
   <string name="label_action_clear_notifications">Értesítés törlése</string>
-  <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_editing_smartbar">Smartbar szerkesztő</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Műveletek</string>
   <string name="label_smartbar_icon">Ikon</string>
@@ -65,5 +65,5 @@
   <string name="smartbar_editor_toast_starting">Navigációs sáv szerkesztő elindítva</string>
   <string name="smartbar_editor_toast_stopping">Navigációs sáv szerkesztő megállítva</string>
   <string name="smartbar_editor_toast_unavailable">Navigációs sáv szerkesztő nem érhető el</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Szerkesztési mód</string>
 </resources>
