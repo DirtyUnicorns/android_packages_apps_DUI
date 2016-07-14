@@ -227,6 +227,12 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
                     Settings.Secure.getUriFor(Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED), false,
                     this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_SOLID_FUDGE_FACTOR), false, this,
+                    UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_LAVALAMP_SOLID_SPEED), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -245,15 +251,19 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             if (!mLavaLampEnabled) {
                 mPaint.setColor(mColor);
             }
-            int time = Settings.Secure.getIntForUser(resolver,
-                    Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, ColorAnimator.ANIM_DEF_DURATION,
+            int lavaLampSpeed = Settings.Secure.getIntForUser(resolver,
+                    Settings.Secure.PULSE_LAVALAMP_SOLID_SPEED, 10 * 1000,
                     UserHandle.USER_CURRENT);
-            mLavaLamp.setAnimationTime(time);
+            mLavaLamp.setAnimationTime(lavaLampSpeed);
             if (mLavaLampEnabled && mIsValidStream) {
                 mLavaLamp.start();
             } else {
                 mLavaLamp.stop();
             }
+            // putFloat, getFloat is better. catch it next time
+            mDbFuzzFactor = Float.valueOf(Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.PULSE_SOLID_FUDGE_FACTOR, 4,
+                    UserHandle.USER_CURRENT)) + 1f;
         }
     }
 }
