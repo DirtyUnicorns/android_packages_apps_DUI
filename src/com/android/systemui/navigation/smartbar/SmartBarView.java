@@ -355,6 +355,14 @@ public class SmartBarView extends BaseNavigationBar {
                 v.onScreenStateChanged(screenOn);
             }
         }
+        // onStopPulse may not have had time to animate alpha to proper value before screen went
+        // off. Reset alpha when we come back on. we should never have pulse running when this is called
+        final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
+        final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+        if (screenOn && (currentNavButtons.getAlpha() != 1.0f || hiddenNavButtons.getAlpha() != 1.0f)) {
+            hiddenNavButtons.setAlpha(1.0f);
+            currentNavButtons.setAlpha(1.0f);
+        }
     }
 
     @Override
