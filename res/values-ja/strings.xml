@@ -50,16 +50,16 @@
   <string name="label_action_editing_smartbar">Smartbar editor</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Actions</string>
-  <string name="label_smartbar_icon">Icon</string>
-  <string name="label_smartbar_add">Add</string>
-  <string name="label_smartbar_remove">Remove</string>
-  <string name="label_smartbar_cancel">Cancel</string>
-  <string name="label_smartbar_finish">Finish</string>
+  <string name="label_smartbar_icon">アイコン</string>
+  <string name="label_smartbar_add">追加</string>
+  <string name="label_smartbar_remove">削除</string>
+  <string name="label_smartbar_cancel">キャンセル</string>
+  <string name="label_smartbar_finish">終了</string>
   <string name="label_smartbar_single_tap">Single tap</string>
   <string name="label_smartbar_double_tap">Double tap</string>
   <string name="label_smartbar_long_press">Long press</string>
-  <string name="label_smartbar_icon_pack">Icon pack</string>
-  <string name="label_smartbar_icon_gallery">Gallery</string>
+  <string name="label_smartbar_icon_pack">アイコンパック</string>
+  <string name="label_smartbar_icon_gallery">ギャラリー</string>
   <string name="label_smartbar_icon_color">Color</string>
   <string name="label_smartbar_icon_reset">Reset</string>
   <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
