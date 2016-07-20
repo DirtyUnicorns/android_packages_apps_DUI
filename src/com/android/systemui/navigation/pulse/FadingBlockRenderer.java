@@ -122,7 +122,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         }
         mCanvas.drawLines(mFFTPoints, mPaint);
         mCanvas.drawPaint(mFadePaint);
-        mCallback.postInvalidate();
+        postInvalidate();
     }
 
     @Override

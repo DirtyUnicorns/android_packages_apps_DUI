@@ -100,7 +100,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     mFFTPoints[j] = (float) animation.getAnimatedValue();
-                    mCallback.postInvalidate();
+                    postInvalidate();
                 }
             });
         }
