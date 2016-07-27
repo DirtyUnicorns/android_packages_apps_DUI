@@ -87,12 +87,14 @@ public final class SmartBarTransitions extends BarTransitions {
         final View navButtons = mView.getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
         final View lowLights = mView.getCurrentView().findViewWithTag(Res.Common.LIGHTS_OUT);
         final boolean isBarPulseFaded = mView.isBarPulseFaded();
+        final float buttonAlpha = mView.getButtonAlpha();
+        final float fadeAlpha = isBarPulseFaded ? Math.min(buttonAlpha, SmartBarView.PULSE_ALPHA_FADE) : buttonAlpha;
 
         // ok, everyone, stop it right there
         navButtons.animate().cancel();
         lowLights.animate().cancel();
 
-        final float navButtonsAlpha = lightsOut ? 0f : isBarPulseFaded ? SmartBarView.PULSE_ALPHA_FADE : 1f;
+        final float navButtonsAlpha = lightsOut ? 0f : fadeAlpha;
         final float lowLightsAlpha = lightsOut ? 1f : 0f;
 
         if (!animate) {

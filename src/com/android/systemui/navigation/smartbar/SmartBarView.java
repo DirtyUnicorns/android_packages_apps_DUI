@@ -80,11 +80,12 @@ public class SmartBarView extends BaseNavigationBar {
     static final int IME_HINT_MODE_ARROWS = 1;
     static final int IME_HINT_MODE_PICKER = 2;
 
-    private static Set<Uri> sUris = new HashSet<Uri>();    
+    private static Set<Uri> sUris = new HashSet<Uri>();
     static {
         sUris.add(Settings.Secure.getUriFor("smartbar_context_menu_mode"));
         sUris.add(Settings.Secure.getUriFor("smartbar_ime_hint_mode"));
         sUris.add(Settings.Secure.getUriFor("smartbar_button_animation_style"));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.NAVBAR_BUTTONS_ALPHA));
     }
 
     private SmartObservable mObservable = new SmartObservable() {
@@ -102,6 +103,8 @@ public class SmartBarView extends BaseNavigationBar {
                 refreshImeHintMode();
             } else if (uri.equals(Settings.Secure.getUriFor("smartbar_button_animation_style"))) {
                 updateAnimationStyle();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVBAR_BUTTONS_ALPHA))) {
+                updateButtonAlpha();
             }
         }
     };
@@ -118,6 +121,7 @@ public class SmartBarView extends BaseNavigationBar {
     private boolean mHasLeftContext;
     private int mImeHintMode;
     private int mButtonAnimationStyle;
+    private float mCustomAlpha;
 
     public SmartBarView(Context context) {
         super(context);
@@ -129,6 +133,10 @@ public class SmartBarView extends BaseNavigationBar {
 
     ArrayList<String> getCurrentSequence() {
         return mCurrentSequence;
+    }
+
+    float getButtonAlpha() {
+        return mCustomAlpha;
     }
 
     @Override
@@ -359,9 +367,10 @@ public class SmartBarView extends BaseNavigationBar {
         // off. Reset alpha when we come back on. we should never have pulse running when this is called
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
         final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
-        if (screenOn && (currentNavButtons.getAlpha() != 1.0f || hiddenNavButtons.getAlpha() != 1.0f)) {
-            hiddenNavButtons.setAlpha(1.0f);
-            currentNavButtons.setAlpha(1.0f);
+        final float fadeAlpha = mCustomAlpha;
+        if (screenOn && (currentNavButtons.getAlpha() != fadeAlpha || hiddenNavButtons.getAlpha() != fadeAlpha)) {
+            hiddenNavButtons.setAlpha(fadeAlpha);
+            currentNavButtons.setAlpha(fadeAlpha);
         }
     }
 
@@ -403,6 +412,7 @@ public class SmartBarView extends BaseNavigationBar {
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
         updateAnimationStyle();
+        updateButtonAlpha();
     }
 
     @Override
@@ -423,6 +433,7 @@ public class SmartBarView extends BaseNavigationBar {
         setScreenPinningVisibility();
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
+        setButtonAlpha();
     }
 
     private void updateContextLayoutSettings() {
@@ -627,6 +638,28 @@ public class SmartBarView extends BaseNavigationBar {
         }
     }
 
+    private static float alphaIntToFloat(int alpha) {
+        return (float) Math.max(0, Math.min(255, alpha)) / 255;
+    }
+
+    private void updateButtonAlpha() {
+        mCustomAlpha = alphaIntToFloat(Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.NAVBAR_BUTTONS_ALPHA, 255, UserHandle.USER_CURRENT));
+        setButtonAlpha();
+    }
+
+    private void setButtonAlpha() {
+        // only set this if pulse is not running. If pulse is running
+        // we will set proper alpha when it ends
+        if (!isBarPulseFaded()) {
+            final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
+            final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+            final float fadeAlpha = mCustomAlpha;
+            currentNavButtons.setAlpha(fadeAlpha);
+            hiddenNavButtons.setAlpha(fadeAlpha);
+        }
+    }
+
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
         if (mEditor.getMode() == BaseEditor.MODE_ON) {
@@ -634,12 +667,13 @@ public class SmartBarView extends BaseNavigationBar {
         }
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
         final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+        final float fadeAlpha = Math.min(mCustomAlpha, PULSE_ALPHA_FADE);
 
         // no need to animate the GONE view, but keep alpha inline since onStartPulse
         // is a oneshot call
-        hiddenNavButtons.setAlpha(PULSE_ALPHA_FADE);
+        hiddenNavButtons.setAlpha(fadeAlpha);
         currentNavButtons.animate()
-                .alpha(PULSE_ALPHA_FADE)
+                .alpha(fadeAlpha)
                 .setDuration(PULSE_FADE_OUT_DURATION)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
@@ -658,10 +692,10 @@ public class SmartBarView extends BaseNavigationBar {
     public void onStopPulse(Animation animatePulseOut) {
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
         final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
-
-        hiddenNavButtons.setAlpha(1.0f);
+        final float fadeAlpha = mCustomAlpha;
+        hiddenNavButtons.setAlpha(fadeAlpha);
         currentNavButtons.animate()
-                .alpha(1.0f)
+                .alpha(fadeAlpha)
                 .setDuration(PULSE_FADE_IN_DURATION)
                 .start();
     }
