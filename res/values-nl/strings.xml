@@ -65,5 +65,5 @@
   <string name="smartbar_editor_toast_starting">Navigatie editor aan het starten</string>
   <string name="smartbar_editor_toast_stopping">Navigatie editor aan het stoppen</string>
   <string name="smartbar_editor_toast_unavailable">Navigatie editor niet beschiktbaar</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Bewerkingsmodus</string>
 </resources>
