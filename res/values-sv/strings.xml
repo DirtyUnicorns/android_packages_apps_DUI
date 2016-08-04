@@ -18,8 +18,8 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Ingen åtgärd</string>
-  <string name="label_action_settings_panel">Inställnings panel</string>
-  <string name="label_action_notification_panel">Notifierings panel</string>
+  <string name="label_action_settings_panel">Inställningspanel</string>
+  <string name="label_action_notification_panel">Notifieringspanel</string>
   <string name="label_action_screenshot">Skärmbild</string>
   <string name="label_action_screenrecord">Skärminspelning</string>
   <string name="label_action_expanded_desktop">Utökat skrivbord</string>
