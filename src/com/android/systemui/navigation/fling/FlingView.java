@@ -71,6 +71,7 @@ public class FlingView extends BaseNavigationBar {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_RIPPLE_COLOR));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_ENABLED));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_COLOR));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_WIDTH));
     }
 
     private FlingActionHandler mActionHandler;
@@ -252,6 +253,13 @@ public class FlingView extends BaseNavigationBar {
         mTrails.setTrailColor(color);
     }
 
+    private void updateTrailsWidth() {
+        int width = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_TRAILS_WIDTH, FlingTrails.TRAIL_WIDTH_DEFAULT,
+                UserHandle.USER_CURRENT);
+        mTrails.setTrailWidth(width);
+    }
+
     @Override
     public void updateNavbarThemedResources(Resources res) {
 //        mRipple.updateResources(res);
@@ -281,6 +289,7 @@ public class FlingView extends BaseNavigationBar {
         updateRippleColor();
         updateTrailsEnabled();
         updateTrailsColor();
+        updateTrailsWidth();
         int lpTimeout = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
         mGestureDetector.setLongPressTimeout(lpTimeout);
