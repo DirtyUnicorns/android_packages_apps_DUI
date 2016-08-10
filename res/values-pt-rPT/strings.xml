@@ -20,9 +20,9 @@
   <string name="label_action_no_action">Sem ação</string>
   <string name="label_action_settings_panel">Painel de definições</string>
   <string name="label_action_notification_panel">Painel de Notificações</string>
-  <string name="label_action_screenshot">Screenshot</string>
-  <string name="label_action_screenrecord">Record screen</string>
-  <string name="label_action_expanded_desktop">Expanded desktop</string>
+  <string name="label_action_screenshot">Captura de ecrã</string>
+  <string name="label_action_screenrecord">Gravar ecrã</string>
+  <string name="label_action_expanded_desktop">Ambiente de trabalho expandido</string>
   <string name="label_action_screen_off">Desligar o ecrã</string>
   <string name="label_action_force_close_app">Force close app</string>
   <string name="label_action_search_assistant">Assistente de pesquisa</string>
