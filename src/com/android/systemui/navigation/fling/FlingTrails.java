@@ -23,6 +23,8 @@
 
 package com.android.systemui.navigation.fling;
 
+import com.android.internal.utils.du.DUActionUtils;
+import com.orange.dgil.trail.android.AndroidMetrics;
 import com.orange.dgil.trail.android.animation.IAnimListener;
 import com.orange.dgil.trail.android.impl.TrailDrawer;
 
@@ -34,8 +36,14 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class FlingTrails implements View.OnTouchListener, IAnimListener {
+    public static final String TAG = FlingTrails.class.getSimpleName();
+    public static final int TRAIL_WIDTH_DEFAULT = 15;
+
     private static final int ANIM_DELAY = 100;
     private static final int ANIM_DURATION = 400;
+    // trail width constraints, in density pixels
+    private static final int TRAIL_WIDTH_MIN = 1;
+    private static final int TRAIL_WIDTH_MAX = 25;
     private TrailDrawer mTrailDrawer;
     private boolean mEnabled;
     private View mHost;
@@ -58,9 +66,6 @@ public class FlingTrails implements View.OnTouchListener, IAnimListener {
         if (w == 0 || h == 0) {
             return;
         }
-        //int dimen = w > h ? h : w;
-        //dimen = Math.round(dimen * SIZE_RELATIVE_TO_BAR);
-        //mTrailDrawer.getTrailOptions().setTrailWidthMicrometers(dimen);
         mTrailDrawer.clear();
     }
 
@@ -81,6 +86,13 @@ public class FlingTrails implements View.OnTouchListener, IAnimListener {
             mTrailDrawer.getAnimationParameters().setColorProperties(color, color);
             mTrailDrawer.getAnimationParameters().setColorForAlphaAnimation(color);
         }
+    }
+
+    public void setTrailWidth(int dp) {
+        mTrailDrawer.clear();
+        int px = DUActionUtils.ConvertDpToPixelAsInt(validateTrailWidthRange(dp), mHost.getContext());
+        int microns = AndroidMetrics.get(mHost.getContext()).pixelsToMicrometers(px);
+        mTrailDrawer.getTrailOptions().setTrailWidthMicrometers(microns);
     }
 
     public void onDraw(Canvas canvas) {
@@ -124,5 +136,9 @@ public class FlingTrails implements View.OnTouchListener, IAnimListener {
 
     private void onMove(float x, float y) {
         mTrailDrawer.touchMove((int) x, (int) y);
+    }
+
+    private static int validateTrailWidthRange(int dp) {
+        return (int) Math.max(TRAIL_WIDTH_MIN, Math.min(TRAIL_WIDTH_MAX, dp));
     }
 }
