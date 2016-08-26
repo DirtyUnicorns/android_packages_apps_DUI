@@ -385,7 +385,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         ArrayList<ButtonConfig> buttonConfigs = Config.getConfig(mContext,
                 ActionConstants.getDefaults(ActionConstants.SMARTBAR));
         int newIndex = mHost.getCurrentSequence().indexOf(buttonFocus) + 1;
-        String newTag = generateNewTag();
+        String newTag = String.valueOf(System.currentTimeMillis());
         ButtonConfig newConfig = new ButtonConfig(mContext);
         newConfig.setTag(newTag);
         buttonConfigs.add(newIndex, newConfig);
@@ -394,18 +394,6 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         mHost.recreateLayouts();
         setButtonsEditMode(true);
         mLockEditMode = false;
-    }
-
-    // completely arbitrary random number as string
-    // point being all buttons past the three factory MUST
-    // have unique tags in the layout
-    private String generateNewTag() {
-        Random rnd = new Random();
-        int tagId = rnd.nextInt(5000) + 1000;
-        while (mHost.getCurrentSequence().contains(String.valueOf(tagId))) {
-            tagId = rnd.nextInt(5000) + 1000;
-        }
-        return String.valueOf(tagId);
     }
 
     @Override

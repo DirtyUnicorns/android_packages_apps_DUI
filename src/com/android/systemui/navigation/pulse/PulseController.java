@@ -44,6 +44,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
+import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.Log;
@@ -83,6 +84,7 @@ public class PulseController {
     private boolean mScreenOn;
     private boolean mMusicStreamMuted;
     private boolean mLeftInLandscape;
+    private boolean mScreenPinningEnabled;
     private int mPulseStyle;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -119,7 +121,9 @@ public class PulseController {
     private final VisualizerStreamHandler.Listener mStreamListener = new VisualizerStreamHandler.Listener() {
         @Override
         public void onStreamAnalyzed(boolean isValid) {
-            mRenderer.onStreamAnalyzed(isValid);
+            if (mRenderer != null) {
+                mRenderer.onStreamAnalyzed(isValid);
+            }
             if (isValid) {
                 if (!mPulseObserver.onStartPulse(null)) {
                     turnOnPulse();
@@ -131,19 +135,22 @@ public class PulseController {
 
         @Override
         public void onFFTUpdate(byte[] bytes) {
-            mRenderer.onFFTUpdate(bytes);
+            if (mRenderer != null) {
+                mRenderer.onFFTUpdate(bytes);
+            }
         }
 
         @Override
         public void onWaveFormUpdate(byte[] bytes) {
-            mRenderer.onWaveFormUpdate(bytes);
+            if (mRenderer != null) {
+                mRenderer.onWaveFormUpdate(bytes);
+            }
         }
     };
 
     private class SettingsObserver extends ContentObserver {
         public SettingsObserver(Handler handler) {
             super(handler);
-            register();
         }
 
         void register() {
@@ -175,7 +182,7 @@ public class PulseController {
 
         void updateEnabled() {
             mPulseEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                    Settings.Secure.FLING_PULSE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+                    Settings.Secure.FLING_PULSE_ENABLED, 0, UserHandle.USER_CURRENT) == 1;
         }
 
         void updateRenderMode() {
@@ -192,12 +199,6 @@ public class PulseController {
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mMusicStreamMuted = isMusicMuted(AudioManager.STREAM_MUSIC);
 
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
-        filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
-        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
-        context.registerReceiver(mReceiver, filter);
-
         PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mPowerSaveModeEnabled = pm.isPowerSaveMode();
 
@@ -208,6 +209,12 @@ public class PulseController {
             }
         };
         mMediaMonitor.setListening(true);
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
+        filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
+        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        mContext.registerReceiver(mReceiver, filter);
+        mSettingsObserver.register();
         mStreamHandler = new VisualizerStreamHandler(mContext, this, mStreamListener);
         mAlbumArtColor = Color.TRANSPARENT;
     }
@@ -240,6 +247,10 @@ public class PulseController {
         }
     }
 
+    public void setScreenPinningState(boolean enabled) {
+        mScreenPinningEnabled = enabled;
+    }
+
     public void setKeyguardShowing(boolean showing) {
         mKeyguardShowing = showing;
         doLinkage();
@@ -253,12 +264,16 @@ public class PulseController {
     public void setLeftInLandscape(boolean leftInLandscape) {
         if (mLeftInLandscape != leftInLandscape) {
             mLeftInLandscape = leftInLandscape;
-            mRenderer.setLeftInLandscape(leftInLandscape);
+            if (mRenderer != null) {
+                mRenderer.setLeftInLandscape(leftInLandscape);
+            }
         }
     }
 
     public void onSizeChanged(int w, int h, int oldw, int oldh) {
-        mRenderer.onSizeChanged(w, h, oldw, oldh);
+        if (mRenderer != null) {
+            mRenderer.onSizeChanged(w, h, oldw, oldh);
+        }
     }
 
     /**
@@ -274,7 +289,7 @@ public class PulseController {
      * @return true if bar elements should be hidden, false if not
      */
     public boolean shouldDrawPulse() {
-        return mLinked && mStreamHandler.isValidStream();
+        return mLinked && mStreamHandler.isValidStream() && mRenderer != null;
     }
 
     public void turnOnPulse() {
@@ -284,7 +299,7 @@ public class PulseController {
     }
 
     public void onDraw(Canvas canvas) {
-        if (isPulseEnabled()&& shouldDrawPulse()) {
+        if (isPulseEnabled() && shouldDrawPulse()) {
             mRenderer.draw(canvas);
         }
     }
@@ -298,8 +313,10 @@ public class PulseController {
                 if (mRenderer != null) {
                     mRenderer.onVisualizerLinkChanged(false);
                 }
-                mPulseObserver.postInvalidate();
-                mPulseObserver.onStopPulse(null);
+                if (mPulseObserver != null) {
+                    mPulseObserver.postInvalidate();
+                    mPulseObserver.onStopPulse(null);
+                }
             }
         }
     }
@@ -321,7 +338,7 @@ public class PulseController {
                 mAudioManager.getStreamVolume(streamType) == 0);
     }
 
-    private void setVisualizerLocked(boolean doLock) {
+    public static void setVisualizerLocked(boolean doLock) {
         try {
             IBinder b = ServiceManager.getService(Context.AUDIO_SERVICE);
             IAudioService audioService = IAudioService.Stub.asInterface(b);
@@ -341,7 +358,8 @@ public class PulseController {
                 || !mScreenOn
                 || !isPulseEnabled()
                 || mPowerSaveModeEnabled
-                || mMusicStreamMuted;
+                || mMusicStreamMuted
+                || mScreenPinningEnabled;
     }
 
     /**
@@ -357,7 +375,8 @@ public class PulseController {
                 && !mLinked
                 && !mPowerSaveModeEnabled
                 && !mKeyguardShowing
-                && !mMusicStreamMuted;
+                && !mMusicStreamMuted
+                && !mScreenPinningEnabled;
     }
 
     /**

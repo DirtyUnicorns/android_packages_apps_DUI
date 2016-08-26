@@ -120,6 +120,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     private View mHost;
     // is navbar in "left in landscape" mode (vertical bar on left instead of right)
     private boolean mLeftInLandscape;
+    private final boolean mIsTablet;
 
     private Runnable mDoubleTapLeftTimeout = new Runnable() {
         @Override
@@ -139,10 +140,11 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         }
     };
 
-    public FlingGestureHandler(Context context, Swipeable swiper, View host) {
+    public FlingGestureHandler(Context context, Swipeable swiper, View host, boolean isTablet) {
         mContext = context;
         mReceiver = swiper;
         mHost = host;
+        mIsTablet = isTablet;
         updateSettings();
     }
 
@@ -274,29 +276,29 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         ContentResolver resolver = mContext.getContentResolver();
         Resources res = mContext.getResources();
 
-        mLeftLand = Settings.Secure.getFloatForUser(
+        mLeftLand = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_LAND,
-                res.getFloat(R.dimen.config_FlingLongSwipeLandscapeLeft), UserHandle.USER_CURRENT);
+                25, UserHandle.USER_CURRENT) * 0.01f);
 
-        mRightLand = Settings.Secure.getFloatForUser(
+        mRightLand = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_LAND,
-                res.getFloat(R.dimen.config_FlingLongSwipeLandscapeRight), UserHandle.USER_CURRENT);
+                25, UserHandle.USER_CURRENT) * 0.01f);
 
-        mLeftPort = Settings.Secure.getFloatForUser(
+        mLeftPort = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_LEFT_PORT,
-                res.getFloat(R.dimen.config_FlingLongSwipePortraitLeft), UserHandle.USER_CURRENT);
+                mIsTablet ? 30 : 40, UserHandle.USER_CURRENT) * 0.01f);
 
-        mRightPort = Settings.Secure.getFloatForUser(
+        mRightPort = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_RIGHT_PORT,
-                res.getFloat(R.dimen.config_FlingLongSwipePortraitRight), UserHandle.USER_CURRENT);
+                mIsTablet ? 30 : 40, UserHandle.USER_CURRENT) * 0.01f);
 
-        mUpVert = Settings.Secure.getFloatForUser(
+        mUpVert = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_UP_LAND,
-                res.getFloat(R.dimen.config_FlingLongSwipeVerticalUp), UserHandle.USER_CURRENT);
+                40, UserHandle.USER_CURRENT) * 0.01f);
 
-        mDownVert = Settings.Secure.getFloatForUser(
+        mDownVert = (float) (Settings.Secure.getIntForUser(
                 resolver, Settings.Secure.FLING_LONGSWIPE_THRESHOLD_DOWN_LAND,
-                res.getFloat(R.dimen.config_FlingLongSwipeVerticalDown), UserHandle.USER_CURRENT);
+                40, UserHandle.USER_CURRENT) * 0.01f);
     }
 
     @Override

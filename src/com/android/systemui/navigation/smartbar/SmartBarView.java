@@ -61,7 +61,7 @@ import com.android.systemui.navigation.smartbar.SmartBarTransitions;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.navigation.smartbar.SmartButtonView;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
-import com.android.systemui.statusbar.BarTransitions;
+import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.R;
 
 import java.util.ArrayList;
@@ -123,11 +123,14 @@ public class SmartBarView extends BaseNavigationBar {
     private int mButtonAnimationStyle;
     private float mCustomAlpha;
 
-    public SmartBarView(Context context) {
+    public SmartBarView(Context context, boolean asDefault) {
         super(context);
         mBarTransitions = new SmartBarTransitions(this);
-        mEditor = new SmartBarEditor(this);
-        mSmartObserver.addListener(mObservable);
+        mScreenPinningEnabled = asDefault;
+        if (!asDefault) {
+            mEditor = new SmartBarEditor(this);
+            mSmartObserver.addListener(mObservable);
+        }
         createBaseViews();
     }
 
@@ -153,50 +156,36 @@ public class SmartBarView extends BaseNavigationBar {
     }
 
     @Override
-    public void screenPinningStateChanged(boolean enabled) {
-        super.screenPinningStateChanged(enabled);
-        mEditor.screenPinningStateChanged(enabled);
-        setScreenPinningVisibility();
-    }
-
-    @Override
     protected void onInflateFromUser() {
-        mEditor.notifyScreenOn(mScreenOn);
+        if (mEditor != null) {
+            mEditor.notifyScreenOn(mScreenOn);
+        }
     }
 
     @Override
-    public void setListeners(OnTouchListener userAutoHideListener) {
-        super.setListeners(userAutoHideListener);
+    public void setListeners(OnTouchListener userAutoHideListener,
+            View.OnLongClickListener longPressBackListener) {
+        super.setListeners(userAutoHideListener, longPressBackListener);
         setOnTouchListener(mUserAutoHideListener);
+        getBackButton().setScreenPinningMode(mScreenPinningEnabled);
+        getBackButton().setLongPressBackListener(mLongPressBackListener);
+        ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+        SmartButtonView back = (SmartButtonView) hidden.findViewWithTag(Res.Softkey.BUTTON_BACK);
+        back.setScreenPinningMode(mScreenPinningEnabled);
+        back.setLongPressBackListener(mLongPressBackListener);
     }
 
     @Override
     public void onRecreateStatusbar() {
-        mEditor.updateResources(null);
+        if (mEditor != null) {
+            mEditor.updateResources(null);
+        }
         updateCurrentIcons();
     }
 
     @Override
     public void updateNavbarThemedResources(Resources res){
         super.updateNavbarThemedResources(res);
-        for (int i = 0; i < mRotatedViews.length; i++) {
-            ViewGroup container = (ViewGroup) mRotatedViews[i];
-            ViewGroup lightsOut = (ViewGroup) container.findViewWithTag(Res.Common.LIGHTS_OUT);
-            if (lightsOut != null) {
-                final int nChildren = lightsOut.getChildCount();
-                for (int j = 0; j < nChildren; j++) {
-                    final View child = lightsOut.getChildAt(j);
-                    if (child instanceof ImageView) {
-                        final ImageView iv = (ImageView) child;
-                        // clear out the existing drawable, this is required since the
-                        // ImageView keeps track of the resource ID and if it is the same
-                        // it will not update the drawable.
-                        iv.setImageDrawable(null);
-                        iv.setImageDrawable(mResourceMap.mLightsOutLarge);
-                    }
-                }
-            }
-        }
         updateCurrentIcons();
     }
 
@@ -256,12 +245,6 @@ public class SmartBarView extends BaseNavigationBar {
         return (SmartButtonView) mCurrentView.findViewWithTag(tag);
     }
 
-    SmartButtonView getScreenPinningButton() {
-        // screenpinning button always in opposing context view
-        ViewGroup group = (ViewGroup) (mHasLeftContext ? mContextRight : mContextLeft);
-        return (SmartButtonView) group.findViewWithTag(Res.Softkey.STOP_SCREENPINNING);
-    }
-
     SmartBackButtonDrawable getBackButtonIcon() {
         return (SmartBackButtonDrawable) getBackButton().getDrawable();
     }
@@ -286,7 +269,9 @@ public class SmartBarView extends BaseNavigationBar {
     public void setNavigationIconHints(int hints, boolean force) {
         if (!force && hints == mNavigationIconHints)
             return;
-        mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        if (mEditor != null) {
+            mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        }
         final boolean backAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
 
         mNavigationIconHints = hints;
@@ -309,7 +294,6 @@ public class SmartBarView extends BaseNavigationBar {
         }
 
         // Update menu button in case the IME state has changed.
-        setScreenPinningVisibility();
         setMenuVisibility(mShowMenu, true);
         setDisabledFlags(mDisabledFlags, true);
     }
@@ -317,7 +301,9 @@ public class SmartBarView extends BaseNavigationBar {
     @Override
     public void setDisabledFlags(int disabledFlags, boolean force) {
         super.setDisabledFlags(disabledFlags, force);
-        mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        if (mEditor != null) {
+            mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        }
 
         final boolean disableHome = ((disabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0);
         final boolean disableRecent = ((disabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
@@ -341,17 +327,12 @@ public class SmartBarView extends BaseNavigationBar {
         }
     }
 
-    private void setScreenPinningVisibility() {
-        final boolean imeOccupying = ((mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_IME_SHOWN) != 0)
-                && mImeHintMode == IME_HINT_MODE_ARROWS;
-        getScreenPinningButton().setVisibility(
-                mScreenPinningEnabled && !imeOccupying ? VISIBLE : INVISIBLE);
-    }
-
     @Override
     public void notifyScreenOn(boolean screenOn) {
         super.notifyScreenOn(screenOn);
-        mEditor.notifyScreenOn(screenOn);
+        if (mEditor != null) {
+            mEditor.notifyScreenOn(screenOn);
+        }
         ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
         for (String buttonTag : mCurrentSequence) {
             SmartButtonView v = findCurrentButton(buttonTag);
@@ -376,7 +357,33 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onKeyguardShowing(boolean showing) {
-        mEditor.setKeyguardShowing(showing);
+        if (mEditor != null) {
+            mEditor.setKeyguardShowing(showing);
+        }
+        // TODO: temp hax to address package manager not having activity icons ready yet
+        // this is new to N, likely part of new optimized boot time. In theory, activity
+        // icons should be ready by the time lockscreen goes away. We will be stuck with this
+        // unless we can find a way for package manager to have activity icons ready sooner, but
+        // do so without slowing faster boot time.
+        if (!showing) {
+            ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+            for (String buttonTag : mCurrentSequence) {
+                SmartButtonView v = findCurrentButton(buttonTag);
+                if (v != null) {
+                    ButtonConfig config = v.getButtonConfig();
+                    if (config != null && v.getDrawable() == null) {
+                        v.setImageDrawable(config.getCurrentIcon(getContext()));
+                    }
+                }
+                v = (SmartButtonView) hidden.findViewWithTag(buttonTag);
+                if (v != null) {
+                    ButtonConfig config = v.getButtonConfig();
+                    if (config != null && v.getDrawable() == null) {
+                        v.setImageDrawable(config.getCurrentIcon(getContext()));
+                    }
+                }
+            }
+        }
     }
 
     @Override
@@ -388,7 +395,9 @@ public class SmartBarView extends BaseNavigationBar {
     public void setMenuVisibility(final boolean show, final boolean force) {
         if (!force && mShowMenu == show)
             return;
-        mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        if (mEditor != null) {
+            mEditor.changeEditMode(BaseEditor.MODE_OFF);
+        }
         mShowMenu = show;
 
         // Only show Menu if IME switcher not shown.
@@ -399,8 +408,14 @@ public class SmartBarView extends BaseNavigationBar {
 
     void recreateLayouts() {
         mCurrentSequence.clear();
-        ArrayList<ButtonConfig> buttonConfigs = Config.getConfig(getContext(),
-                ActionConstants.getDefaults(ActionConstants.SMARTBAR));
+        ArrayList<ButtonConfig> buttonConfigs;
+        if (mScreenPinningEnabled) {
+            buttonConfigs = Config.getDefaultConfig(getContext(),
+                    ActionConstants.getDefaults(ActionConstants.SMARTBAR));
+        } else {
+            buttonConfigs = Config.getConfig(getContext(),
+                    ActionConstants.getDefaults(ActionConstants.SMARTBAR));
+        }
         recreateButtonLayout(buttonConfigs, false, true);
         recreateButtonLayout(buttonConfigs, true, false);
         mContextLeft = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
@@ -408,7 +423,6 @@ public class SmartBarView extends BaseNavigationBar {
         mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
         updateCurrentIcons();
         setDisabledFlags(mDisabledFlags, true);
-        setScreenPinningVisibility();
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
         updateAnimationStyle();
@@ -417,20 +431,25 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onDispose() {
-        mEditor.unregister();
+        if (mEditor != null) {
+            mEditor.unregister();
+        }
     }
 
     @Override
     public void reorient() {
-        mEditor.prepareToReorient();
+        if (mEditor != null) {
+            mEditor.prepareToReorient();
+        }
         super.reorient();
         mBarTransitions.init();
-        mEditor.reorient(mCurrentView == mRot90);
+        if (mEditor != null) {
+            mEditor.reorient(mCurrentView == mRot90);
+        }
         mContextLeft = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         mContextRight = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_RIGHT);
         mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
         setDisabledFlags(mDisabledFlags, true);
-        setScreenPinningVisibility();
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
         setButtonAlpha();
@@ -442,14 +461,11 @@ public class SmartBarView extends BaseNavigationBar {
         if (mHasLeftContext != onLeft) {
             getMenuButton().setVisibility(INVISIBLE);
             getImeSwitchButton().setVisibility(INVISIBLE);
-            getScreenPinningButton().setVisibility(INVISIBLE);
             getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
             getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
-            getHiddenContext().findViewWithTag(Res.Softkey.STOP_SCREENPINNING).setVisibility(INVISIBLE);
             mHasLeftContext = onLeft;
             mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
             setDisabledFlags(mDisabledFlags, true);
-            setScreenPinningVisibility();
             setMenuVisibility(mShowMenu, true);
             setNavigationIconHints(mNavigationIconHints, true);
         }
@@ -467,11 +483,11 @@ public class SmartBarView extends BaseNavigationBar {
         for (String buttonTag : mCurrentSequence) {
             SmartButtonView v = findCurrentButton(buttonTag);
             if (v != null) {
-                v.setAnimationStyle(mButtonAnimationStyle);
+                v.setAnimationStyle(mScreenPinningEnabled ? SmartButtonView.ANIM_STYLE_RIPPLE : mButtonAnimationStyle);
             }
             v = (SmartButtonView) hidden.findViewWithTag(buttonTag);
             if (v != null) {
-                v.setAnimationStyle(mButtonAnimationStyle);
+                v.setAnimationStyle(mScreenPinningEnabled ? SmartButtonView.ANIM_STYLE_RIPPLE : mButtonAnimationStyle);
             }
         }
     }
@@ -479,10 +495,8 @@ public class SmartBarView extends BaseNavigationBar {
     private void refreshImeHintMode() {
         getMenuButton().setVisibility(INVISIBLE);
         getImeSwitchButton().setVisibility(INVISIBLE);
-        getScreenPinningButton().setVisibility(INVISIBLE);
         getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
         getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
-        getHiddenContext().findViewWithTag(Res.Softkey.STOP_SCREENPINNING).setVisibility(INVISIBLE);
         setNavigationIconHints(mNavigationIconHints, true);
     }
 
@@ -495,12 +509,7 @@ public class SmartBarView extends BaseNavigationBar {
                 .findViewWithTag(Res.Common.NAV_BUTTONS) : mRot0
                 .findViewWithTag(Res.Common.NAV_BUTTONS));
 
-        LinearLayout lightsOut = (LinearLayout) (landscape ? mRot90
-                .findViewWithTag(Res.Common.LIGHTS_OUT) : mRot0
-                .findViewWithTag(Res.Common.LIGHTS_OUT));
-
         navButtonLayout.removeAllViews();
-        lightsOut.removeAllViews();
 
         if (buttonConfigs == null) {
             buttonConfigs = Config.getConfig(getContext(),
@@ -512,14 +521,11 @@ public class SmartBarView extends BaseNavigationBar {
                 Res.Softkey.CONTEXT_VIEW_LEFT,
                 extraKeyWidth, extraKeyHeight);
         SmartBarHelper.addViewToRoot(navButtonLayout, leftContext, landscape);
-        SmartBarHelper.addLightsOutButton(getContext(), lightsOut, leftContext, landscape, true);
 
         // tablets get a spacer here
         if (BaseNavigationBar.sIsTablet) {
             SmartBarHelper.addViewToRoot(navButtonLayout, SmartBarHelper.makeSeparator(getContext()),
                     landscape);
-            SmartBarHelper.addLightsOutButton(getContext(), lightsOut,
-                    SmartBarHelper.makeSeparator(getContext()), landscape, true);
         }
 
         // softkey buttons
@@ -531,7 +537,6 @@ public class SmartBarView extends BaseNavigationBar {
             SmartButtonView v = SmartBarHelper.generatePrimaryKey(getContext(), this, landscape, buttonConfig);
             SmartBarHelper.updateButtonSize(v, dimen, landscape);
             SmartBarHelper.addViewToRoot(navButtonLayout, v, landscape);
-            SmartBarHelper.addLightsOutButton(getContext(), lightsOut, v, landscape, false);
 
             // only add once for master sequence holder
             if (updateCurrentButtons) {
@@ -544,15 +549,11 @@ public class SmartBarView extends BaseNavigationBar {
                 // adding spacers between buttons on phones
                 SmartBarHelper.addViewToRoot(navButtonLayout,
                         SmartBarHelper.makeSeparator(getContext()), landscape);
-                SmartBarHelper.addLightsOutButton(getContext(), lightsOut,
-                        SmartBarHelper.makeSeparator(getContext()), landscape, true);
             }
             if (j == buttonConfigs.size() - 1 && BaseNavigationBar.sIsTablet) {
                 // adding spacers after last button on tablets
                 SmartBarHelper.addViewToRoot(navButtonLayout,
                         SmartBarHelper.makeSeparator(getContext()), landscape);
-                SmartBarHelper.addLightsOutButton(getContext(), lightsOut,
-                        SmartBarHelper.makeSeparator(getContext()), landscape, true);
             }
         }
 
@@ -561,7 +562,6 @@ public class SmartBarView extends BaseNavigationBar {
                 Res.Softkey.CONTEXT_VIEW_RIGHT,
                 extraKeyWidth, extraKeyHeight);
         SmartBarHelper.addViewToRoot(navButtonLayout, rightContext, landscape);
-        SmartBarHelper.addLightsOutButton(getContext(), lightsOut, rightContext, landscape, true);
     }
 
     private FrameLayout generateContextKeyLayout(boolean landscape, String leftOrRight,
@@ -579,9 +579,6 @@ public class SmartBarView extends BaseNavigationBar {
         SmartButtonView imeChanger = generateContextKey(landscape, Res.Softkey.IME_SWITCHER);
         contextLayout.addView(imeChanger);
 
-        SmartButtonView stopScreenpinning = generateContextKey(landscape, Res.Softkey.STOP_SCREENPINNING);
-        contextLayout.addView(stopScreenpinning);
-
         if (TextUtils.equals(Res.Softkey.CONTEXT_VIEW_LEFT, leftOrRight)) {
             SmartButtonView imeArrowLeft = generateContextKey(landscape, Res.Softkey.IME_ARROW_LEFT);
             contextLayout.addView(imeArrowLeft);
@@ -596,7 +593,7 @@ public class SmartBarView extends BaseNavigationBar {
     private SmartButtonView generateContextKey(boolean landscape, String tag) {
         SmartButtonView v = new SmartButtonView(getContext(), this);
         ButtonConfig buttonConfig = new ButtonConfig(getContext());
-        ActionConfig actionConfig;
+        ActionConfig actionConfig = new ActionConfig(getContext());
 
         int extraKeyWidth = getContext().getResources().getDimensionPixelSize(R.dimen.navigation_extra_key_width);
         int extraKeyHeight = getContext().getResources().getDimensionPixelSize(R.dimen.navigation_extra_key_height);
@@ -615,9 +612,6 @@ public class SmartBarView extends BaseNavigationBar {
             actionConfig = new ActionConfig(getContext(), ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
         } else if (tag.equals(Res.Softkey.IME_ARROW_RIGHT)) {
             actionConfig = new ActionConfig(getContext(), ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT);
-        } else {
-            actionConfig = new ActionConfig(getContext(),
-                    ActionHandler.SYSTEMUI_TASK_STOP_SCREENPINNING);
         }
 
         buttonConfig.setActionConfig(actionConfig, ActionConfig.PRIMARY);
@@ -662,7 +656,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
-        if (mEditor.getMode() == BaseEditor.MODE_ON) {
+        if (mEditor != null && mEditor.getMode() == BaseEditor.MODE_ON) {
             mEditor.changeEditMode(BaseEditor.MODE_OFF);
         }
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);

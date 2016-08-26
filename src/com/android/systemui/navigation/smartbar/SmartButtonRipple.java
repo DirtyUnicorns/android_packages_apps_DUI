@@ -22,6 +22,7 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.CanvasProperty;
+import android.graphics.Color;
 import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -74,7 +75,8 @@ public class SmartButtonRipple extends Drawable {
         final Context context = ctx;
         mMaxWidth = context.getResources().getDimensionPixelSize(R.dimen.key_button_ripple_max_width);
         mTargetView = targetView;
-        mRippleColor = context.getResources().getColor(R.color.navbutton_ripple_color);
+//        mRippleColor = context.getResources().getColor(R.color.navbutton_ripple_color);
+        mRippleColor = Color.WHITE;
     }
 
     private Paint getRipplePaint() {

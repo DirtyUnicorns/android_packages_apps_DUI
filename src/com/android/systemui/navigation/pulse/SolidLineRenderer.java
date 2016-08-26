@@ -261,9 +261,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
                 mLavaLamp.stop();
             }
             // putFloat, getFloat is better. catch it next time
-            mDbFuzzFactor = Float.valueOf(Settings.Secure.getIntForUser(
-                    resolver, Settings.Secure.PULSE_SOLID_FUDGE_FACTOR, 4,
-                    UserHandle.USER_CURRENT)) + 1f;
+            mDbFuzzFactor = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.PULSE_SOLID_FUDGE_FACTOR, 5,
+                    UserHandle.USER_CURRENT);
         }
     }
 }

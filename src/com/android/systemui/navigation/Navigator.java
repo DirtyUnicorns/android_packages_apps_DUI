@@ -26,10 +26,9 @@ package com.android.systemui.navigation;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 
-import com.android.systemui.navigation.Hintable;
 import com.android.systemui.navigation.NavigationController.NavbarOverlayResources;
 import com.android.systemui.navigation.pulse.PulseController;
-import com.android.systemui.statusbar.BarTransitions;
+import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
 
 import android.content.res.Resources;
@@ -37,7 +36,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.View.OnTouchListener;
 
-public interface Navigator extends Hintable {
+public interface Navigator {
     public interface OnVerticalChangedListener {
         void onVerticalChanged(boolean isVertical);
     }
@@ -61,12 +60,14 @@ public interface Navigator extends Hintable {
     public void notifyScreenOn(boolean screenOn);
     public void setSlippery(boolean newSlippery);
     public void setDisabledFlags(int disabledFlags, boolean force);
+    public void setNavigationIconHints(int hints);
+    public void setMenuVisibility(boolean showMenu);
+    public void setDisabledFlags(int disabledFlags);
     public void reorient();
-    public void setListeners(OnTouchListener userAutoHideListener);
+    public void setListeners(OnTouchListener userAutoHideListener, View.OnLongClickListener longPressBackListener);
     public void setControllers(PulseController pulseController);
     public boolean isInEditMode();
     public void setLayoutTransitionsEnabled(boolean enabled);
     public void setWakeAndUnlocking(boolean wakeAndUnlocking);
-    public void screenPinningStateChanged(boolean enabled);
     public void dump(FileDescriptor fd, PrintWriter pw, String[] args);
 }

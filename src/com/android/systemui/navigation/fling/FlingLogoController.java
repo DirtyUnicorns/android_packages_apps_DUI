@@ -29,6 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.android.systemui.R;
+import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.fling.FlingLogoView;
 import com.android.systemui.navigation.fling.FlingView;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
@@ -42,6 +43,7 @@ import android.net.Uri;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.TypedValue;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationSet;
@@ -50,6 +52,7 @@ import android.view.animation.RotateAnimation;
 import android.view.animation.ScaleAnimation;
 import android.view.animation.Animation.AnimationListener;
 import android.widget.ImageView;
+import android.widget.ImageView.ScaleType;
 
 public class FlingLogoController implements SmartObservable {
     private static final int LOGO_ANIMATE_HIDE = 1;
@@ -223,10 +226,11 @@ public class FlingLogoController implements SmartObservable {
         currentLogo.setImageDrawable(getCurrentDrawable());
         hiddenLogo.setImageDrawable(null);
         hiddenLogo.setImageDrawable(getCurrentDrawable());
+        updateButtonScalingAndPadding(currentLogo, mLogoConfig, mHost.isLandscape());
+        updateButtonScalingAndPadding(hiddenLogo, mLogoConfig, !mHost.isLandscape());
     }
 
     Drawable getCurrentDrawable() {
-
         if (mLogoConfig.hasCustomIcon()) {
             Drawable icon = mLogoConfig
                     .getActionConfig(ActionConfig.PRIMARY)
@@ -235,37 +239,7 @@ public class FlingLogoController implements SmartObservable {
                 return icon;
             }
         }
-
         return mHost.mResourceMap.mFlingLogo;
-
-
-        /*
-        if (mLogoConfig.hasCustomIcon()) {
-            // manually parse and handle the icon info
-            // default handling will return the icon for the action if null
-            // we want different handling for null, i.e. the default Fling logo
-            String iconUri = mLogoConfig.getActionConfig(ActionConfig.PRIMARY).getIconUri();
-            ArrayList<String> items = new ArrayList<String>();
-            Drawable d;
-            items.addAll(Arrays.asList(iconUri.split("\\$")));
-            String type = items.get(0);
-            if (TextUtils.equals(type, "iconpack") && items.size() == 3) {
-                String packageName = items.get(1);
-                String iconName = items.get(2);
-                d = DUActionUtils.getDrawable(mContext, iconName, packageName);
-                if (d == null) {
-                    return mHost.mResourceMap.mFlingLogo;
-                }
-                return d;
-            } else {
-                return mHost.mResourceMap.mFlingLogo;
-            }
-        } else {
-            return mHost.mResourceMap.mFlingLogo;
-        }
-
-*/
-
     }
 
     public static AnimationSet getSpinAnimation(int mode) {
@@ -287,5 +261,59 @@ public class FlingLogoController implements SmartObservable {
         animSet.addAnimation(scale);
         animSet.addAnimation(rotate);
         return animSet;
+    }
+
+    static int[] getAppIconPadding(Context ctx) {
+        int[] padding = new int[4];
+        // left
+        padding[0] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, ctx
+                .getResources()
+                .getDisplayMetrics());
+        // top
+        padding[1] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, ctx
+                .getResources()
+                .getDisplayMetrics());
+        // right
+        padding[2] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, ctx
+                .getResources()
+                .getDisplayMetrics());
+        // bottom
+        padding[3] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5,
+                ctx.getResources()
+                        .getDisplayMetrics());
+        return padding;
+    }
+
+    public static void applyPaddingToView(ImageView v, int[] padding) {
+        v.setPaddingRelative(padding[0], padding[1],
+                padding[2], padding[3]);
+    }
+
+    static boolean buttonNeedsCustomPadding(ButtonConfig config) {
+        boolean hasCustomIcon = config.hasCustomIcon();
+        boolean hasNonSystemIcon = !config.isSystemAction();
+        return hasCustomIcon || hasNonSystemIcon;
+    }
+
+    public static void updateButtonScalingAndPadding(ImageView v, ButtonConfig config, boolean landscape) {
+        // all non-system action icons need some extra padding/scaling work
+        final int[] appIconPadding = getAppIconPadding(v.getContext());
+        if (buttonNeedsCustomPadding(config)) {
+            if (landscape && !BaseNavigationBar.sIsTablet) {
+                v.setPaddingRelative(appIconPadding[1], appIconPadding[0],
+                        appIconPadding[3], appIconPadding[2]);
+            } else {
+                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
+                        appIconPadding[2], appIconPadding[3]);
+            }
+            v.setScaleType(ScaleType.CENTER_INSIDE);
+        } else {
+            if (landscape && BaseNavigationBar.sIsTablet) {
+                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
+                        appIconPadding[2], appIconPadding[3]);
+                v.setScaleType(ScaleType.CENTER_INSIDE);
+            }
+            v.setScaleType(BaseNavigationBar.sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
+        }
     }
 }

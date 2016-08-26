@@ -66,17 +66,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     public FlingActionHandler(Context context, View host) {
         mContext = context;
         mHost = host;
-
-        try {
-            loadConfigs();
-        } catch (Exception ex) {
-            //Something is wrong, let's reset config
-            ArrayList<ButtonConfig> defConfig =
-                    Config.getDefaultConfig(mContext, ActionConstants.getDefaults(ActionConstants.FLING));
-
-            Config.setConfig(mContext, ActionConstants.getDefaults(ActionConstants.FLING), defConfig);
-            loadConfigs();
-        }
+        loadConfigs();
     }
 
     void loadConfigs() {

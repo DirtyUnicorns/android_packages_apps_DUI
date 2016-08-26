@@ -120,18 +120,6 @@ public class SmartBarHelper {
         return v;
     }
 
-    static void addLightsOutButton(Context ctx, LinearLayout root, View v, boolean landscape,
-            boolean empty) {
-        ImageView addMe = new ImageView(ctx);
-        addMe.setLayoutParams(v.getLayoutParams());
-        addMe.setImageResource(empty ? R.drawable.ic_sysbar_lights_out_dot_large
-                : R.drawable.ic_sysbar_lights_out_dot_small);
-        addMe.setScaleType(ImageView.ScaleType.CENTER);
-        addMe.setVisibility(empty ? View.INVISIBLE : View.VISIBLE);
-
-        addViewToRoot(root, addMe, landscape);
-    }
-
     static View makeSeparator(Context ctx) {
         View v;
         if (BaseNavigationBar.sIsTablet) {
