@@ -27,6 +27,7 @@ import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringListener;
 
+import android.animation.ObjectAnimator;
 import android.content.Context;
 //import android.content.res.ThemeConfig;
 import android.view.HapticFeedbackConstants;
@@ -34,6 +35,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.accessibility.AccessibilityEvent;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ImageView;
 
 public class SmartButtonView extends ImageView {
@@ -53,11 +55,14 @@ public class SmartButtonView extends ImageView {
     private static double FRICTION = 3;
     public static final int ANIM_STYLE_RIPPLE = 0;
     public static final int ANIM_STYLE_SPRING = 1;
+    public static final int ANIM_STYLE_FLIP = 2;
 
     private boolean isDoubleTapPending;
     private boolean wasConsumed;
     private boolean mInEditMode;
     private boolean mScreenPinningEnabled;
+    private int mAnimStyle = 0;
+    private ObjectAnimator mFlipAnim = null;
     private ButtonConfig mConfig;
     private SmartBarView mHost;
     View.OnLongClickListener mLongPressBackListener;
@@ -91,8 +96,10 @@ public class SmartButtonView extends ImageView {
     }
 
     public void setAnimationStyle(int style) {
+        mAnimStyle = style;
         switch (style) {
             case ANIM_STYLE_RIPPLE:
+                // turn off spring if needed
                 if (mSpring != null) {
                     if (getScaleX() != 1f || getScaleY() != 1f) {
                         mSpring.setCurrentValue(0f);
@@ -103,21 +110,43 @@ public class SmartButtonView extends ImageView {
                 }
                 // this is causing NPE when user changes animation type
                 //mHost.flushSpringSystem();
+                // enable ripple
                 if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
                     SmartButtonRipple background = (SmartButtonRipple) getBackground();
                     background.setEnabled(true);
                 }
+                // free flip animation resources
+                mFlipAnim = null;
                 break;
             case ANIM_STYLE_SPRING:
+                // turn on spring
                 mSpring = mHost.getSpringSystem().createSpring();
                 mSpring.addListener(mSpringListener);
                 SpringConfig config = new SpringConfig(TENSION, FRICTION);
                 mSpring.setSpringConfig(config);
+                // turn off ripple
                 if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
                     SmartButtonRipple background = (SmartButtonRipple) getBackground();
                     background.setEnabled(false);
                 }
+                // free flip animation resources
+                mFlipAnim = null;
                 break;
+            case ANIM_STYLE_FLIP:
+                // turn off spring
+                if (mSpring != null) {
+                    if (getScaleX() != 1f || getScaleY() != 1f) {
+                        mSpring.setCurrentValue(0f);
+                    }
+                    mSpring.removeListener(mSpringListener);
+                    mSpring.destroy();
+                    mSpring = null;
+                }
+                // turn off ripple
+                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
+                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
+                    background.setEnabled(false);
+                }
         }
     }
 
@@ -205,6 +234,15 @@ public class SmartButtonView extends ImageView {
         }
     }
 
+    private void checkAndDoFlipAnim() {
+        if (mAnimStyle == ANIM_STYLE_FLIP) {
+            mFlipAnim = ObjectAnimator.ofFloat(this, "rotationY", 0f, 360f);
+            mFlipAnim.setDuration(1500);
+            mFlipAnim.setInterpolator(new OvershootInterpolator());
+            mFlipAnim.start();
+        }
+    }
+
     public boolean onTouchEvent(MotionEvent ev) {
         if (mInEditMode) {
             return false;
@@ -214,6 +252,7 @@ public class SmartButtonView extends ImageView {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 setPressed(true);
+                checkAndDoFlipAnim();
                 if (mSpring != null) {
                     mSpring.setEndValue(1f);
                 }
@@ -248,6 +287,7 @@ public class SmartButtonView extends ImageView {
                 break;
             case MotionEvent.ACTION_UP:
                 setPressed(false);
+                checkAndDoFlipAnim();
                 if (mSpring != null) {
                     mSpring.setEndValue(0f);
                 }
