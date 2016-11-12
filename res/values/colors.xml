@@ -28,6 +28,7 @@
     <color name="icon_color_settings_panel">@color/icon_color_default</color>
     <color name="icon_color_notification_panel">@color/icon_color_default</color>
     <color name="icon_color_screenshot">@color/icon_color_default</color>
+    <color name="icon_color_region_screenshot">@color/icon_color_default</color>
     <color name="icon_color_screenrecord">@color/icon_color_default</color>
     <color name="icon_color_expanded_desktop">@color/icon_color_default</color>
     <color name="icon_color_screen_off">@color/icon_color_default</color>

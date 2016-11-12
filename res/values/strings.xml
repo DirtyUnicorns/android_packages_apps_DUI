@@ -22,6 +22,7 @@
     <string name="label_action_settings_panel">Settings panel</string>
     <string name="label_action_notification_panel">Notification panel</string>
     <string name="label_action_screenshot">Screenshot</string>
+    <string name="label_action_region_screenshot">Partial screenshot</string>
     <string name="label_action_screenrecord">Record screen</string>
     <string name="label_action_expanded_desktop">Expanded desktop</string>
     <string name="label_action_screen_off">Turn off screen</string>
