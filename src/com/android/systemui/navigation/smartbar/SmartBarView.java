@@ -1,7 +1,7 @@
 /**
  * Copyright (C) 2016 The DirtyUnicorns Project
  * Copyright (C) 2014 SlimRoms
- * 
+ *
  * @author: Randall Rushing <randall.rushing@gmail.com>
  *
  * Much love and respect to SlimRoms for writing and inspiring
@@ -18,7 +18,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
+ *
  * A new software key based navigation implementation that just vaporizes
  * AOSP and quite frankly everything currently on the custom firmware scene
  *
@@ -279,18 +279,18 @@ public class SmartBarView extends BaseNavigationBar {
 
         final boolean showImeButton = ((hints & StatusBarManager.NAVIGATION_HINT_IME_SHOWN) != 0);
         switch(mImeHintMode) {
-            case IME_HINT_MODE_HIDDEN: // always hidden
+            case IME_HINT_MODE_ARROWS: // arrows
                 getImeSwitchButton().setVisibility(View.INVISIBLE);
-                setImeArrowsVisibility(mCurrentView, View.INVISIBLE);
+                setImeArrowsVisibility(mCurrentView, backAlt ? View.VISIBLE : View.INVISIBLE);
                 break;
             case IME_HINT_MODE_PICKER:
                 getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
                 getImeSwitchButton().setVisibility(showImeButton ? View.VISIBLE : View.INVISIBLE);
                 setImeArrowsVisibility(mCurrentView, View.INVISIBLE);
                 break;
-            default: // arrows
+            default: // hidden
                 getImeSwitchButton().setVisibility(View.INVISIBLE);
-                setImeArrowsVisibility(mCurrentView, backAlt ? View.VISIBLE : View.INVISIBLE);
+                setImeArrowsVisibility(mCurrentView, View.INVISIBLE);
         }
 
         // Update menu button in case the IME state has changed.
@@ -473,7 +473,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     private void updateImeHintModeSettings() {
         mImeHintMode = Settings.Secure.getIntForUser(getContext().getContentResolver(),
-                "smartbar_ime_hint_mode", IME_HINT_MODE_ARROWS, UserHandle.USER_CURRENT);
+                "smartbar_ime_hint_mode", IME_HINT_MODE_HIDDEN, UserHandle.USER_CURRENT);
     }
 
     private void updateAnimationStyle() {
