@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2016 The DirtyUnicorns Project
+ * Copyright (C) 2016-2017 The DirtyUnicorns Project
  * Copyright (C) 2014 SlimRoms
  *
  * @author: Randall Rushing <randall.rushing@gmail.com>
@@ -36,6 +36,7 @@ import android.net.Uri;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -61,6 +62,7 @@ import com.android.systemui.navigation.smartbar.SmartBarTransitions;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.navigation.smartbar.SmartButtonView;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
+import com.android.systemui.singlehandmode.SlideTouchEvent;
 import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.R;
 
@@ -123,15 +125,30 @@ public class SmartBarView extends BaseNavigationBar {
     private int mButtonAnimationStyle;
     private float mCustomAlpha;
 
+    private SlideTouchEvent mSlideTouchEvent;
+
     public SmartBarView(Context context, boolean asDefault) {
         super(context);
         mBarTransitions = new SmartBarTransitions(this);
+        mSlideTouchEvent = new SlideTouchEvent(context);
         mScreenPinningEnabled = asDefault;
         if (!asDefault) {
             mEditor = new SmartBarEditor(this);
             mSmartObserver.addListener(mObservable);
         }
         createBaseViews();
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        mSlideTouchEvent.handleTouchEvent(event);
+        return super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent event) {
+        mSlideTouchEvent.handleTouchEvent(event);
+        return super.onInterceptTouchEvent(event);
     }
 
     ArrayList<String> getCurrentSequence() {
