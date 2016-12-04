@@ -27,6 +27,7 @@ import android.content.Context;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Space;
@@ -35,6 +36,7 @@ import android.widget.LinearLayout.LayoutParams;
 
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.systemui.navigation.OpaLayout;
 import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.navigation.smartbar.SmartButtonView;
@@ -63,7 +65,7 @@ public class SmartBarHelper {
         return padding;
     }
 
-    public static int[] getViewPadding(ImageView v) {
+    public static int[] getViewPadding(View v) {
         int[] padding = new int[4];
         padding[0] = v.getPaddingStart();
         padding[1] = v.getPaddingTop();
@@ -72,18 +74,18 @@ public class SmartBarHelper {
         return padding;
     }
 
-    public static void applyPaddingToView(ImageView v, int[] padding) {
+    public static void applyPaddingToView(View v, int[] padding) {
         v.setPaddingRelative(padding[0], padding[1],
                 padding[2], padding[3]);
     }
 
-    static boolean buttonNeedsCustomPadding(SmartButtonView v) {
-        boolean hasCustomIcon = v.getButtonConfig().hasCustomIcon();
-        boolean hasNonSystemIcon = !v.getButtonConfig().isSystemAction();
+    static boolean buttonNeedsCustomPadding(OpaLayout v) {
+        boolean hasCustomIcon = v.getButton().getButtonConfig().hasCustomIcon();
+        boolean hasNonSystemIcon = !v.getButton().getButtonConfig().isSystemAction();
         return hasCustomIcon || hasNonSystemIcon;
     }
 
-    public static void updateButtonScalingAndPadding(SmartButtonView v, boolean landscape) {
+    public static void updateButtonScalingAndPadding(OpaLayout v, boolean landscape) {
         // all non-system action icons need some extra padding/scaling work
         final int[] appIconPadding = getAppIconPadding(v.getContext());
         if (buttonNeedsCustomPadding(v)) {
@@ -94,30 +96,41 @@ public class SmartBarHelper {
                 v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
                         appIconPadding[2], appIconPadding[3]);
             }
-            v.setScaleType(ScaleType.CENTER_INSIDE);
+            v.getButton().setScaleType(ScaleType.CENTER_INSIDE);
         } else {
             if (landscape && BaseNavigationBar.sIsTablet) {
                 v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
                         appIconPadding[2], appIconPadding[3]);
-                v.setScaleType(ScaleType.CENTER_INSIDE);
+                v.getButton().setScaleType(ScaleType.CENTER_INSIDE);
             }
-            v.setScaleType(BaseNavigationBar.sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
+            v.getButton().setScaleType(BaseNavigationBar.sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
         }
     }
 
-    static SmartButtonView generatePrimaryKey(Context ctx, SmartBarView host, boolean landscape,
+    static OpaLayout generatePrimaryKey(Context ctx, SmartBarView host, boolean landscape,
             ButtonConfig config) {
-        SmartButtonView v = new SmartButtonView(ctx, host);
+        OpaLayout opa = (OpaLayout)View.inflate(ctx, R.layout.opa_smartbutton, null);
+        SmartButtonView v = opa.getButton();
+        v.setHost(host);
         v.setButtonConfig(config);
         int width = ctx.getResources().getDimensionPixelSize(R.dimen.navigation_key_width);
         int height = ctx.getResources().getDimensionPixelSize(R.dimen.navigation_key_height);
-        v.setLayoutParams(new LinearLayout.LayoutParams(
-                landscape && !BaseNavigationBar.sIsTablet ? LayoutParams.MATCH_PARENT
-                        : width, landscape && !BaseNavigationBar.sIsTablet ? height : LayoutParams.MATCH_PARENT));
         v.loadRipple();
-        updateButtonScalingAndPadding(v, landscape);
+        updateButtonScalingAndPadding(opa, landscape);
         host.setButtonDrawable(v);
-        return v;
+        if (BaseNavigationBar.sIsTablet) {
+            v.setLayoutParams(new FrameLayout.LayoutParams(width, LayoutParams.MATCH_PARENT));
+            opa.setLayoutParams(new LinearLayout.LayoutParams(width, LayoutParams.MATCH_PARENT));
+        } else {
+            if (landscape) {
+                v.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, height));
+                opa.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, height));
+            } else {
+                v.setLayoutParams(new FrameLayout.LayoutParams(width, LayoutParams.MATCH_PARENT));
+                opa.setLayoutParams(new LinearLayout.LayoutParams(width, LayoutParams.MATCH_PARENT));
+            }
+        }
+        return opa;
     }
 
     static View makeSeparator(Context ctx) {

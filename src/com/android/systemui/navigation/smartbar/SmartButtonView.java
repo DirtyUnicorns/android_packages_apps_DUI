@@ -20,6 +20,7 @@ package com.android.systemui.navigation.smartbar;
 
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.navigation.smartbar.SmartButtonRipple;
+import com.android.systemui.navigation.OpaLayout;
 import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
@@ -29,6 +30,8 @@ import com.facebook.rebound.SpringListener;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
+import android.util.AttributeSet;
 //import android.content.res.ThemeConfig;
 import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
@@ -56,6 +59,7 @@ public class SmartButtonView extends ImageView {
     public static final int ANIM_STYLE_RIPPLE = 0;
     public static final int ANIM_STYLE_SPRING = 1;
     public static final int ANIM_STYLE_FLIP = 2;
+    public static final int ANIM_STYLE_PIXEL = 3;
 
     private boolean isDoubleTapPending;
     private boolean wasConsumed;
@@ -88,65 +92,86 @@ public class SmartButtonView extends ImageView {
         }    
     };
 
-    public SmartButtonView(Context context, SmartBarView host) {
-        super(context);
-        mHost = host;
+    public SmartButtonView(Context context) {
+        this(context, null);
+    }
+
+    public SmartButtonView(Context context, AttributeSet attrs) {
+        this(context, attrs, 0);
+    }
+
+    public SmartButtonView(Context context, AttributeSet attrs, int defStyleAttr) {
+        this(context, attrs, defStyleAttr, 0);
+    }
+
+    public SmartButtonView(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        super(context, attrs, defStyleAttr, defStyleRes);
         setClickable(true);
         setLongClickable(false);
+    }
+
+    public void setHost(SmartBarView host) {
+        mHost = host;
     }
 
     public void setAnimationStyle(int style) {
         mAnimStyle = style;
         switch (style) {
             case ANIM_STYLE_RIPPLE:
-                // turn off spring if needed
-                if (mSpring != null) {
-                    if (getScaleX() != 1f || getScaleY() != 1f) {
-                        mSpring.setCurrentValue(0f);
-                    }
-                    mSpring.removeListener(mSpringListener);
-                    mSpring.destroy();
-                    mSpring = null;
-                }
-                // this is causing NPE when user changes animation type
-                //mHost.flushSpringSystem();
-                // enable ripple
-                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
-                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
-                    background.setEnabled(true);
-                }
-                // free flip animation resources
+                setSpringEnabled(false);
+                setPixelEnabled(false);
+                setRippleEnabled(true);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_SPRING:
-                // turn on spring
-                mSpring = mHost.getSpringSystem().createSpring();
-                mSpring.addListener(mSpringListener);
-                SpringConfig config = new SpringConfig(TENSION, FRICTION);
-                mSpring.setSpringConfig(config);
-                // turn off ripple
-                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
-                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
-                    background.setEnabled(false);
-                }
-                // free flip animation resources
+                setSpringEnabled(true);
+                setPixelEnabled(false);
+                setRippleEnabled(false);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_FLIP:
-                // turn off spring
-                if (mSpring != null) {
-                    if (getScaleX() != 1f || getScaleY() != 1f) {
-                        mSpring.setCurrentValue(0f);
-                    }
-                    mSpring.removeListener(mSpringListener);
-                    mSpring.destroy();
-                    mSpring = null;
+                setSpringEnabled(false);
+                setPixelEnabled(false);
+                setRippleEnabled(false);
+                break;
+            case ANIM_STYLE_PIXEL:
+                setSpringEnabled(false);
+                setPixelEnabled(true);
+                setRippleEnabled(false);
+                mFlipAnim = null;
+                break;
+        }
+    }
+
+    public void setPixelEnabled(boolean enabled) {
+        if (getParent() != null && getParent() instanceof OpaLayout) {
+            OpaLayout opa = (OpaLayout)getParent();
+            opa.setOpaEnabled(enabled);
+        }
+    }
+
+    private void setRippleEnabled(boolean enabled) {
+        if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
+            SmartButtonRipple background = (SmartButtonRipple) getBackground();
+            background.setEnabled(enabled);
+        }
+    }
+
+    private void setSpringEnabled(boolean enabled) {
+        if (enabled) {
+            mSpring = mHost.getSpringSystem().createSpring();
+            mSpring.addListener(mSpringListener);
+            SpringConfig config = new SpringConfig(TENSION, FRICTION);
+            mSpring.setSpringConfig(config);
+        } else {
+            if (mSpring != null) {
+                if (getScaleX() != 1f || getScaleY() != 1f) {
+                    mSpring.setCurrentValue(0f);
                 }
-                // turn off ripple
-                if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
-                    SmartButtonRipple background = (SmartButtonRipple) getBackground();
-                    background.setEnabled(false);
-                }
+                mSpring.removeListener(mSpringListener);
+                mSpring.destroy();
+                mSpring = null;
+            }
         }
     }
 
@@ -168,6 +193,10 @@ public class SmartButtonView extends ImageView {
             if (getScaleX() != 1f || getScaleY() != 1f) {
                 mSpring.setCurrentValue(0f);
             }
+        }
+        if (getParent() != null && getParent() instanceof OpaLayout) {
+            OpaLayout opa = (OpaLayout)getParent();
+            opa.setEditMode(editMode);
         }
     }
 
@@ -244,6 +273,10 @@ public class SmartButtonView extends ImageView {
     }
 
     public boolean onTouchEvent(MotionEvent ev) {
+        OpaLayout opa = null;
+        if (getParent() != null && getParent() instanceof OpaLayout) {
+            opa = (OpaLayout)getParent();
+        }
         if (mInEditMode) {
             return false;
         }
@@ -252,6 +285,9 @@ public class SmartButtonView extends ImageView {
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 setPressed(true);
+                if (opa != null) {
+                    opa.startDownAction();
+                }
                 checkAndDoFlipAnim();
                 if (mSpring != null) {
                     mSpring.setEndValue(1f);
@@ -281,6 +317,9 @@ public class SmartButtonView extends ImageView {
                 wasConsumed = true;
                 isDoubleTapPending = false;
                 setPressed(false);
+                if (opa != null) {
+                    opa.startCancelAction();
+                }
                 if (mSpring != null) {
                     mSpring.setEndValue(0f);
                 }
@@ -288,6 +327,9 @@ public class SmartButtonView extends ImageView {
             case MotionEvent.ACTION_UP:
                 setPressed(false);
                 checkAndDoFlipAnim();
+                if (opa != null) {
+                    opa.startCancelAction();
+                }
                 if (mSpring != null) {
                     mSpring.setEndValue(0f);
                 }
