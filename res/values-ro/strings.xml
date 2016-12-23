@@ -48,6 +48,7 @@
   <string name="label_action_volume_panel">Volume panel</string>
   <string name="label_action_clear_notifications">Clear notifications</string>
   <string name="label_action_editing_smartbar">Smartbar editor</string>
+  <string name="label_action_split_screen">Split screen</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Actions</string>
   <string name="label_smartbar_icon">Icon</string>
@@ -66,4 +67,6 @@
   <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
   <string name="smartbar_editor_toast_unavailable">Navigation editor unavailable</string>
   <string name="edit_mode">Edit Mode</string>
+  <!-- App killed message -->
+  <string name="app_killed_message">%s killed</string>
 </resources>
