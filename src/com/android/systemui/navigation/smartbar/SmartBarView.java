@@ -88,6 +88,7 @@ public class SmartBarView extends BaseNavigationBar {
         sUris.add(Settings.Secure.getUriFor("smartbar_ime_hint_mode"));
         sUris.add(Settings.Secure.getUriFor("smartbar_button_animation_style"));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.NAVBAR_BUTTONS_ALPHA));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.ONE_HANDED_MODE_UI));
     }
 
     private SmartObservable mObservable = new SmartObservable() {
@@ -107,6 +108,8 @@ public class SmartBarView extends BaseNavigationBar {
                 updateAnimationStyle();
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.NAVBAR_BUTTONS_ALPHA))) {
                 updateButtonAlpha();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.ONE_HANDED_MODE_UI))) {
+                updateOneHandedModeSetting();
             }
         }
     };
@@ -121,6 +124,7 @@ public class SmartBarView extends BaseNavigationBar {
     private ArrayList<String> mCurrentSequence = new ArrayList<String>();
     private View mContextRight, mContextLeft, mCurrentContext;
     private boolean mHasLeftContext;
+    private boolean isOneHandedModeEnabled;
     private int mImeHintMode;
     private int mButtonAnimationStyle;
     private float mCustomAlpha;
@@ -141,13 +145,17 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        mSlideTouchEvent.handleTouchEvent(event);
+        if (isOneHandedModeEnabled) {
+            mSlideTouchEvent.handleTouchEvent(event);
+        }
         return super.onTouchEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent event) {
-        mSlideTouchEvent.handleTouchEvent(event);
+        if (isOneHandedModeEnabled) {
+            mSlideTouchEvent.handleTouchEvent(event);
+        }
         return super.onInterceptTouchEvent(event);
     }
 
@@ -165,6 +173,7 @@ public class SmartBarView extends BaseNavigationBar {
         recreateLayouts();
         updateImeHintModeSettings();
         updateContextLayoutSettings();
+        updateOneHandedModeSetting();
     }
 
     @Override
@@ -515,6 +524,11 @@ public class SmartBarView extends BaseNavigationBar {
         getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
         getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
         setNavigationIconHints(mNavigationIconHints, true);
+    }
+
+    private void updateOneHandedModeSetting() {
+        isOneHandedModeEnabled = Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.ONE_HANDED_MODE_UI, 0, UserHandle.USER_CURRENT) == 1;
     }
 
     void recreateButtonLayout(ArrayList<ButtonConfig> buttonConfigs, boolean landscape,
