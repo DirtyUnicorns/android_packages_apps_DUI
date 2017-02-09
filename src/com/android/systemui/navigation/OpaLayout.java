@@ -54,6 +54,8 @@ public class OpaLayout extends FrameLayout {
     private boolean mLongClicked;
     private boolean mOpaEnabled;
     private boolean mEditMode;
+    private boolean mOpaHomeOnly;
+    private boolean mIsHomeButton;
     private long mStartTime;
 
     private View mRed;
@@ -474,9 +476,14 @@ public class OpaLayout extends FrameLayout {
 
     public void setOpaVisibility(boolean enabled) {
         int visibility = enabled ? View.VISIBLE : View.INVISIBLE;
-        mBlue.setVisibility(visibility);
-        mRed.setVisibility(visibility);
-        mYellow.setVisibility(visibility);
-        mGreen.setVisibility(visibility);
+        mBlue.setVisibility(((mOpaHomeOnly && mIsHomeButton) || !mOpaHomeOnly) ? visibility : View.INVISIBLE);
+        mRed.setVisibility(((mOpaHomeOnly && mIsHomeButton) || !mOpaHomeOnly) ? visibility : View.INVISIBLE);
+        mYellow.setVisibility(((mOpaHomeOnly && mIsHomeButton) || !mOpaHomeOnly) ? visibility : View.INVISIBLE);
+        mGreen.setVisibility(((mOpaHomeOnly && mIsHomeButton) || !mOpaHomeOnly) ? visibility : View.INVISIBLE);
+    }
+
+    public void setOpaVisibilityHome(boolean opaHomeOnly, boolean isHomeButton) {
+        mOpaHomeOnly = opaHomeOnly;
+        mIsHomeButton = isHomeButton;
     }
 }

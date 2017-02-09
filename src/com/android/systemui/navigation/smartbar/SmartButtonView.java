@@ -24,6 +24,7 @@ import com.android.systemui.navigation.OpaLayout;
 import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.systemui.navigation.Res;
 import com.facebook.rebound.Spring;
 import com.facebook.rebound.SpringConfig;
 import com.facebook.rebound.SpringListener;
@@ -31,6 +32,7 @@ import com.facebook.rebound.SpringListener;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 //import android.content.res.ThemeConfig;
 import android.view.HapticFeedbackConstants;
@@ -60,6 +62,7 @@ public class SmartButtonView extends ImageView {
     public static final int ANIM_STYLE_SPRING = 1;
     public static final int ANIM_STYLE_FLIP = 2;
     public static final int ANIM_STYLE_PIXEL = 3;
+    public static final int ANIM_STYLE_PIXEL_HOME = 4;
 
     private boolean isDoubleTapPending;
     private boolean wasConsumed;
@@ -119,34 +122,44 @@ public class SmartButtonView extends ImageView {
         switch (style) {
             case ANIM_STYLE_RIPPLE:
                 setSpringEnabled(false);
-                setPixelEnabled(false);
+                setPixelEnabled(false, false);
                 setRippleEnabled(true);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_SPRING:
                 setSpringEnabled(true);
-                setPixelEnabled(false);
+                setPixelEnabled(false, false);
                 setRippleEnabled(false);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_FLIP:
                 setSpringEnabled(false);
-                setPixelEnabled(false);
+                setPixelEnabled(false, false);
                 setRippleEnabled(false);
                 break;
             case ANIM_STYLE_PIXEL:
                 setSpringEnabled(false);
-                setPixelEnabled(true);
+                setPixelEnabled(true, false);
+                setRippleEnabled(false);
+                mFlipAnim = null;
+                break;
+            case ANIM_STYLE_PIXEL_HOME:
+                setSpringEnabled(false);
+                setPixelEnabled(true, true);
                 setRippleEnabled(false);
                 mFlipAnim = null;
                 break;
         }
     }
 
-    public void setPixelEnabled(boolean enabled) {
+    public void setPixelEnabled(boolean enabled, boolean homeOnly) {
         if (getParent() != null && getParent() instanceof OpaLayout) {
             OpaLayout opa = (OpaLayout)getParent();
             opa.setOpaEnabled(enabled);
+            if (enabled) {
+                boolean isHomeButton = TextUtils.equals(mConfig.getTag(), Res.Softkey.BUTTON_HOME);
+                opa.setOpaVisibilityHome(homeOnly, isHomeButton);
+            }
         }
     }
 
