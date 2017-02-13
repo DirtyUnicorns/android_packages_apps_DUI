@@ -63,6 +63,7 @@ public class SmartButtonView extends ImageView {
     public static final int ANIM_STYLE_FLIP = 2;
     public static final int ANIM_STYLE_PIXEL = 3;
     public static final int ANIM_STYLE_PIXEL_HOME = 4;
+    public static final int ANIM_STYLE_PIXEL_HOME_RIPPLE = 5;
 
     private boolean isDoubleTapPending;
     private boolean wasConsumed;
@@ -122,43 +123,57 @@ public class SmartButtonView extends ImageView {
         switch (style) {
             case ANIM_STYLE_RIPPLE:
                 setSpringEnabled(false);
-                setPixelEnabled(false, false);
+                setPixelEnabled(false, false, false);
                 setRippleEnabled(true);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_SPRING:
                 setSpringEnabled(true);
-                setPixelEnabled(false, false);
+                setPixelEnabled(false, false, false);
                 setRippleEnabled(false);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_FLIP:
                 setSpringEnabled(false);
-                setPixelEnabled(false, false);
+                setPixelEnabled(false, false, false);
                 setRippleEnabled(false);
                 break;
             case ANIM_STYLE_PIXEL:
                 setSpringEnabled(false);
-                setPixelEnabled(true, false);
+                setPixelEnabled(true, false, false);
                 setRippleEnabled(false);
                 mFlipAnim = null;
                 break;
             case ANIM_STYLE_PIXEL_HOME:
                 setSpringEnabled(false);
-                setPixelEnabled(true, true);
+                setPixelEnabled(true, true, false);
                 setRippleEnabled(false);
+                mFlipAnim = null;
+                break;
+            case ANIM_STYLE_PIXEL_HOME_RIPPLE:
+                setSpringEnabled(false);
+                setPixelEnabled(true, true, true);
                 mFlipAnim = null;
                 break;
         }
     }
 
-    public void setPixelEnabled(boolean enabled, boolean homeOnly) {
+    public void setPixelEnabled(boolean enabled, boolean homeOnly, boolean rippleForOthers) {
         if (getParent() != null && getParent() instanceof OpaLayout) {
             OpaLayout opa = (OpaLayout)getParent();
             opa.setOpaEnabled(enabled);
             if (enabled) {
                 boolean isHomeButton = TextUtils.equals(mConfig.getTag(), Res.Softkey.BUTTON_HOME);
-                opa.setOpaVisibilityHome(homeOnly, isHomeButton);
+                if (!rippleForOthers) {
+                    opa.setOpaVisibilityHome(homeOnly, isHomeButton);
+                } else {
+                    if (isHomeButton) {
+                        opa.setOpaVisibilityHome(homeOnly, isHomeButton);
+                    } else {
+                        opa.setOpaEnabled(!enabled);
+                        setRippleEnabled(enabled);
+                    }
+                }
             }
         }
     }
