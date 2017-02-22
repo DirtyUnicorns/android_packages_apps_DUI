@@ -29,6 +29,8 @@ import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.PorterDuff.Mode;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.UserHandle;
@@ -39,6 +41,7 @@ import com.android.systemui.navigation.utils.ColorAnimator;
 
 public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
     private Paint mPaint;
+    private Paint mFadePaint;
     private ValueAnimator[] mValueAnimators;
     private float[] mFFTPoints;
     private int mColor;
@@ -64,6 +67,8 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
         mPaint = new Paint();
         mPaint.setAntiAlias(true);
         mPaint.setColor(mColor);
+        mFadePaint = new Paint();
+        mFadePaint.setXfermode(new PorterDuffXfermode(Mode.MULTIPLY));
         mDbFuzzFactor = 5f;
         mObserver = new CMRendererObserver(handler);
         mObserver.updateSettings();
@@ -184,6 +189,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     @Override
     public void draw(Canvas canvas) {
         canvas.drawLines(mFFTPoints, mPaint);
+        canvas.drawPaint(mFadePaint);
     }
 
     @Override
@@ -237,6 +243,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_SOLID_UNITS_COUNT), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_SOLID_UNITS_OPACITY), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -277,6 +286,11 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
                 mFFTPoints = new float[mUnits * 4];
                 onSizeChanged(0, 0, 0, 0);
             }
+
+            int solidUnitsColor = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.PULSE_SOLID_UNITS_OPACITY, 200,
+                    UserHandle.USER_CURRENT);
+            mFadePaint.setColor(Color.argb(solidUnitsColor, 255, 255, 255));
         }
     }
 }
