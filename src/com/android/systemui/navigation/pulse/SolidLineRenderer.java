@@ -49,7 +49,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     private float mDbFuzzFactor;
     private boolean mVertical;
     private boolean mLeftInLandscape;
-    private int mWidth, mHeight;
+    private int mWidth, mHeight, mUnits;
 
     private boolean mIsValidStream;
     private boolean mLavaLampEnabled;
@@ -65,10 +65,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
         mPaint.setAntiAlias(true);
         mPaint.setColor(mColor);
         mDbFuzzFactor = 5f;
-        mFFTPoints = new float[128];
-        loadValueAnimators();
         mObserver = new CMRendererObserver(handler);
         mObserver.updateSettings();
+        loadValueAnimators();
     }
 
     @Override
@@ -81,13 +80,13 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
 
     private void loadValueAnimators() {
         if (mValueAnimators != null) {
-            for (int i = 0; i < 32; i++) {
+            for (int i = 0; i < mValueAnimators.length; i++) {
                 mValueAnimators[i].cancel();
             }
         }
-        mValueAnimators = new ValueAnimator[32];
+        mValueAnimators = new ValueAnimator[mUnits];
         final boolean isVertical = mVertical;
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < mUnits; i++) {
             final int j;
             if (isVertical) {
                 j = i * 4;
@@ -107,11 +106,12 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     }
 
     private void setPortraitPoints() {
-        float barUnit = mWidth / 32f;
+        float units = Float.valueOf(mUnits);
+        float barUnit = mWidth / units;
         float barWidth = barUnit * 8f / 9f;
-        barUnit = barWidth + (barUnit - barWidth) * 32f / 31f;
+        barUnit = barWidth + (barUnit - barWidth) * units / (units - 1);
         mPaint.setStrokeWidth(barWidth);
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < mUnits; i++) {
             mFFTPoints[i * 4] = mFFTPoints[i * 4 + 2] = i * barUnit + (barWidth / 2);
             mFFTPoints[i * 4 + 1] = mHeight;
             mFFTPoints[i * 4 + 3] = mHeight;
@@ -119,11 +119,12 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
     }
 
     private void setVerticalPoints() {
-        float barUnit = mHeight / 32f;
+        float units = Float.valueOf(mUnits);
+        float barUnit = mHeight / units;
         float barHeight = barUnit * 8f / 9f;
-        barUnit = barHeight + (barUnit - barHeight) * 32f / 31f;
+        barUnit = barHeight + (barUnit - barHeight) * units / (units - 1);
         mPaint.setStrokeWidth(barHeight);
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < mUnits; i++) {
             mFFTPoints[i * 4 + 1] = mFFTPoints[i * 4 + 3] = i * barUnit + (barHeight / 2);
             mFFTPoints[i * 4] = mLeftInLandscape ? 0 : mWidth;
             mFFTPoints[i * 4 + 2] = mLeftInLandscape ? 0 : mWidth;
@@ -158,7 +159,7 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
 
     @Override
     public void onFFTUpdate(byte[] fft) {
-        for (int i = 0; i < 32; i++) {
+        for (int i = 0; i < mUnits; i++) {
             mValueAnimators[i].cancel();
             rfk = fft[i * 2 + 2];
             ifk = fft[i * 2 + 3];
@@ -233,6 +234,9 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             resolver.registerContentObserver(
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_LAVALAMP_SOLID_SPEED), false, this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_SOLID_UNITS_COUNT), false, this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -264,6 +268,15 @@ public class SolidLineRenderer extends Renderer implements ColorAnimator.ColorAn
             mDbFuzzFactor = Settings.Secure.getIntForUser(
                     resolver, Settings.Secure.PULSE_SOLID_FUDGE_FACTOR, 5,
                     UserHandle.USER_CURRENT);
+
+            int oldUnits = mUnits;
+            mUnits = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.PULSE_SOLID_UNITS_COUNT, 64,
+                    UserHandle.USER_CURRENT);
+            if (mUnits != oldUnits) {
+                mFFTPoints = new float[mUnits * 4];
+                onSizeChanged(0, 0, 0, 0);
+            }
         }
     }
 }
