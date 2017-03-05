@@ -75,8 +75,7 @@ public class SmartButtonRipple extends Drawable {
         final Context context = ctx;
         mMaxWidth = context.getResources().getDimensionPixelSize(R.dimen.key_button_ripple_max_width);
         mTargetView = targetView;
-//        mRippleColor = context.getResources().getColor(R.color.navbutton_ripple_color);
-        mRippleColor = Color.WHITE;
+        mRippleColor = context.getResources().getColor(R.color.navbutton_ripple_color);
     }
 
     private Paint getRipplePaint() {
