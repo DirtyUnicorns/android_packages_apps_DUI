@@ -76,8 +76,6 @@ import java.util.Set;
 public class SmartBarView extends BaseNavigationBar {
     final static boolean DEBUG = false;
     final static String TAG = SmartBarView.class.getSimpleName();
-    final static float PULSE_ALPHA_FADE = 0.3f; // take bar alpha low so keys are vaguely visible
-                                                // but not intrusive during Pulse
     final static int PULSE_FADE_OUT_DURATION = 250;
     final static int PULSE_FADE_IN_DURATION = 200;
 
@@ -93,6 +91,7 @@ public class SmartBarView extends BaseNavigationBar {
         sUris.add(Settings.Secure.getUriFor("smartbar_button_animation_style"));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.NAVBAR_BUTTONS_ALPHA));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.ONE_HANDED_MODE_UI));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_BUTTONS_OPACITY));
     }
 
     private SmartObservable mObservable = new SmartObservable() {
@@ -114,6 +113,8 @@ public class SmartBarView extends BaseNavigationBar {
                 updateButtonAlpha();
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.ONE_HANDED_MODE_UI))) {
                 updateOneHandedModeSetting();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_BUTTONS_OPACITY))) {
+                updatePulseNavButtonsOpacity();
             }
         }
     };
@@ -132,6 +133,7 @@ public class SmartBarView extends BaseNavigationBar {
     private int mImeHintMode;
     private int mButtonAnimationStyle;
     private float mCustomAlpha;
+    public float mPulseNavButtonsOpacity;
 
     private SlideTouchEvent mSlideTouchEvent;
 
@@ -510,6 +512,7 @@ public class SmartBarView extends BaseNavigationBar {
         setMenuVisibility(mShowMenu, true);
         setNavigationIconHints(mNavigationIconHints, true);
         setButtonAlpha();
+        updatePulseNavButtonsOpacity();
         setOpaLandscape(mVertical);
     }
 
@@ -728,6 +731,17 @@ public class SmartBarView extends BaseNavigationBar {
         }
     }
 
+    private void updatePulseNavButtonsOpacity() {
+        mPulseNavButtonsOpacity = alphaIntToFloat(Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.PULSE_CUSTOM_BUTTONS_OPACITY, 200, UserHandle.USER_CURRENT));
+        if (isBarPulseFaded()) {
+            final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
+            final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
+            currentNavButtons.setAlpha(mPulseNavButtonsOpacity);
+            hiddenNavButtons.setAlpha(mPulseNavButtonsOpacity);
+        }
+    }
+
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
         if (mEditor != null && mEditor.getMode() == BaseEditor.MODE_ON) {
@@ -735,7 +749,7 @@ public class SmartBarView extends BaseNavigationBar {
         }
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);
         final View hiddenNavButtons = getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
-        final float fadeAlpha = Math.min(mCustomAlpha, PULSE_ALPHA_FADE);
+        final float fadeAlpha = mPulseNavButtonsOpacity;
 
         // no need to animate the GONE view, but keep alpha inline since onStartPulse
         // is a oneshot call
