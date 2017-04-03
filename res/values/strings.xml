@@ -53,6 +53,8 @@
     <string name="label_action_split_screen">Split screen</string>
     <string name="label_action_one_handed_mode_left">One handed mode (left side)</string>
     <string name="label_action_one_handed_mode_right">One handed mode (right side)</string>
+    <string name="label_action_media_left">Previous track</string>
+    <string name="label_action_media_right">Next track</string>
 
     <!-- Smartbar -->
     <string name="label_smartbar_actions">Actions</string>

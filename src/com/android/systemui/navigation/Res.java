@@ -71,6 +71,8 @@ public class Res {
         public static final String BUTTON_BACK = "smartbar_button_1";
         public static final String BUTTON_HOME = "smartbar_button_2";
         public static final String BUTTON_OVERVIEW = "smartbar_button_3";
+        public static final String MEDIA_ARROW_LEFT = "media_arrow_left";
+        public static final String MEDIA_ARROW_RIGHT = "media_arrow_right";
     }
 
     public static final class Fling {
