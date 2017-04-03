@@ -23,6 +23,7 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.content.Context;
 import android.media.session.MediaController;
+import android.media.MediaMetadata;
 import android.media.session.MediaSession;
 import android.media.session.MediaSessionManager;
 import android.media.session.PlaybackState;
@@ -51,6 +52,7 @@ public abstract class MediaMonitor implements MediaSessionManager.OnActiveSessio
     }
 
     public abstract void onPlayStateChanged(boolean playing);
+    public abstract void areMetadataChanged();
 
     public boolean isAnythingPlaying() {
         return mIsAnythingPlaying;
@@ -120,16 +122,28 @@ public abstract class MediaMonitor implements MediaSessionManager.OnActiveSessio
 
                 @Override
                 public void onPlaybackStateChanged(@NonNull PlaybackState state) {
-                    mIsPlaying = (state.getState() == PlaybackState.STATE_PLAYING
-                            || state.getState() == PlaybackState.STATE_BUFFERING);
-                    checkIfPlaying();
+                    if (state != null && isPlaybackActive(state.getState())) {
+                        mIsPlaying = (state.getState() == PlaybackState.STATE_PLAYING
+                                || state.getState() == PlaybackState.STATE_BUFFERING)
+                                && !controller.getPackageName().toLowerCase().contains("youtube")
+                                && !controller.getPackageName().toLowerCase().contains("chrome");
+                        checkIfPlaying();
+                    }
                 }
+
+                @Override
+                public void onMetadataChanged (MediaMetadata metadata) {
+                        areMetadataChanged();
+                }
+
             };
             controller.registerCallback(mCallback);
 
             mIsPlaying = controller.getPlaybackState() != null
                     && (controller.getPlaybackState().getState() == PlaybackState.STATE_PLAYING
-                    || controller.getPlaybackState().getState() == PlaybackState.STATE_BUFFERING);
+                    || controller.getPlaybackState().getState() == PlaybackState.STATE_BUFFERING)
+                    && !controller.getPackageName().toLowerCase().contains("youtube")
+                    && !controller.getPackageName().toLowerCase().contains("chrome");
         }
 
         public boolean isPlaying() {
@@ -147,6 +161,15 @@ public abstract class MediaMonitor implements MediaSessionManager.OnActiveSessio
             mController = null;
             mCallback = null;
         }
+    }
+
+    private boolean isPlaybackActive(int state) {
+        if (state != PlaybackState.STATE_STOPPED
+                && state != PlaybackState.STATE_ERROR
+                && state != PlaybackState.STATE_NONE) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isAnythingPlayingColdCheck() {

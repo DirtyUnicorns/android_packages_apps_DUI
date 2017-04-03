@@ -207,6 +207,10 @@ public class PulseController {
             public void onPlayStateChanged(boolean playing) {
                 doLinkage();
             }
+            @Override
+            public void areMetadataChanged() {
+                //do nothing
+            }
         };
         mMediaMonitor.setListening(true);
         IntentFilter filter = new IntentFilter();

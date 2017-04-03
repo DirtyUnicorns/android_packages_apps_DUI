@@ -42,8 +42,8 @@ public class VisualizerStreamHandler {
 
     protected static final int MSG_STREAM_VALID = 55;
     protected static final int MSG_STREAM_INVALID = 56;
-    // we have 1500 millis to get three consecutive valid frames
-    protected static final int VALIDATION_TIME_MILLIS = 1500;
+    // we have 6 seconds to get three consecutive valid frames
+    protected static final int VALIDATION_TIME_MILLIS = 6000;
     protected static final int VALID_BYTES_THRESHOLD = 3;
 
     protected Visualizer mVisualizer;
