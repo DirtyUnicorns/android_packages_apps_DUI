@@ -21,6 +21,7 @@
   <string name="label_action_settings_panel">Beállítások panel</string>
   <string name="label_action_notification_panel">Értesítési panel</string>
   <string name="label_action_screenshot">Képernyőmentés</string>
+  <string name="label_action_region_screenshot">Részleges képernyőmentés</string>
   <string name="label_action_screenrecord">Képernyő felvétel</string>
   <string name="label_action_expanded_desktop">Kiterjesztett képernyő</string>
   <string name="label_action_screen_off">Képernyő kikapcsolása</string>
@@ -49,6 +50,10 @@
   <string name="label_action_clear_notifications">Értesítés törlése</string>
   <string name="label_action_editing_smartbar">Smartbar szerkesztő</string>
   <string name="label_action_split_screen">Osztott képernyő</string>
+  <string name="label_action_one_handed_mode_left">Egykezes mód (bal oldalon)</string>
+  <string name="label_action_one_handed_mode_right">Egykezes mód (jobb oldalon)</string>
+  <string name="label_action_media_left">Előző szám</string>
+  <string name="label_action_media_right">Következő szám</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Műveletek</string>
   <string name="label_smartbar_icon">Ikon</string>
