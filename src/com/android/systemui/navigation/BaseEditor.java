@@ -89,9 +89,11 @@ public abstract class BaseEditor implements Editor {
                     final int mode = mMode;
                     if (mode == MODE_ON) {
                         changeEditMode(MODE_OFF);
+                        mHost.setSlippery(true);
                     } else {
                         if (isEditorAvailable()) {
                             changeEditMode(MODE_ON);
+                            mHost.setSlippery(false);
                         } else {
                             toastState(69);
                         }

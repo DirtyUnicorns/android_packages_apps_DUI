@@ -58,7 +58,6 @@ public interface Navigator {
     public void setOnVerticalChangedListener(OnVerticalChangedListener onVerticalChangedListener);
     public void dispose();
     public void notifyScreenOn(boolean screenOn);
-    public void setSlippery(boolean newSlippery);
     public void setDisabledFlags(int disabledFlags, boolean force);
     public void setNavigationIconHints(int hints);
     public void setMenuVisibility(boolean showMenu);
