@@ -21,6 +21,7 @@
   <string name="label_action_settings_panel">Панель настроек</string>
   <string name="label_action_notification_panel">Панель уведомлений</string>
   <string name="label_action_screenshot">Скриншот</string>
+  <string name="label_action_region_screenshot">Скриншот выбранной области экрана</string>
   <string name="label_action_screenrecord">Запись экрана</string>
   <string name="label_action_expanded_desktop">Расширенный экран</string>
   <string name="label_action_screen_off">Выключить экран</string>
@@ -49,6 +50,10 @@
   <string name="label_action_clear_notifications">Удалить уведомления</string>
   <string name="label_action_editing_smartbar">Редактор Smartbar</string>
   <string name="label_action_split_screen">Split screen</string>
+  <string name="label_action_one_handed_mode_left">Режим одной руки (слева)</string>
+  <string name="label_action_one_handed_mode_right">Режим одной руки (справа)</string>
+  <string name="label_action_media_left">Предыдущий трек</string>
+  <string name="label_action_media_right">Следующий трек</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Действия</string>
   <string name="label_smartbar_icon">Значок</string>
