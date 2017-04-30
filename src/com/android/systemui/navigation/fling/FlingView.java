@@ -134,9 +134,11 @@ public class FlingView extends BaseNavigationBar {
             if (action == MotionEvent.ACTION_DOWN) {
 //                mPm.cpuBoost(1000 * 1000);
                 mLogoController.onTouchHide(null);
+                setSlippery(false);
             } else if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_CANCEL) {
                 mLogoController.onTouchShow(null);
+                setSlippery(true);
             }
             if (mRippleEnabled) {
                 mRipple.onTouch(FlingView.this, event);
@@ -187,8 +189,8 @@ public class FlingView extends BaseNavigationBar {
     private final Runnable mAnimateShowLogo = new Runnable() {
         @Override
         public void run() {
-            mLogoController.unlockAndShow(null);            
-        }        
+            mLogoController.unlockAndShow(null);
+        }
     };
 
     @Override
@@ -204,7 +206,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void onStopPulse(Animation animatePulseOut) {
         getHandler().removeCallbacks(mAnimateShowLogo);
-        getHandler().postDelayed(mAnimateShowLogo, 250);        
+        getHandler().postDelayed(mAnimateShowLogo, 250);
     }
 
     @Override
