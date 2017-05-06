@@ -19,6 +19,6 @@
   <string name="label_action_region_screenshot">Capture d\'écran partielle</string>
   <string name="label_action_one_handed_mode_left">Utilisation à une main (gaucher)</string>
   <string name="label_action_one_handed_mode_right">Utilisation à une main (droitier)</string>
-    <string name="label_action_media_left">Titre musical précédente</string>
-    <string name="label_action_media_right">Titre musical suivante</string>
+    <string name="label_action_media_left">Titre musical précédent</string>
+    <string name="label_action_media_right">Titre musical suivant</string>
 </resources>
