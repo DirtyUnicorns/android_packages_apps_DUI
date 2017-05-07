@@ -49,7 +49,7 @@
   <string name="label_action_volume_panel">Панель громкости</string>
   <string name="label_action_clear_notifications">Удалить уведомления</string>
   <string name="label_action_editing_smartbar">Редактор Smartbar</string>
-  <string name="label_action_split_screen">Split screen</string>
+  <string name="label_action_split_screen">Разделение экрана</string>
   <string name="label_action_one_handed_mode_left">Режим одной руки (слева)</string>
   <string name="label_action_one_handed_mode_right">Режим одной руки (справа)</string>
   <string name="label_action_media_left">Предыдущий трек</string>
@@ -73,5 +73,5 @@
   <string name="smartbar_editor_toast_unavailable">Редактор панели навигации недоступен</string>
   <string name="edit_mode">Режим редактирования</string>
   <!-- App killed message -->
-  <string name="app_killed_message">%s закрыто</string>
+  <string name="app_killed_message">Приложение %s закрыто</string>
 </resources>
