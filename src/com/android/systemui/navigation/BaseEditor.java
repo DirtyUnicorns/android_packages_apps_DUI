@@ -90,10 +90,12 @@ public abstract class BaseEditor implements Editor {
                     if (mode == MODE_ON) {
                         changeEditMode(MODE_OFF);
                         mHost.setSlippery(true);
+                        mHost.mOrientationEventListener.enable();
                     } else {
                         if (isEditorAvailable()) {
                             changeEditMode(MODE_ON);
                             mHost.setSlippery(false);
+                            mHost.mOrientationEventListener.disable();
                         } else {
                             toastState(69);
                         }
