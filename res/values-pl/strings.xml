@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Brak akcji</string>
-  <string name="label_action_settings_panel">Panel ustawień</string>
+  <string name="label_action_settings_panel">Panel QS</string>
   <string name="label_action_notification_panel">Panel powiadomień</string>
   <string name="label_action_screenshot">Zrzut ekranu</string>
   <string name="label_action_screenrecord">Nagrywaj ekran</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Wyłączanie ekranu</string>
   <string name="label_action_force_close_app">Wymuś zamknięcie</string>
   <string name="label_action_search_assistant">Asystent wyszukiwania</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google asystent</string>
   <string name="label_action_voice_search">Wyszukiwanie głosowe</string>
   <string name="label_action_in_app_search">Wyszukaj w aplikacji</string>
   <string name="label_action_flashlight">Latarka</string>

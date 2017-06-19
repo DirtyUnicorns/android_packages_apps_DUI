@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Eylem yok</string>
-  <string name="label_action_settings_panel">Ayarlar paneli</string>
+  <string name="label_action_settings_panel">QS paneli</string>
   <string name="label_action_notification_panel">Bildirim paneli</string>
   <string name="label_action_screenshot">Ekran görüntüsü</string>
   <string name="label_action_screenrecord">Kayıt ekranı</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Ekranı kapat</string>
   <string name="label_action_force_close_app">Kapatmaya zorla</string>
   <string name="label_action_search_assistant">Arama asistanı</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google asistanı</string>
   <string name="label_action_voice_search">Sesli arama</string>
   <string name="label_action_in_app_search">Uygulama içi arama</string>
   <string name="label_action_flashlight">El Feneri</string>
@@ -66,7 +66,7 @@
   <string name="smartbar_editor_toast_starting">Gezinti çubuğu düzenleyici başlatılıyor</string>
   <string name="smartbar_editor_toast_stopping">Gezinti çubuğu düzenleyici durduruluyor</string>
   <string name="smartbar_editor_toast_unavailable">Gezinti düzenleyici kullanılamaz</string>
-  <string name="edit_mode">Düzenleme Modu</string>
+  <string name="edit_mode">Düzenleme modu</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s sonlandırıldı</string>
 </resources>

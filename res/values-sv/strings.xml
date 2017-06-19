@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Ingen åtgärd</string>
-  <string name="label_action_settings_panel">Inställningspanel</string>
+  <string name="label_action_settings_panel">QS Panel</string>
   <string name="label_action_notification_panel">Notifieringspanel</string>
   <string name="label_action_screenshot">Skärmbild</string>
   <string name="label_action_screenrecord">Skärminspelning</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Stänga av skärmen</string>
   <string name="label_action_force_close_app">Tvinga stängning av app</string>
   <string name="label_action_search_assistant">Sökassistent</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google assistent</string>
   <string name="label_action_voice_search">Röstsökning</string>
   <string name="label_action_in_app_search">Sökning i app</string>
   <string name="label_action_flashlight">Ficklampa</string>

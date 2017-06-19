@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Bildschirm ausschalten</string>
   <string name="label_action_force_close_app">App beenden</string>
   <string name="label_action_search_assistant">Suchassistent</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google assistent</string>
   <string name="label_action_voice_search">Sprachsuche</string>
   <string name="label_action_in_app_search">In-App-Suche</string>
   <string name="label_action_flashlight">Taschenlampe</string>
@@ -39,7 +39,7 @@
   <string name="label_action_menu">Menü</string>
   <string name="label_action_back">Zurück</string>
   <string name="label_action_home">Startbildschirm</string>
-  <string name="label_action_ime_switcher">IME-Wechsler</string>
+  <string name="label_action_ime_switcher">IME-wechsler</string>
   <string name="label_action_stop_screenpinning">Bildschirm anheften stoppen</string>
   <string name="label_action_ime_down">Eingabemethode Cursor unten</string>
   <string name="label_action_ime_left">Eingabemethode Cursor links</string>

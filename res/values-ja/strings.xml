@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">なし</string>
-  <string name="label_action_settings_panel">設定パネル</string>
+  <string name="label_action_settings_panel">QSを設定する</string>
   <string name="label_action_notification_panel">通知パネル</string>
   <string name="label_action_screenshot">スクリーンショット</string>
   <string name="label_action_screenrecord">画面を録画</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">画面をオフにする</string>
   <string name="label_action_force_close_app">アプリを強制終了</string>
   <string name="label_action_search_assistant">検索アシスタント</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google アシスタント</string>
   <string name="label_action_voice_search">音声検索</string>
   <string name="label_action_in_app_search">アプリ内検索</string>
   <string name="label_action_flashlight">フラッシュライト</string>

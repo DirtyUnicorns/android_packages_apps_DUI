@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Ei toimintoa</string>
-  <string name="label_action_settings_panel">Settings panel</string>
+  <string name="label_action_settings_panel">QS panel</string>
   <string name="label_action_notification_panel">Notification panel</string>
   <string name="label_action_screenshot">Screenshot</string>
   <string name="label_action_screenrecord">Record screen</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Näyttö pois päältä</string>
   <string name="label_action_force_close_app">Pakota sovelluksen sulkeminen</string>
   <string name="label_action_search_assistant">Haku</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google avustaja</string>
   <string name="label_action_voice_search">Voice search</string>
   <string name="label_action_in_app_search">In-app search</string>
   <string name="label_action_flashlight">Taskulamppu</string>
@@ -39,7 +39,7 @@
   <string name="label_action_menu">Menu</string>
   <string name="label_action_back">Back</string>
   <string name="label_action_home">Home</string>
-  <string name="label_action_ime_switcher">IME Changer</string>
+  <string name="label_action_ime_switcher">IME changer</string>
   <string name="label_action_stop_screenpinning">Stop screen pinning</string>
   <string name="label_action_ime_down">Input method cursor down</string>
   <string name="label_action_ime_left">Syöttötavan valitsimen osoitin, vasen</string>
@@ -66,7 +66,7 @@
   <string name="smartbar_editor_toast_starting">Starting navigation editor</string>
   <string name="smartbar_editor_toast_stopping">Stopping navigation editor</string>
   <string name="smartbar_editor_toast_unavailable">Navigation editor unavailable</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Edit mode</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s killed</string>
 </resources>

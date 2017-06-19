@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Nincs művelet</string>
-  <string name="label_action_settings_panel">Beállítások panel</string>
+  <string name="label_action_settings_panel">QS panel</string>
   <string name="label_action_notification_panel">Értesítési panel</string>
   <string name="label_action_screenshot">Képernyőmentés</string>
   <string name="label_action_region_screenshot">Részleges képernyőmentés</string>
@@ -27,7 +27,7 @@
   <string name="label_action_screen_off">Képernyő kikapcsolása</string>
   <string name="label_action_force_close_app">Alkalmazás kényszerített bezárása</string>
   <string name="label_action_search_assistant">Keresési segéd</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google helyettes</string>
   <string name="label_action_voice_search">hangalapú keresés</string>
   <string name="label_action_in_app_search">Alkalmazáson belüli keresés</string>
   <string name="label_action_flashlight">Zseblámpa</string>

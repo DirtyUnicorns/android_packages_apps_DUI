@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Aucune action</string>
-  <string name="label_action_settings_panel">Paramètres</string>
+  <string name="label_action_settings_panel">QS Panneau</string>
   <string name="label_action_notification_panel">Notification</string>
   <string name="label_action_screenshot">Capture d\'écran</string>
   <string name="label_action_screenrecord">Capture vidéo</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Mise en veille</string>
   <string name="label_action_force_close_app">Forcer l\'arrêt de l\'application</string>
   <string name="label_action_search_assistant">Recherche</string>
-  <string name="label_action_google_now_on_tap">Google On Tap</string>
+  <string name="label_action_google_now_on_tap">Google assistant</string>
   <string name="label_action_voice_search">Recherche vocale</string>
   <string name="label_action_in_app_search">Recherche dans l\'application</string>
   <string name="label_action_flashlight">Lampe de poche</string>

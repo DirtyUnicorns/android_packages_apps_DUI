@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Žádné akce</string>
-  <string name="label_action_settings_panel">Panel nastavení</string>
+  <string name="label_action_settings_panel">Panel QS</string>
   <string name="label_action_notification_panel">Notifikační panel</string>
   <string name="label_action_screenshot">Snímek obrazovky</string>
   <string name="label_action_screenrecord">Záznam obrazovky</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Vypnout obrazovku</string>
   <string name="label_action_force_close_app">Vynutit ukončení aplikace</string>
   <string name="label_action_search_assistant">Vyhledávací asistent</string>
-  <string name="label_action_google_now_on_tap">Google Now On Tap</string>
+  <string name="label_action_google_now_on_tap">Google asistent</string>
   <string name="label_action_voice_search">Hlasové vyhledávání</string>
   <string name="label_action_in_app_search">Hledat v aplikacích</string>
   <string name="label_action_flashlight">Svítilna</string>
@@ -66,7 +66,7 @@
   <string name="smartbar_editor_toast_starting">Výchozí navigační editor</string>
   <string name="smartbar_editor_toast_stopping">Zastavující navigační editor</string>
   <string name="smartbar_editor_toast_unavailable">Navigační editor není k dispozici</string>
-  <string name="edit_mode">Edit Mode</string>
+  <string name="edit_mode">Edit mode</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s killed</string>
 </resources>

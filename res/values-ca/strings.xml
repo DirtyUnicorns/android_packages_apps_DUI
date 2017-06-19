@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Cap acció</string>
-  <string name="label_action_settings_panel">Panell de configuració</string>
+  <string name="label_action_settings_panel">Panell QS</string>
   <string name="label_action_notification_panel">Panell de notificacions</string>
   <string name="label_action_screenshot">Captura de pantalla</string>
   <string name="label_action_screenrecord">Enregistra la pantalla</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Apaga la pantalla</string>
   <string name="label_action_force_close_app">Força el tancament de l\'aplicació</string>
   <string name="label_action_search_assistant">Assistent de cerca</string>
-  <string name="label_action_google_now_on_tap">Google Now en un toc</string>
+  <string name="label_action_google_now_on_tap">Google Assistent</string>
   <string name="label_action_voice_search">Cerca per veu</string>
   <string name="label_action_in_app_search">Cerca dins l\'aplicació</string>
   <string name="label_action_flashlight">Llanterna</string>
@@ -39,7 +39,7 @@
   <string name="label_action_menu">Menú</string>
   <string name="label_action_back">Enrere</string>
   <string name="label_action_home">Inici</string>
-  <string name="label_action_ime_switcher">Selector IME</string>
+  <string name="label_action_ime_switcher">IME canviador</string>
   <string name="label_action_stop_screenpinning">Atura la fixació de pantalla</string>
   <string name="label_action_ime_down">Mètode d\'entrada cursor cap avall</string>
   <string name="label_action_ime_left">Mètode d\'entrada cursor cap a l\'esquerra</string>

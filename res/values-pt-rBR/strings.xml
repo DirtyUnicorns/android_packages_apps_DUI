@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Sem ação</string>
-  <string name="label_action_settings_panel">Painel de configurações</string>
+  <string name="label_action_settings_panel">Painel QS</string>
   <string name="label_action_notification_panel">Painel de notificação</string>
   <string name="label_action_screenshot">Captura de tela</string>
   <string name="label_action_screenrecord">Tela de Gravação</string>
@@ -26,7 +26,7 @@
   <string name="label_action_screen_off">Desligar a tela</string>
   <string name="label_action_force_close_app">Forçar fechamento do app</string>
   <string name="label_action_search_assistant">Assistente de busca</string>
-  <string name="label_action_google_now_on_tap">Google Now ao tocar</string>
+  <string name="label_action_google_now_on_tap">Google assistente</string>
   <string name="label_action_voice_search">Pesquisa por voz</string>
   <string name="label_action_in_app_search">Pesquisa dentro do app</string>
   <string name="label_action_flashlight">Lanterna</string>
@@ -66,7 +66,7 @@
   <string name="smartbar_editor_toast_starting">Iniciando edição do navegador</string>
   <string name="smartbar_editor_toast_stopping">Parando edição do navegador</string>
   <string name="smartbar_editor_toast_unavailable">Editor de navegação não está disponível</string>
-  <string name="edit_mode">Modo de Edição</string>
+  <string name="edit_mode">Modo de edição</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s killed</string>
 </resources>
