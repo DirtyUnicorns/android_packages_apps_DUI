@@ -342,6 +342,11 @@ public class SmartBarView extends BaseNavigationBar {
         contextRight.findViewWithTag(Res.Softkey.IME_ARROW_RIGHT).setVisibility(visibility);
     }
 
+    private void setMediaArrowsVisibility(boolean backAlt) {
+        setMediaArrowsVisibility(mCurrentView, (!backAlt && (mMediaMonitor.isAnythingPlaying()
+                && mAudioManager.isMusicActive())) ? View.VISIBLE : View.INVISIBLE);
+    }
+
     private void setMediaArrowsVisibility(View currentOrHidden, int visibility) {
         ViewGroup contextLeft = (ViewGroup)currentOrHidden.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         contextLeft.findViewWithTag(Res.Softkey.MEDIA_ARROW_LEFT).setVisibility(visibility);
@@ -376,8 +381,7 @@ public class SmartBarView extends BaseNavigationBar {
             case IME_AND_MEDIA_HINT_MODE_ARROWS:
                 getImeSwitchButton().setVisibility(View.INVISIBLE);
                 setImeArrowsVisibility(mCurrentView, backAlt ? View.VISIBLE : View.INVISIBLE);
-                setMediaArrowsVisibility(mCurrentView, (!backAlt && (mMediaMonitor.isAnythingPlaying()
-                        && mAudioManager.isMusicActive())) ? View.VISIBLE : View.INVISIBLE);
+                setMediaArrowsVisibility(backAlt);
                 break;
             case IME_HINT_MODE_PICKER:
                 getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
@@ -424,6 +428,14 @@ public class SmartBarView extends BaseNavigationBar {
                 } else {
                     opa.setVisibility(View.VISIBLE);
                 }
+            }
+        }
+        if (mImeHintMode == 3) {
+            if (disableHome) {
+                setMediaArrowsVisibility(mCurrentView, View.INVISIBLE);
+            } else {
+                final boolean backAlt = (mNavigationIconHints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
+                setMediaArrowsVisibility(backAlt);
             }
         }
     }
