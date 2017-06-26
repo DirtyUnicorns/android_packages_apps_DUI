@@ -71,10 +71,12 @@ public class NavigationController implements PackageChangedListener {
     private final NavbarOverlayResources mResourceMap;
     private boolean mScreenPinningEnabled;
     private Configuration mConfiguration;
+    private Resources mResources;
 
     private final Runnable mAddNavbar = new Runnable() {
         @Override
         public void run() {
+            mResourceMap.updateResources(mResources);
             mBar.forceAddNavigationBar(false);
         }
     };
@@ -131,6 +133,7 @@ public class NavigationController implements PackageChangedListener {
         mContext = context;
         mBar = statusBar;
         mResourceMap = new NavbarOverlayResources(context, themedRes);
+        mResources = themedRes;
         mConfiguration = new Configuration();
         mConfiguration.updateFrom(context.getResources().getConfiguration());
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
