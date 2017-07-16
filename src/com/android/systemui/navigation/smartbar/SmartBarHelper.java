@@ -24,6 +24,12 @@
 package com.android.systemui.navigation.smartbar;
 
 import android.content.Context;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,6 +42,7 @@ import android.widget.LinearLayout.LayoutParams;
 
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config.ButtonConfig;
+import com.android.internal.utils.du.ImageHelper;
 import com.android.systemui.navigation.OpaLayout;
 import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.smartbar.SmartBarView;
@@ -43,27 +50,6 @@ import com.android.systemui.navigation.smartbar.SmartButtonView;
 import com.android.systemui.R;
 
 public class SmartBarHelper {
-
-    static int[] getAppIconPadding(Context ctx) {
-        int[] padding = new int[4];
-        // left
-        padding[0] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, ctx
-                .getResources()
-                .getDisplayMetrics());
-        // top
-        padding[1] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, ctx
-                .getResources()
-                .getDisplayMetrics());
-        // right
-        padding[2] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 2, ctx
-                .getResources()
-                .getDisplayMetrics());
-        // bottom
-        padding[3] = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 5,
-                ctx.getResources()
-                        .getDisplayMetrics());
-        return padding;
-    }
 
     public static int[] getViewPadding(View v) {
         int[] padding = new int[4];
@@ -86,25 +72,32 @@ public class SmartBarHelper {
     }
 
     public static void updateButtonScalingAndPadding(OpaLayout v, boolean landscape) {
-        // all non-system action icons need some extra padding/scaling work
-        final int[] appIconPadding = getAppIconPadding(v.getContext());
-        if (buttonNeedsCustomPadding(v)) {
-            if (landscape && !BaseNavigationBar.sIsTablet) {
-                v.setPaddingRelative(appIconPadding[1], appIconPadding[0],
-                        appIconPadding[3], appIconPadding[2]);
-            } else {
-                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
-                        appIconPadding[2], appIconPadding[3]);
-            }
-            v.getButton().setScaleType(ScaleType.CENTER_INSIDE);
-        } else {
-            if (landscape && BaseNavigationBar.sIsTablet) {
-                v.setPaddingRelative(appIconPadding[0], appIconPadding[1],
-                        appIconPadding[2], appIconPadding[3]);
-                v.getButton().setScaleType(ScaleType.CENTER_INSIDE);
-            }
-            v.getButton().setScaleType(BaseNavigationBar.sIsTablet ? ScaleType.CENTER_INSIDE : ScaleType.CENTER);
-        }
+        // all non-system action icons need some extra scaling work
+        v.getButton().setScaleType(ScaleType.CENTER_INSIDE);
+    }
+
+    public static BitmapDrawable resizeCustomButtonIcon(Drawable d, Context ctx, float iconSizeScale) {
+        // get custom button icon size
+        final Bitmap bitmap = ImageHelper.drawableToBitmap(d);
+        int originalHeight = bitmap.getHeight();
+        int originalWeight = bitmap.getWidth();
+        // apply the needed scaling to the icon size values to match default system buttons icons size
+        final float scaledWidth = iconSizeScale * originalWeight;
+        final float scaledHeight = iconSizeScale * originalHeight;
+        // later we'll put the icon bitmap (resized to a smaller scaled rectf) into the bigger canvas,
+        // so we need to center the rectf coordinates into the canvas (moving it a bit to right and to bottom)
+        final float leftPadding = (originalWeight - scaledWidth) / 2;
+        final float topPadding = (originalHeight - scaledHeight) / 2;
+        final RectF targetRect = new RectF(leftPadding, topPadding, leftPadding + scaledWidth, topPadding + scaledHeight);
+        // create a new empty canvas with the size of the original icon, then draw into it the icon bitmap scaled to our
+        // smaller rectf size
+        final Bitmap dest = Bitmap.createBitmap(originalWeight, originalHeight, android.graphics.Bitmap.Config.ARGB_8888);
+        final Canvas canvas = new Canvas(dest);
+        final Paint paint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        paint.setAntiAlias(true);
+        canvas.drawBitmap(bitmap, null, targetRect, paint);
+
+        return new BitmapDrawable(ctx.getResources(), dest);
     }
 
     static OpaLayout generatePrimaryKey(Context ctx, SmartBarView host, boolean landscape,
