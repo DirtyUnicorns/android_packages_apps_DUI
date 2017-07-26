@@ -28,7 +28,7 @@
     <string name="label_action_screen_off">Mise en veille</string>
     <string name="label_action_force_close_app">Forcer l\'arrêt de l\'application</string>
     <string name="label_action_search_assistant">Recherche</string>
-    <string name="label_action_google_now_on_tap">Google Assistant</string>
+    <string name="label_action_google_now_on_tap">Assistant Google</string>
     <string name="label_action_voice_search">Recherche vocale</string>
     <string name="label_action_in_app_search">Recherche dans l\'application</string>
     <string name="label_action_flashlight">Lampe de poche</string>
