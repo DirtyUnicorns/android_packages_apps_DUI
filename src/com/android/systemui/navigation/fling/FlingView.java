@@ -42,6 +42,8 @@ import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
 import com.android.internal.utils.du.ActionConstants;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.StatusBarManager;
 import android.content.Context;
 import android.content.res.Resources;
@@ -64,8 +66,11 @@ import android.widget.ImageView;
 
 public class FlingView extends BaseNavigationBar {
     final static String TAG = FlingView.class.getSimpleName();
+    final static int PULSE_FADE_OUT_DURATION = 250;
+    final static int PULSE_FADE_IN_DURATION = 200;
+    final static float PULSE_LOGO_OPACITY = 0.6f;
 
-    private static Set<Uri> sUris = new HashSet<Uri>();    
+    private static Set<Uri> sUris = new HashSet<Uri>();
     static {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LONGPRESS_TIMEOUT));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_RIPPLE_ENABLED));
@@ -189,18 +194,23 @@ public class FlingView extends BaseNavigationBar {
         }
     };
 
-    private final Runnable mAnimateShowLogo = new Runnable() {
-        @Override
-        public void run() {
-            mLogoController.unlockAndShow(null);
-        }
-    };
-
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
-        final boolean hasLogo = mLogoController.isEnabled();
-        if (hasLogo) {
-            mLogoController.hideAndLock(mPulseOnListener);
+        if (mLogoController.isEnabled()) {
+            getLogoView(getHiddenView()).setAlpha(PULSE_LOGO_OPACITY);
+            getLogoView(getCurrentView()).animate()
+                    .alpha(PULSE_LOGO_OPACITY)
+                    .setDuration(PULSE_FADE_OUT_DURATION)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator _a) {
+                            // shouldn't be null, mPulse just called into us
+                            if (mPulse != null) {
+                                mPulse.turnOnPulse();
+                            }
+                        }
+                    })
+                    .start();
             return true;
         }
         return false;
@@ -208,8 +218,13 @@ public class FlingView extends BaseNavigationBar {
 
     @Override
     public void onStopPulse(Animation animatePulseOut) {
-        getHandler().removeCallbacks(mAnimateShowLogo);
-        getHandler().postDelayed(mAnimateShowLogo, 250);
+        if (mLogoController.isEnabled()) {
+            getLogoView(getHiddenView()).setAlpha(1.0f);
+            getLogoView(getCurrentView()).animate()
+                    .alpha(1.0f)
+                    .setDuration(PULSE_FADE_IN_DURATION)
+                    .start();
+        }
     }
 
     @Override
@@ -288,15 +303,44 @@ public class FlingView extends BaseNavigationBar {
     public void reorient() {
         super.reorient();
         mBarTransitions.init();
-        mLogoController.setLogoView(getFlingLogo());
+        final FlingLogoView logo = getFlingLogo();
+        mLogoController.setLogoView(logo);
         mLogoController.setLogoIcon();
+        if (isBarPulseFaded() && mLogoController.isEnabled()) {
+            getLogoView(getCurrentView()).setAlpha(PULSE_LOGO_OPACITY);
+            getLogoView(getHiddenView()).setAlpha(PULSE_LOGO_OPACITY);
+        }
         setDisabledFlags(mDisabledFlags, true /* force */);
+    }
+
+    boolean isBarPulseFaded() {
+        if (mPulse == null) {
+            return false;
+        } else {
+            return mPulse.shouldDrawPulse();
+        }
     }
 
     @Override
     public void notifyScreenOn(boolean screenOn) {
         mGestureHandler.onScreenStateChanged(screenOn);
         super.notifyScreenOn(screenOn);
+
+        if (mLogoController.isEnabled()) {
+            final float fadeAlpha = 1.0f;
+            ImageView currentLogo = getLogoView(getCurrentView());
+            ImageView hiddenLogo = getLogoView(getHiddenView());
+            if (screenOn && (currentLogo.getAlpha() != fadeAlpha || hiddenLogo.getAlpha() != fadeAlpha)) {
+                currentLogo.setAlpha(fadeAlpha);
+                hiddenLogo.setAlpha(fadeAlpha);
+            }
+        }
+    }
+
+    private ImageView getLogoView(View v) {
+        final ViewGroup viewGroup = (ViewGroup) v;
+        ImageView logoView = (ImageView)viewGroup.findViewById(R.id.fling_console);
+        return logoView;
     }
 
     @Override
