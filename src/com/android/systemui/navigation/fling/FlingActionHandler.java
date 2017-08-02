@@ -61,6 +61,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     private View mHost;
     private Context mContext;
     private boolean isDoubleTapEnabled;
+    private boolean mIsBackAlt;
     private boolean mKeyguardShowing;
 
     public FlingActionHandler(Context context, View host) {
@@ -79,11 +80,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
             ActionConfig action = button.getActionConfig(entry.getValue().action);
             mActionMap.put(entry.getKey(), action);
         }
-        isDoubleTapEnabled = !((ActionConfig) mActionMap
-                .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG))
-                .hasNoAction()
-                || !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG))
-                        .hasNoAction();
+        setDoubleTapEnabled();
     }
 
     public void setKeyguardShowing(boolean showing) {
@@ -169,8 +166,26 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         fireAction(!right_tap.hasNoAction() ? right_tap : left_tap);
     }
 
+    protected void setImeActions(boolean isBackAlt) {
+        mIsBackAlt = isBackAlt;
+        setDoubleTapEnabled();
+    }
+
+    private void setDoubleTapEnabled() {
+        isDoubleTapEnabled = mIsBackAlt || !((ActionConfig) mActionMap
+                .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG))
+                .hasNoAction()
+                || !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG))
+                        .hasNoAction();
+    }
+
     @Override
     public void onDoubleLeftTap() {
+        if (mIsBackAlt) {
+            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
+            return;
+        }
+
         ActionConfig left_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG);
         ActionConfig right_tap = (ActionConfig) mActionMap
@@ -180,6 +195,11 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onDoubleRightTap() {
+        if (mIsBackAlt) {
+            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT);
+            return;
+        }
+
         ActionConfig right_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG);
         ActionConfig left_tap = (ActionConfig) mActionMap

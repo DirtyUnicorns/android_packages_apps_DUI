@@ -42,6 +42,7 @@ import com.android.systemui.statusbar.phone.BarTransitions;
 import com.android.systemui.statusbar.phone.PhoneStatusBar;
 import com.android.internal.utils.du.ActionConstants;
 
+import android.app.StatusBarManager;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -83,6 +84,8 @@ public class FlingView extends BaseNavigationBar {
     private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
+
+    private int mNavigationIconHints = 0;
 
     private SmartObservable mObservable = new SmartObservable() {
         @Override
@@ -310,7 +313,13 @@ public class FlingView extends BaseNavigationBar {
 
     @Override
     public void setNavigationIconHints(int hints) {
-        // maybe do something with the IME switcher
+        if (hints == mNavigationIconHints) {
+            return;
+        }
+
+        final boolean backAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
+        mNavigationIconHints = hints;
+        mActionHandler.setImeActions(backAlt);
     }
 
     @Override
