@@ -72,6 +72,7 @@ public class NavigationController implements PackageChangedListener {
     private boolean mScreenPinningEnabled;
     private Configuration mConfiguration;
     private Resources mResources;
+    private boolean mLeftInLandscape;
 
     private final Runnable mAddNavbar = new Runnable() {
         @Override
@@ -154,6 +155,13 @@ public class NavigationController implements PackageChangedListener {
         return handled;
     }
 
+    public void leftInLandscapeChanged(boolean isLeft) {
+        mLeftInLandscape = isLeft;
+        if (mNavigationBarView != null) {
+            mNavigationBarView.setLeftInLandscape(isLeft);
+        }
+    }
+
     public void recreateNavigationBar(Context context) {
         int navMode = Settings.Secure.getIntForUser(context.getContentResolver(),
                 Settings.Secure.NAVIGATION_BAR_MODE, NAVIGATION_MODE_SMARTBAR,
@@ -174,6 +182,7 @@ public class NavigationController implements PackageChangedListener {
         mNavigationBarView.setStatusBar(mBar);
         mNavigationBarView.setResourceMap(mResourceMap);
         mNavigationBarView.setControllers(mPulseController);
+        mNavigationBarView.setLeftInLandscape(mLeftInLandscape);
     }
 
     public Navigator getBar() {
