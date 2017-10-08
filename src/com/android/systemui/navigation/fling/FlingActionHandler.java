@@ -51,18 +51,49 @@ import android.view.View;
 public class FlingActionHandler implements Swipeable, SmartObservable {
     final static String TAG = FlingActionHandler.class.getSimpleName();
 
-    private static Set<Uri> sUris = new HashSet<Uri>();    
+    private static Set<Uri> sUris = new HashSet<Uri>();
     static {
-        sUris.add(Settings.Secure.getUriFor(ActionConstants.getDefaults(ActionConstants.FLING)
-                            .getUri()));
+        sUris.add(Settings.Secure.getUriFor(
+        	ActionConstants.getDefaults(ActionConstants.FLING).getUri()));
     }
 
     private Map<String, ActionConfig> mActionMap = new HashMap<String, ActionConfig>();
     private View mHost;
     private Context mContext;
     private boolean isDoubleTapEnabled;
-    private boolean mIsBackAlt;
+    private boolean mUseKbCursors;
     private boolean mKeyguardShowing;
+    private boolean mOnTapPreloadedRecents;
+    private boolean mOnSwipePreloadedRecents;
+
+    // TODO: move these to ActionConstants and make the whole
+    // preload code more granular to avoid unneeded preload tasks
+    private final ArrayList<String> mRightTapActions = new ArrayList<>();
+    private final ArrayList<String> mLeftTapActions = new ArrayList<>();
+    private final ArrayList<String> mSwipeActions = new ArrayList<>();
+
+    private void setRightTapActions() {
+        mRightTapActions.clear();
+        mRightTapActions.add("single_right_tap");
+        mRightTapActions.add("double_right_tap");
+        mRightTapActions.add("long_right_press");
+    }
+
+    private void setLeftTapActions() {
+        mLeftTapActions.clear();
+        mLeftTapActions.add("single_left_tap");
+        mLeftTapActions.add("double_left_tap");
+        mLeftTapActions.add("long_left_press");
+    }
+
+    private void setSwipeActions() {
+        mSwipeActions.add("fling_short_right");
+        mSwipeActions.add("fling_long_right");
+        mSwipeActions.add("fling_right_up");
+        mSwipeActions.add("fling_short_left");
+        mSwipeActions.add("fling_long_left");
+        mSwipeActions.add("fling_left_up");
+    }
 
     public FlingActionHandler(Context context, View host) {
         mContext = context;
@@ -81,6 +112,9 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
             mActionMap.put(entry.getKey(), action);
         }
         setDoubleTapEnabled();
+        setLeftTapActions();
+        setRightTapActions();
+        setSwipeActions();
     }
 
     public void setKeyguardShowing(boolean showing) {
@@ -166,13 +200,13 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         fireAction(!right_tap.hasNoAction() ? right_tap : left_tap);
     }
 
-    protected void setImeActions(boolean isBackAlt) {
-        mIsBackAlt = isBackAlt;
+    protected void setImeActions(boolean enable) {
+        mUseKbCursors = enable;
         setDoubleTapEnabled();
     }
 
     private void setDoubleTapEnabled() {
-        isDoubleTapEnabled = mIsBackAlt || !((ActionConfig) mActionMap
+        isDoubleTapEnabled = mUseKbCursors || !((ActionConfig) mActionMap
                 .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG))
                 .hasNoAction()
                 || !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG))
@@ -181,7 +215,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onDoubleLeftTap() {
-        if (mIsBackAlt) {
+        if (mUseKbCursors) {
             ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
             return;
         }
@@ -195,7 +229,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onDoubleRightTap() {
-        if (mIsBackAlt) {
+        if (mUseKbCursors) {
             ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT);
             return;
         }
@@ -234,12 +268,45 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     }
 
     @Override
+    public void onDownPreloadRecents(boolean isRight) {
+        mOnTapPreloadedRecents = false;
+        for (String flingAction : (isRight? mRightTapActions : mLeftTapActions)) {
+            ActionConfig action = (ActionConfig) mActionMap.get(flingAction);
+            if (action != null && !action.hasNoAction() && action.isActionRecents()) {
+                ActionHandler.preloadRecentApps();
+                mOnTapPreloadedRecents = true;
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void onScrollPreloadRecents() {
+        mOnSwipePreloadedRecents = false;
+        for (String swipeAction : mSwipeActions) {
+            ActionConfig action = (ActionConfig) mActionMap.get(swipeAction);
+            if (action != null && !action.hasNoAction() && action.isActionRecents() && !mOnTapPreloadedRecents) {
+                ActionHandler.preloadRecentApps();
+                mOnSwipePreloadedRecents = true;
+                return;
+            }
+        }
+    }
+
+    @Override
+    public void onCancelPreloadRecents() {
+        if (mOnTapPreloadedRecents || mOnSwipePreloadedRecents) {
+            ActionHandler.cancelPreloadRecentApps();
+        }
+    }
+
+    @Override
     public Set<Uri> onGetUris() {
         return sUris;
     }
 
     @Override
     public void onChange(Uri uri) {
-        loadConfigs();        
+        loadConfigs(); 
     }
 }

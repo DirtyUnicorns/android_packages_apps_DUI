@@ -71,12 +71,10 @@ public class SmartButtonView extends ImageView {
     private boolean isDoubleTapPending;
     private boolean wasConsumed;
     private boolean mInEditMode;
-    private boolean mScreenPinningEnabled;
     private int mAnimStyle = 0;
     private ObjectAnimator mFlipAnim = null;
     private ButtonConfig mConfig;
     private SmartBarView mHost;
-    View.OnLongClickListener mLongPressBackListener;
 
     static AudioManager mAudioManager;
     static AudioManager getAudioManager(Context context) {
@@ -239,14 +237,6 @@ public class SmartButtonView extends ImageView {
         }
     }
 
-    public void setScreenPinningMode(boolean enabled) {
-        mScreenPinningEnabled = enabled;
-    }
-
-    public void setLongPressBackListener(View.OnLongClickListener longPressBackListener) {
-        mLongPressBackListener = longPressBackListener;
-    }
-
     public void setButtonConfig(ButtonConfig config) {
         mConfig = config;
         setTag(config.getTag());
@@ -343,14 +333,14 @@ public class SmartButtonView extends ImageView {
                     if (hasRecentAction()) {
                         ActionHandler.preloadRecentApps();
                     }
-                    if (hasLongAction() || mScreenPinningEnabled) {
+                    if (hasLongAction()) {
                         removeCallbacks(mCheckLongPress);
                         postDelayed(mCheckLongPress, sLongPressTimeout);
                     }
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
-                if (hasLongAction() || mScreenPinningEnabled) {
+                if (hasLongAction()) {
                     removeCallbacks(mCheckLongPress);
                 }
                 removeCallbacks(mDoubleTapTimeout);
@@ -373,7 +363,7 @@ public class SmartButtonView extends ImageView {
                 if (mSpring != null) {
                     mSpring.setEndValue(0f);
                 }
-                if (hasLongAction() || mScreenPinningEnabled) {
+                if (hasLongAction()) {
                     removeCallbacks(mCheckLongPress);
                 }
                 if (hasDoubleAction()) {
@@ -405,19 +395,12 @@ public class SmartButtonView extends ImageView {
     private void doLongPress() {
         isDoubleTapPending = false;
         wasConsumed = true;
-        if (mScreenPinningEnabled && mLongPressBackListener != null) {
+        if (mConfig != null) {
+            String action = mConfig.getActionConfig(ActionConfig.SECOND).getAction();
+            fireActionIfSecure(action);
             performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
             playSoundEffect(SoundEffectConstants.CLICK);
             sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-            mLongPressBackListener.onLongClick(this);
-        } else {
-            if (mConfig != null) {
-                String action = mConfig.getActionConfig(ActionConfig.SECOND).getAction();
-                fireActionIfSecure(action);
-                performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
-                playSoundEffect(SoundEffectConstants.CLICK);
-                sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_LONG_CLICKED);
-            }
         }
     }
 

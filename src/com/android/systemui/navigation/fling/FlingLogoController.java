@@ -33,6 +33,7 @@ import com.android.systemui.navigation.BaseNavigationBar;
 import com.android.systemui.navigation.fling.FlingLogoView;
 import com.android.systemui.navigation.fling.FlingView;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
+import com.android.systemui.statusbar.policy.KeyButtonDrawable;
 import com.android.internal.utils.du.Config.ActionConfig;
 import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.internal.utils.du.DUActionUtils;
@@ -68,7 +69,7 @@ public class FlingLogoController implements SmartObservable {
     static {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_VISIBLE));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_ANIMATES));
-        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_COLOR));
+        //sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_COLOR));
         sUris.add(Settings.Secure.getUriFor(FLING_LOGO_URI));
     }
 
@@ -79,7 +80,7 @@ public class FlingLogoController implements SmartObservable {
 
     private boolean mLogoEnabled;
     private boolean mAnimateTouchEnabled;
-    private int mLogoColor;
+    private int mLogoColor = -1;
     private int mVisibilityLock;
     private AnimationSet mShow = getSpinAnimation(LOGO_ANIMATE_SHOW);
     private AnimationSet mHide = getSpinAnimation(LOGO_ANIMATE_HIDE);
@@ -194,8 +195,8 @@ public class FlingLogoController implements SmartObservable {
                 Settings.Secure.FLING_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
         boolean spinOnTouch = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
+        /*mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);*/
         mLogoConfig = ButtonConfig.getButton(mContext, FLING_LOGO_URI, true);
         setLogoIcon();
         mLogoView.setLogoColor(mLogoColor);
@@ -212,9 +213,17 @@ public class FlingLogoController implements SmartObservable {
                 Settings.Secure.FLING_LOGO_VISIBLE, 1, UserHandle.USER_CURRENT) == 1;
         mAnimateTouchEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
                 Settings.Secure.FLING_LOGO_ANIMATES, 1, UserHandle.USER_CURRENT) == 1;
-        mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);
+        /*mLogoColor = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_LOGO_COLOR, -1, UserHandle.USER_CURRENT);*/
         mLogoConfig = ButtonConfig.getButton(mContext, FLING_LOGO_URI, true);
+    }
+
+    public void updateLogo(FlingView fv, FlingLogoView lv) {
+        mHost = fv;
+        mContext = fv.getContext();
+        mLogoConfig = ButtonConfig.getButton(mContext, FLING_LOGO_URI, true);
+        setLogoView(lv);
+        setLogoIcon();
     }
 
     void setLogoIcon() {
@@ -239,7 +248,11 @@ public class FlingLogoController implements SmartObservable {
                 return icon;
             }
         }
-        return mHost.mResourceMap.mFlingLogo;
+
+        Drawable light = mHost.mResourceMap.mFlingLogo;
+        Drawable dark = mHost.mResourceMap.mFlingLogoDark;
+        KeyButtonDrawable d = KeyButtonDrawable.create(light, dark);
+        return d;
     }
 
     public static AnimationSet getSpinAnimation(int mode) {

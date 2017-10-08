@@ -16,16 +16,20 @@
 
 package com.android.systemui.navigation.fling;
 
+import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import com.android.systemui.navigation.*;
 import com.android.systemui.navigation.fling.FlingView;
 import com.android.systemui.statusbar.phone.BarTransitions;
+import com.android.systemui.statusbar.phone.LightBarTransitionsController;
 import com.android.systemui.R;
 
 public final class FlingBarTransitions extends BarTransitions {
 
     private final FlingView mView;
     private boolean mLightsOut;
+    private final LightBarTransitionsController mLightTransitionsController;
 
     public FlingBarTransitions(FlingView view) {
         super(view, R.drawable.nav_background);
@@ -34,11 +38,28 @@ public final class FlingBarTransitions extends BarTransitions {
 //                R.color.navigation_bar_background_transparent,
 //                com.android.internal.R.color.battery_saver_mode_color);
         mView = view;
+        mLightTransitionsController = new LightBarTransitionsController(view.getContext(),
+                this::applyDarkIntensity);
     }
 
     public void init() {
         applyModeBackground(-1, getMode(), false /*animate*/);
         applyMode(getMode(), false /*animate*/, true /*force*/);
+    }
+
+    public LightBarTransitionsController getLightTransitionsController() {
+        return mLightTransitionsController;
+    }
+
+    public void applyDarkIntensity(float darkIntensity) {
+        Drawable current = mView.getLogoDrawable(false);
+        if (current != null && current instanceof DarkIntensity) {
+            ((DarkIntensity) current).setDarkIntensity(darkIntensity);
+        }
+        Drawable hidden = mView.getLogoDrawable(true);
+        if (hidden != null && hidden instanceof DarkIntensity) {
+            ((DarkIntensity) hidden).setDarkIntensity(darkIntensity);
+        }
     }
 
     @Override

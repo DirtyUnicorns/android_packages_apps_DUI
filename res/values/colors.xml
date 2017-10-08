@@ -24,6 +24,7 @@
 
     <!-- SmartBar icon colors -->
     <color name="icon_color_default">#fff</color>
+    <color name="icon_color_dark">@android:color/black</color>
     <color name="icon_color_no_action">@color/icon_color_default</color>
     <color name="icon_color_settings_panel">@color/icon_color_default</color>
     <color name="icon_color_notification_panel">@color/icon_color_default</color>
@@ -58,5 +59,8 @@
     <color name="icon_color_editing_smartbar">@color/icon_color_default</color>
     <color name="icon_color_split_screen">@color/icon_color_default</color>
     <color name="icon_color_one_handed_mode">@color/icon_color_default</color>
+
+    <!-- Navigation button ripple color -->
+    <color name="navbutton_ripple_color">#FFFFFFFF</color>
 
 </resources>

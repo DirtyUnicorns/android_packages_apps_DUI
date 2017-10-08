@@ -50,7 +50,6 @@ public class FlingGestureDetector {
      * be easier to extend {@link SimpleOnGestureListener}.
      */
     public interface OnGestureListener {
-
         /**
          * Notified when a tap occurs with the down {@link MotionEvent}
          * that triggered it. This will be triggered immediately for
@@ -95,6 +94,19 @@ public class FlingGestureDetector {
          * @return true if the event is consumed, else false
          */
         boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY);
+
+        /**
+         * Notified when a scroll occurs with the initial on move {@link MotionEvent}
+         * that trigged it.
+         *
+         */
+        boolean onFirstScroll();
+
+        /**
+         * Notified on cancel {@link MotionEvent}
+         *
+         */
+        boolean onCancel();
 
         /**
          * Notified when a long press occurs with the initial on down {@link MotionEvent}
@@ -163,6 +175,7 @@ public class FlingGestureDetector {
      * nothing and return {@code false} for all applicable methods.
      */
     public static class SimpleOnGestureListener implements OnGestureListener, OnDoubleTapListener {
+
         public boolean onSingleTapUp(MotionEvent e) {
             return false;
         }
@@ -172,6 +185,14 @@ public class FlingGestureDetector {
 
         public boolean onScroll(MotionEvent e1, MotionEvent e2,
                 float distanceX, float distanceY) {
+            return false;
+        }
+
+        public boolean onFirstScroll() {
+            return false;
+        }
+
+        public boolean onCancel() {
             return false;
         }
 
@@ -269,11 +290,9 @@ public class FlingGestureDetector {
             case SHOW_PRESS:
                 mListener.onShowPress(mCurrentDownEvent);
                 break;
-                
             case LONG_PRESS:
                 dispatchLongPress();
                 break;
-                
             case TAP:
                 // If the user's finger is still down, do not count it as a tap
                 if (mDoubleTapListener != null) {
@@ -284,7 +303,6 @@ public class FlingGestureDetector {
                     }
                 }
                 break;
-
             default:
                 throw new RuntimeException("Unknown message " + msg); //never
             }
@@ -565,7 +583,7 @@ public class FlingGestureDetector {
             mStillDown = true;
             mInLongPress = false;
             mDeferConfirmSingleTap = false;
-            
+
             if (mIsLongpressEnabled) {
                 mHandler.removeMessages(LONG_PRESS);
                 mHandler.sendEmptyMessageAtTime(LONG_PRESS, mCurrentDownEvent.getDownTime()
@@ -596,6 +614,7 @@ public class FlingGestureDetector {
                     mHandler.removeMessages(TAP);
                     mHandler.removeMessages(SHOW_PRESS);
                     mHandler.removeMessages(LONG_PRESS);
+                    mListener.onFirstScroll();
                 }
                 if (distance > mDoubleTapTouchSlopSquare) {
                     mAlwaysInBiggerTapRegion = false;
@@ -653,6 +672,7 @@ public class FlingGestureDetector {
             break;
 
         case MotionEvent.ACTION_CANCEL:
+            mListener.onCancel();
             cancel();
             break;
         }

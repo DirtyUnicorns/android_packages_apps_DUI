@@ -16,17 +16,21 @@
 
 package com.android.systemui.navigation.smartbar;
 
+import android.graphics.drawable.Drawable;
 import android.view.View;
 
+import com.android.internal.utils.du.DUActionUtils;
 import com.android.systemui.R;
 import com.android.systemui.navigation.*;
 import com.android.systemui.navigation.smartbar.SmartBarView;
 import com.android.systemui.statusbar.phone.BarTransitions;
+import com.android.systemui.statusbar.phone.LightBarTransitionsController;
 
 public final class SmartBarTransitions extends BarTransitions {
     private final SmartBarView mView;
 
     private boolean mLightsOut;
+    private final LightBarTransitionsController mLightTransitionsController;
 
     public SmartBarTransitions(SmartBarView view) {
         super(view, R.drawable.nav_background);
@@ -35,11 +39,17 @@ public final class SmartBarTransitions extends BarTransitions {
 //                R.color.navigation_bar_background_transparent,
 //                com.android.internal.R.color.battery_saver_mode_color);
         mView = view;
+        mLightTransitionsController = new LightBarTransitionsController(view.getContext(),
+                this::applyDarkIntensity);
     }
 
     public void init() {
         applyModeBackground(-1, getMode(), false /*animate*/);
         applyMode(getMode(), false /*animate*/, true /*force*/);
+    }
+
+    public LightBarTransitionsController getLightTransitionsController() {
+        return mLightTransitionsController;
     }
 
     @Override
@@ -52,6 +62,15 @@ public final class SmartBarTransitions extends BarTransitions {
     private void applyMode(int mode, boolean animate, boolean force) {
         // apply to lights out
         applyLightsOut(isLightsOut(mode), animate, force);
+    }
+
+    public void applyDarkIntensity(float darkIntensity) {
+        for (SmartButtonView button : DUActionUtils.getAllChildren(mView, SmartButtonView.class)) {
+            Drawable d = button.getDrawable();
+            if (d != null && d instanceof DarkIntensity) {
+                ((DarkIntensity) d).setDarkIntensity(darkIntensity);
+            }
+        }
     }
 
     private void applyLightsOut(boolean lightsOut, boolean animate, boolean force) {

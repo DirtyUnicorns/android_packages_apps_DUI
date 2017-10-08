@@ -1,6 +1,6 @@
 /**
- * Copyright (C) 2014 The Android Open Source Project
- * Copyright (C) 2016 The DirtyUnicorns Project
+ * Copyright (C) 2016 The Android Open Source Project
+ * Copyright (C) 2017 The DirtyUnicorns Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
@@ -16,23 +16,26 @@
  */
 package com.android.systemui.navigation.smartbar;
 
-import com.android.systemui.navigation.smartbar.SmartBackButtonDrawable;
-
 import android.animation.Animator;
 import android.animation.ObjectAnimator;
-import android.annotation.NonNull;
+import android.annotation.Nullable;
 import android.app.ActivityManager;
 import android.graphics.Canvas;
-import android.graphics.ColorFilter;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.LayerDrawable;
 import android.util.FloatProperty;
 import android.util.Property;
+import android.view.Gravity;
 
-public class SmartBackButtonDrawable extends Drawable {
-    private final Drawable mWrappedDrawable;
+import com.android.systemui.navigation.DarkIntensity;
+import com.android.systemui.navigation.smartbar.SmartBackButtonDrawable;
+
+public class SmartBackButtonDrawable extends LayerDrawable implements DarkIntensity{
     private float mRotation;
     private Animator mCurrentAnimator;
+
+    private final boolean mHasDarkDrawable;
 
     private static final int ANIMATION_DURATION = 200;
     public static final Property<SmartBackButtonDrawable, Float> ROTATION
@@ -48,68 +51,53 @@ public class SmartBackButtonDrawable extends Drawable {
         }
     };
 
-    public SmartBackButtonDrawable(Drawable wrappedDrawable) {
-        mWrappedDrawable = wrappedDrawable;
+    public static SmartBackButtonDrawable create(Drawable lightDrawable,
+            @Nullable Drawable darkDrawable) {
+        if (darkDrawable != null) {
+            return new SmartBackButtonDrawable(
+                    new Drawable[] { lightDrawable.mutate(), darkDrawable.mutate() });
+        } else {
+            return new SmartBackButtonDrawable(new Drawable[] { lightDrawable.mutate() });
+        }
+    }
+
+    private SmartBackButtonDrawable(Drawable[] drawables) {
+        super(drawables);
+        for (int i = 0; i < drawables.length; i++) {
+            setLayerGravity(i, Gravity.CENTER);
+        }
+        mutate();
+        mHasDarkDrawable = drawables.length > 1;
+        setDarkIntensity(0f);
+    }
+
+    @Override
+    public void setDarkIntensity(float intensity) {
+        if (!mHasDarkDrawable) {
+            return;
+        }
+        getDrawable(0).setAlpha((int) ((1 - intensity) * 255f));
+        getDrawable(1).setAlpha((int) (intensity * 255f));
+        invalidateSelf();
     }
 
     @Override
     public void draw(Canvas canvas) {
-        final Rect bounds = mWrappedDrawable.getBounds();
-        final int boundsCenterX = bounds.width() / 2;
-        final int boundsCenterY = bounds.height() / 2;
-
-        canvas.translate(boundsCenterX, boundsCenterY);
-        canvas.rotate(mRotation);
-        canvas.translate(- boundsCenterX, - boundsCenterY);
-
-        mWrappedDrawable.draw(canvas);
-    }
-
-    @Override
-    public void setBounds(Rect bounds) {
-        mWrappedDrawable.setBounds(bounds);
-    }
-
-    @Override
-    public void setBounds(int left, int top, int right, int bottom) {
-        mWrappedDrawable.setBounds(left, top, right, bottom);
-    }
-
-    @Override
-    protected void onBoundsChange(Rect bounds) {
-        mWrappedDrawable.setBounds(bounds);
-    }
-
-    @Override
-    public void setAlpha(int alpha) {
-        mWrappedDrawable.setAlpha(alpha);
-        if (mCurrentAnimator != null) {
-            mCurrentAnimator.end();
+        rotateCanvas(canvas);
+        getDrawable(0).draw(canvas);
+        if (mHasDarkDrawable)  {
+            getDrawable(1).draw(canvas);
         }
     }
 
-    @Override
-    public int getAlpha() {
-        return mWrappedDrawable.getAlpha();
-    }
+    private void rotateCanvas(Canvas c) {
+        final Rect bounds = getDrawable(0).getBounds();
+        final int boundsCenterX = bounds.width() / 2;
+        final int boundsCenterY = bounds.height() / 2;
 
-    @Override
-    public void setColorFilter(ColorFilter cf) {
-    }
-
-    @Override
-    public int getOpacity() {
-        return mWrappedDrawable.getOpacity();
-    }
-
-    @Override
-    public int getIntrinsicWidth() {
-        return mWrappedDrawable.getIntrinsicWidth();
-    }
-
-    @Override
-    public int getIntrinsicHeight() {
-        return mWrappedDrawable.getIntrinsicHeight();
+        c.translate(boundsCenterX, boundsCenterY);
+        c.rotate(mRotation);
+        c.translate(- boundsCenterX, - boundsCenterY);
     }
 
     public void setRotation(float rotation) {

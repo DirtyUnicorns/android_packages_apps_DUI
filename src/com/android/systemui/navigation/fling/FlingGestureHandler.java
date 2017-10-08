@@ -27,7 +27,6 @@ package com.android.systemui.navigation.fling;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.android.systemui.R;
 import com.android.systemui.navigation.fling.FlingGestureDetector.OnGestureListener;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.internal.utils.du.DUActionUtils;
@@ -75,6 +74,12 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         public void onUpRightSwipe();
 
         public void onUpLeftSwipe();
+
+        public void onDownPreloadRecents(boolean isRight);
+
+        public void onScrollPreloadRecents();
+
+        public void onCancelPreloadRecents();
     }
 
     private static Set<Uri> sUris = new HashSet<Uri>();
@@ -166,8 +171,8 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
 
     @Override
     public boolean onDown(MotionEvent e) {
+        boolean isRight = isRightSide(e.getX(), e.getY());
         if (mIsDoubleTapPending) {
-            boolean isRight = isRightSide(e.getX(), e.getY());
             mIsDoubleTapPending = false;
             mWasConsumed = true;
             mHandler.removeCallbacks(mDoubleTapLeftTimeout);
@@ -179,6 +184,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
             }
             return true;
         }
+        mReceiver.onDownPreloadRecents(isRight);
         return false;
     }
 
@@ -214,6 +220,18 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     @Override
     public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
         // TODO Auto-generated method stub
+        return false;
+    }
+
+    @Override
+    public boolean onFirstScroll() {
+        mReceiver.onScrollPreloadRecents();
+        return false;
+    }
+
+    @Override
+    public boolean onCancel() {
+        mReceiver.onCancelPreloadRecents();
         return false;
     }
 
@@ -431,5 +449,4 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
             return mVerticalSwipeOnRight;
         }
     }
-
 }

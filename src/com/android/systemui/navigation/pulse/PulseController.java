@@ -25,7 +25,6 @@
 package com.android.systemui.navigation.pulse;
 
 import com.android.systemui.navigation.pulse.PulseController;
-import com.android.systemui.navigation.utils.MediaMonitor;
 
 import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
@@ -69,7 +68,6 @@ public class PulseController {
 
     private Context mContext;
     private Handler mHandler;
-    private MediaMonitor mMediaMonitor;
     private AudioManager mAudioManager;
     private Renderer mRenderer;
     private VisualizerStreamHandler mStreamHandler;
@@ -86,6 +84,7 @@ public class PulseController {
     private boolean mLeftInLandscape;
     private boolean mScreenPinningEnabled;
     private int mPulseStyle;
+    private boolean mIsMediaPlaying;
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
@@ -202,17 +201,6 @@ public class PulseController {
         PowerManager pm = (PowerManager) mContext.getSystemService(Context.POWER_SERVICE);
         mPowerSaveModeEnabled = pm.isPowerSaveMode();
 
-        mMediaMonitor = new MediaMonitor(mContext) {
-            @Override
-            public void onPlayStateChanged(boolean playing) {
-                doLinkage();
-            }
-            @Override
-            public void areMetadataChanged() {
-                //do nothing
-            }
-        };
-        mMediaMonitor.setListening(true);
         IntentFilter filter = new IntentFilter();
         filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
         filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
@@ -372,10 +360,9 @@ public class PulseController {
      * @return true if all conditions are met to allow link, false if and conditions are not met
      */
     private boolean isAbleToLink() {
-        return mMediaMonitor != null
-                && isPulseEnabled()
+        return isPulseEnabled()
                 && mScreenOn
-                && mMediaMonitor.isAnythingPlaying()
+                && mIsMediaPlaying
                 && !mLinked
                 && !mPowerSaveModeEnabled
                 && !mKeyguardShowing
@@ -433,5 +420,10 @@ public class PulseController {
                 }
             }
         }
+    }
+
+    public void setMediaPlaying(boolean playing) {
+        mIsMediaPlaying = playing;
+        doLinkage();
     }
 }

@@ -28,15 +28,12 @@ import com.android.systemui.navigation.Editor;
 import com.android.systemui.R;
 
 import com.android.internal.utils.du.Config.ActionConfig;
-import com.android.internal.utils.du.DUSystemReceiver;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.PixelFormat;
-import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.Gravity;
@@ -50,14 +47,13 @@ import android.widget.Toast;
 public abstract class BaseEditor implements Editor {
 
     public static final String INTENT_ACTION_EDIT_CLASS = "com.android.settings";
-    public static final String INTENT_ACTION_EDIT_COMPONENT = "com.dirtyunicorns.dutweaks.ActionPickerDialogActivity";
-    public static final String INTENT_ACTION_ICON_PICKER_COMPONENT = "com.dirtyunicorns.dutweaks.IconPickerActivity";
-    public static final String INTENT_ACTION_GALLERY_PICKER_COMPONENT = "com.dirtyunicorns.dutweaks.IconPickerGallery";
+    public static final String INTENT_ACTION_EDIT_COMPONENT = "com.dirtyunicorns.tweaks.ActionPickerDialogActivity";
+    public static final String INTENT_ACTION_ICON_PICKER_COMPONENT = "com.dirtyunicorns.tweaks.IconPickerActivity";
+    public static final String INTENT_ACTION_GALLERY_PICKER_COMPONENT = "com.dirtyunicorns.tweaks.IconPickerGallery";
     public static final String INTENT_ICON_PICKER = "intent_icon_picker";
     public static final String INTENT_GALLERY_PICKER = "intent_gallery_picker";
     public static final String INTENT_ACTION_PICKER = "intent_action_action_picker";
-    public static final String INTENT_NAVBAR_EDIT = "intent_navbar_edit";
-    public static final String EXTRA_NAVBAR_EDIT_RESET_LAYOUT = "extra_navbar_edit_reset_layout";
+    public static final String INTENT_NAVBAR_EDIT_RESET_LAYOUT = "intent_navbar_edit_reset_layout";
     public static int MODE_ON = 1;
     public static int MODE_OFF = 2;
 
@@ -76,60 +72,10 @@ public abstract class BaseEditor implements Editor {
     private boolean mScreenPinningOn;
     private BaseNavigationBar mHost;
 
-    protected DUSystemReceiver mReceiver = new DUSystemReceiver() {
-
-        @Override
-        protected void onSecureReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            if (TextUtils.equals(INTENT_NAVBAR_EDIT, action)) {
-                String doReset = intent.getStringExtra(EXTRA_NAVBAR_EDIT_RESET_LAYOUT);
-                if (doReset != null) {
-                    onResetLayout();
-                } else {
-                    final int mode = mMode;
-                    if (mode == MODE_ON) {
-                        changeEditMode(MODE_OFF);
-                        mHost.setSlippery(true);
-                    } else {
-                        if (isEditorAvailable()) {
-                            changeEditMode(MODE_ON);
-                            mHost.setSlippery(false);
-                        } else {
-                            toastState(69);
-                        }
-                    }
-                }
-            } else if (TextUtils.equals(INTENT_ACTION_PICKER, action)) {
-                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
-                if (result == Activity.RESULT_OK) {
-                    String actionString = intent.getStringExtra("action_string");
-                    ActionConfig config = intent.getParcelableExtra("action_config");
-                    onActionPicked(actionString, config);
-                }
-            } else if (TextUtils.equals(INTENT_ICON_PICKER, action)) {
-                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
-                if (result == Activity.RESULT_OK) {
-                    String iconType = intent.getStringExtra("icon_data_type");
-                    String iconPackage = intent.getStringExtra("icon_data_package");
-                    String iconName = intent.getStringExtra("icon_data_name");
-                    onIconPicked(iconType, iconPackage, iconName);
-                }
-            } else if (TextUtils.equals(INTENT_GALLERY_PICKER, action)) {
-                Log.d("BASEEDITOR", "ICON SELECTED");
-                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
-                if (result == Activity.RESULT_OK) {
-                    String uri = intent.getStringExtra("uri");
-                    onImagePicked(uri);
-                }
-            }
-        }
-    };
-
     public BaseEditor(BaseNavigationBar host) {
         mHost = host;
         mContext = host.getContext();
         mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
-        registerReceiver();
     }
 
     private void toastState(int state) {
@@ -154,31 +100,18 @@ public abstract class BaseEditor implements Editor {
 
         mFrameLayout = new FrameLayout(mContext);
 
-        mWindowManager = (WindowManager) mContext.getSystemService(mContext.WINDOW_SERVICE);
+        mWindowManager = (WindowManager) mContext.getSystemService(Context.WINDOW_SERVICE);
         mWindowManager.addView(mFrameLayout, params);
 
-        LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(mContext.LAYOUT_INFLATER_SERVICE);
+        LayoutInflater layoutInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         layoutInflater.inflate(R.layout.edit_hint, mFrameLayout);
 
         final ImageView imageView = (ImageView) mFrameLayout.findViewById(R.id.imageView);
         imageView.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                mContext.sendBroadcastAsUser(new Intent("intent_navbar_edit"), UserHandle.CURRENT);
+                toggleNavigationEditor();
             }
         });
-    }
-
-    public void registerReceiver() {
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(INTENT_NAVBAR_EDIT);
-        filter.addAction(INTENT_ACTION_PICKER);
-        filter.addAction(INTENT_ICON_PICKER);
-        filter.addAction(INTENT_GALLERY_PICKER);
-        mContext.registerReceiver(mReceiver, filter);
-    }
-
-    public void unregister() {
-        mContext.unregisterReceiver(mReceiver);
     }
 
     protected abstract void onEditModeChanged(int mode);
@@ -196,6 +129,54 @@ public abstract class BaseEditor implements Editor {
     protected void updateResources(Resources res) {}
 
     protected void onResetLayout() {}
+
+    @Override
+    public void dispatchNavigationEditorResults(Intent intent) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (TextUtils.equals(INTENT_NAVBAR_EDIT_RESET_LAYOUT, action)) {
+                onResetLayout();
+            } else if (TextUtils.equals(INTENT_ACTION_PICKER, action)) {
+                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
+                if (result == Activity.RESULT_OK) {
+                    String actionString = intent.getStringExtra("action_string");
+                    ActionConfig config = intent.getParcelableExtra("action_config");
+                    onActionPicked(actionString, config);
+                }
+            } else if (TextUtils.equals(INTENT_ICON_PICKER, action)) {
+                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
+                if (result == Activity.RESULT_OK) {
+                    String iconType = intent.getStringExtra("icon_data_type");
+                    String iconPackage = intent.getStringExtra("icon_data_package");
+                    String iconName = intent.getStringExtra("icon_data_name");
+                    onIconPicked(iconType, iconPackage, iconName);
+                }
+            } else if (TextUtils.equals(INTENT_GALLERY_PICKER, action)) {
+                Log.d("BASEEDITOR", "ICON SELECTED");
+                int result = intent.getIntExtra("result", Activity.RESULT_CANCELED);
+                if (result == Activity.RESULT_OK) {
+                    String uri = intent.getStringExtra("uri");
+                    onImagePicked(uri);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void toggleNavigationEditor() {
+        final int mode = mMode;
+        if (mode == MODE_ON) {
+            changeEditMode(MODE_OFF);
+            mHost.setSlippery(true);
+        } else {
+            if (isEditorAvailable()) {
+                changeEditMode(MODE_ON);
+                mHost.setSlippery(false);
+            } else {
+                toastState(69);
+            }
+        }
+    }
 
     @Override
     public final void changeEditMode(int mode) {

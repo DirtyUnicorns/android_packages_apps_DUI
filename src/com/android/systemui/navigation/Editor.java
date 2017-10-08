@@ -21,6 +21,8 @@
 
 package com.android.systemui.navigation;
 
+import android.content.Intent;
+
 public interface Editor {
     public abstract void onCommitChanges();
     public void changeEditMode(int mode);
@@ -29,4 +31,6 @@ public interface Editor {
     public void setKeyguardShowing(boolean showing);
     public void notifyScreenOn(boolean screenOn);
     public void screenPinningStateChanged(boolean enabled);
+    public void toggleNavigationEditor();
+    public void dispatchNavigationEditorResults(Intent intent);
 }

@@ -27,7 +27,7 @@ import java.util.Set;
 
 import com.android.systemui.R;
 import com.android.systemui.navigation.BaseNavigationBar;
-import com.android.systemui.navigation.NavigationController.NavbarOverlayResources;
+import com.android.systemui.navigation.NavbarOverlayResources;
 import com.android.systemui.navigation.fling.FlingActionHandler;
 import com.android.systemui.navigation.fling.FlingBarTransitions;
 import com.android.systemui.navigation.fling.FlingGestureDetector;
@@ -37,9 +37,11 @@ import com.android.systemui.navigation.fling.FlingLogoView;
 import com.android.systemui.navigation.fling.FlingRipple;
 import com.android.systemui.navigation.fling.FlingTrails;
 import com.android.systemui.navigation.fling.FlingView;
+import com.android.systemui.navigation.pulse.PulseController;
 import com.android.systemui.navigation.utils.SmartObserver.SmartObservable;
 import com.android.systemui.statusbar.phone.BarTransitions;
-import com.android.systemui.statusbar.phone.PhoneStatusBar;
+import com.android.systemui.statusbar.phone.LightBarTransitionsController;
+import com.android.systemui.statusbar.phone.StatusBar;
 import com.android.internal.utils.du.ActionConstants;
 
 import android.animation.Animator;
@@ -49,6 +51,7 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -78,6 +81,8 @@ public class FlingView extends BaseNavigationBar {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_ENABLED));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_COLOR));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_TRAILS_WIDTH));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_KEYBOARD_CURSORS));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.FLING_LOGO_OPACITY));
     }
 
     private FlingActionHandler mActionHandler;
@@ -86,9 +91,11 @@ public class FlingView extends BaseNavigationBar {
     private final FlingBarTransitions mBarTransitions;
     private FlingLogoController mLogoController;
     private boolean mRippleEnabled;
-    private PowerManager mPm;
     private FlingRipple mRipple;
     private FlingTrails mTrails;
+    private boolean mKeyboardCursors;
+    private float mLogoOpacity;
+    private boolean mIsNotificationPanelExpanded;
 
     private int mNavigationIconHints = 0;
 
@@ -104,7 +111,7 @@ public class FlingView extends BaseNavigationBar {
         }
     };
 
-    private static final class FlingGestureDetectorPriv extends FlingGestureDetector {
+    public static final class FlingGestureDetectorPriv extends FlingGestureDetector {
         static final int LP_TIMEOUT = 250;
         // no more than default timeout
         static final int LP_TIMEOUT_MAX = LP_TIMEOUT;
@@ -132,17 +139,19 @@ public class FlingView extends BaseNavigationBar {
         }
     }
 
+    @Override
+    public void setNotificationPanelExpanded(boolean expanded) {
+        mIsNotificationPanelExpanded = expanded;
+    }
+
     private final OnTouchListener mFlingTouchListener = new OnTouchListener() {
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             final int action = event.getAction();
-            if (mUserAutoHideListener != null) {
-                mUserAutoHideListener.onTouch(FlingView.this, event);
-            }
             if (action == MotionEvent.ACTION_DOWN) {
 //                mPm.cpuBoost(1000 * 1000);
                 mLogoController.onTouchHide(null);
-                setSlippery(false);
+                setSlippery(mIsNotificationPanelExpanded ? true : false);
             } else if (action == MotionEvent.ACTION_UP
                     || action == MotionEvent.ACTION_CANCEL) {
                 mLogoController.onTouchShow(null);
@@ -164,7 +173,6 @@ public class FlingView extends BaseNavigationBar {
         mActionHandler = new FlingActionHandler(context, this);
         mGestureHandler = new FlingGestureHandler(context, mActionHandler, this, BaseNavigationBar.sIsTablet);
         mGestureDetector = new FlingGestureDetectorPriv(context, mGestureHandler);
-        setOnTouchListener(mFlingTouchListener);
 
         // CM bases: turn this on for an extra bump ;D
         //mPm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
@@ -179,20 +187,23 @@ public class FlingView extends BaseNavigationBar {
         mSmartObserver.addListener(mObservable);
     }
 
-    private final AnimationListener mPulseOnListener = new AnimationListener() {
-        @Override
-        public void onAnimationStart(Animation animation) {
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (getParent() != null) {
+            final View v = (View)getParent();
+            v.setOnTouchListener(mFlingTouchListener);
         }
+    }
 
-        @Override
-        public void onAnimationEnd(Animation animation) {
-            mPulse.turnOnPulse();
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (getParent() != null) {
+            final View v = (View)getParent();
+            v.setOnTouchListener(null);
         }
-
-        @Override
-        public void onAnimationRepeat(Animation animation) {
-        }
-    };
+    }
 
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
@@ -219,9 +230,9 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void onStopPulse(Animation animatePulseOut) {
         if (mLogoController.isEnabled()) {
-            getLogoView(getHiddenView()).setAlpha(1.0f);
+            getLogoView(getHiddenView()).setAlpha(mLogoOpacity);
             getLogoView(getCurrentView()).animate()
-                    .alpha(1.0f)
+                    .alpha(mLogoOpacity)
                     .setDuration(PULSE_FADE_IN_DURATION)
                     .start();
         }
@@ -230,6 +241,11 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public BarTransitions getBarTransitions() {
         return mBarTransitions;
+    }
+
+    @Override
+    public LightBarTransitionsController getLightTransitionsController() {
+        return mBarTransitions.getLightTransitionsController();
     }
 
     private FlingLogoView getFlingLogo() {
@@ -251,7 +267,7 @@ public class FlingView extends BaseNavigationBar {
     @Override
     public void setResourceMap(NavbarOverlayResources resourceMap) {
         super.setResourceMap(resourceMap);
-        mLogoController.setLogoIcon();
+        mLogoController.updateLogo(FlingView.this, getFlingLogo());
         updateFlingSettings();
     }
 
@@ -284,7 +300,10 @@ public class FlingView extends BaseNavigationBar {
     public void updateNavbarThemedResources(Resources res) {
 //        mRipple.updateResources(res);
         super.updateNavbarThemedResources(res);
+        final FlingLogoView logo = getFlingLogo();
+        mLogoController.setLogoView(logo);
         mLogoController.setLogoIcon();
+        setLogoOpacity();
     }
 
     private void updateFlingSettings() {
@@ -296,7 +315,19 @@ public class FlingView extends BaseNavigationBar {
                 Settings.Secure.FLING_LONGPRESS_TIMEOUT, FlingGestureDetectorPriv.LP_TIMEOUT_MAX, UserHandle.USER_CURRENT);
         mGestureDetector.setLongPressTimeout(lpTimeout);
         mRippleEnabled = Settings.Secure.getIntForUser(mContext.getContentResolver(),
-                Settings.Secure.FLING_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;  
+                Settings.Secure.FLING_RIPPLE_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+        mKeyboardCursors = Settings.Secure.getIntForUser(mContext.getContentResolver(),
+                Settings.Secure.FLING_KEYBOARD_CURSORS, 1, UserHandle.USER_CURRENT) == 1;
+        setLogoOpacity();
+    }
+
+    private void setLogoOpacity() {
+        mLogoOpacity = alphaIntToFloat(Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.FLING_LOGO_OPACITY, 255, UserHandle.USER_CURRENT));
+        if (mLogoController.isEnabled()) {
+            getLogoView(getCurrentView()).setAlpha(isBarPulseFaded() ? PULSE_LOGO_OPACITY : mLogoOpacity);
+            getLogoView(getHiddenView()).setAlpha(isBarPulseFaded() ? PULSE_LOGO_OPACITY : mLogoOpacity);
+        }
     }
 
     @Override
@@ -306,10 +337,7 @@ public class FlingView extends BaseNavigationBar {
         final FlingLogoView logo = getFlingLogo();
         mLogoController.setLogoView(logo);
         mLogoController.setLogoIcon();
-        if (isBarPulseFaded() && mLogoController.isEnabled()) {
-            getLogoView(getCurrentView()).setAlpha(PULSE_LOGO_OPACITY);
-            getLogoView(getHiddenView()).setAlpha(PULSE_LOGO_OPACITY);
-        }
+        setLogoOpacity();
         setDisabledFlags(mDisabledFlags, true /* force */);
     }
 
@@ -327,12 +355,11 @@ public class FlingView extends BaseNavigationBar {
         super.notifyScreenOn(screenOn);
 
         if (mLogoController.isEnabled()) {
-            final float fadeAlpha = 1.0f;
             ImageView currentLogo = getLogoView(getCurrentView());
             ImageView hiddenLogo = getLogoView(getHiddenView());
-            if (screenOn && (currentLogo.getAlpha() != fadeAlpha || hiddenLogo.getAlpha() != fadeAlpha)) {
-                currentLogo.setAlpha(fadeAlpha);
-                hiddenLogo.setAlpha(fadeAlpha);
+            if (screenOn && (currentLogo.getAlpha() != mLogoOpacity || hiddenLogo.getAlpha() != mLogoOpacity)) {
+                currentLogo.setAlpha(mLogoOpacity);
+                hiddenLogo.setAlpha(mLogoOpacity);
             }
         }
     }
@@ -341,6 +368,10 @@ public class FlingView extends BaseNavigationBar {
         final ViewGroup viewGroup = (ViewGroup) v;
         ImageView logoView = (ImageView)viewGroup.findViewById(R.id.fling_console);
         return logoView;
+    }
+
+    public Drawable getLogoDrawable(boolean hiddenView) {
+        return getLogoView(hiddenView ? getHiddenView() : getCurrentView()).getDrawable();
     }
 
     @Override
@@ -363,7 +394,7 @@ public class FlingView extends BaseNavigationBar {
 
         final boolean backAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
         mNavigationIconHints = hints;
-        mActionHandler.setImeActions(backAlt);
+        mActionHandler.setImeActions(backAlt && mKeyboardCursors);
     }
 
     @Override
@@ -379,5 +410,18 @@ public class FlingView extends BaseNavigationBar {
 
     @Override
     protected void onDispose() {
+        //unsetListeners();
+        removeAllViews();
+    }
+
+    /*private void unsetListeners() {
+    }*/
+
+    @Override
+    public void setMediaPlaying(boolean playing) {
+        PulseController mPulse = getPulseController();
+        if (mPulse != null) {
+            mPulse.setMediaPlaying(playing);
+        }
     }
 }
