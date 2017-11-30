@@ -206,7 +206,7 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
 
     public Editor getEditor() { return null; }
 
-    public boolean isInEditMode() { return false; }
+    //public boolean isInEditMode() { return false; }
 
     public void onRecreateStatusbar() {}
 

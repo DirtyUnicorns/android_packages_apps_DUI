@@ -122,7 +122,7 @@ public interface Navigator extends PluginListener<NavGesture> {
     public default void setControllers(PulseController pulseController) {}
 
     // if bar uses custom editor, is it on?
-    public default boolean isInEditMode() { return false; }
+    //public default boolean isInEditMode() { return false; }
 
     // get our editor and pipe commands directly to it
     public default Editor getEditor() { return null; }

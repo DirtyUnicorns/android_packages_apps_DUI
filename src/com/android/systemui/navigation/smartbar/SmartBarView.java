@@ -41,6 +41,7 @@ import android.os.Handler;
 import android.os.UserHandle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
@@ -100,6 +101,7 @@ public class SmartBarView extends BaseNavigationBar {
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_BUTTONS_OPACITY));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.SMARTBAR_LONGPRESS_DELAY));
         sUris.add(Settings.Secure.getUriFor(Settings.Secure.SMARTBAR_CUSTOM_ICON_SIZE));
+        sUris.add(Settings.Secure.getUriFor(Settings.Secure.SMARTBAR_DOUBLETAP_SLEEP));
     }
 
     private SmartObservable mObservable = new SmartObservable() {
@@ -127,6 +129,8 @@ public class SmartBarView extends BaseNavigationBar {
                 updateCustomIconSize();
                 updateCurrentIcons();
                 reapplyDarkIntensity();
+            } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.SMARTBAR_DOUBLETAP_SLEEP))) {
+                updateNavDoubletapSetting();
             }
         }
     };
@@ -147,10 +151,13 @@ public class SmartBarView extends BaseNavigationBar {
     private float mCustomAlpha;
     private float mCustomIconScale;
     public float mPulseNavButtonsOpacity;
+    private boolean isNavDoubleTapEnabled;
 
     private boolean mIsMediaPlaying;
 
     private AudioManager mAudioManager;
+
+    private GestureDetector mNavDoubleTapToSleep;
 
     @Override
     public void onReceive(Intent intent) {
@@ -188,6 +195,41 @@ public class SmartBarView extends BaseNavigationBar {
 
         mAudioManager = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         mMusicStreamMuted = isMusicMuted(AudioManager.STREAM_MUSIC);
+
+        mNavDoubleTapToSleep = new GestureDetector(context,
+                new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDoubleTap(MotionEvent e) {
+                ActionHandler.performTask(context, ActionHandler.SYSTEMUI_TASK_SCREENOFF);
+                return true;
+            }
+        });
+    }
+
+    private final OnTouchListener mSmartBarTouchListener = new OnTouchListener() {
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            return isNavDoubleTapEnabled && !mEditor.isInEditMode()
+                    ? mNavDoubleTapToSleep.onTouchEvent(event) : true;
+        }
+    };
+
+    @Override
+    public void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (getParent() != null) {
+            final View v = (View)getParent();
+            v.setOnTouchListener(mSmartBarTouchListener);
+        }
+    }
+
+    @Override
+    public void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        if (getParent() != null) {
+            final View v = (View)getParent();
+            v.setOnTouchListener(null);
+        }
     }
 
     @Override
@@ -227,6 +269,7 @@ public class SmartBarView extends BaseNavigationBar {
         updateImeHintModeSettings();
         updateContextLayoutSettings();
         updateButtonLongpressDelay();
+        updateNavDoubletapSetting();
     }
 
     @Override
@@ -241,16 +284,12 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onInflateFromUser() {
-        if (mEditor != null) {
-            mEditor.notifyScreenOn(mScreenOn);
-        }
+        mEditor.notifyScreenOn(mScreenOn);
     }
 
     @Override
     public void onRecreateStatusbar() {
-        if (mEditor != null) {
-            mEditor.updateResources(null);
-        }
+        mEditor.updateResources(null);
         updateCurrentIcons();
     }
 
@@ -366,9 +405,7 @@ public class SmartBarView extends BaseNavigationBar {
     public void setNavigationIconHints(int hints, boolean force) {
         if (!force && hints == mNavigationIconHints)
             return;
-        if (mEditor != null) {
-            mEditor.changeEditMode(BaseEditor.MODE_OFF);
-        }
+        mEditor.changeEditMode(BaseEditor.MODE_OFF);
         final boolean backAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
 
         mNavigationIconHints = hints;
@@ -412,9 +449,7 @@ public class SmartBarView extends BaseNavigationBar {
     @Override
     public void setDisabledFlags(int disabledFlags, boolean force) {
         super.setDisabledFlags(disabledFlags, force);
-        if (mEditor != null) {
-            mEditor.changeEditMode(BaseEditor.MODE_OFF);
-        }
+        mEditor.changeEditMode(BaseEditor.MODE_OFF);
 
         final boolean disableHome = ((disabledFlags & View.STATUS_BAR_DISABLE_HOME) != 0);
         final boolean disableRecent = ((disabledFlags & View.STATUS_BAR_DISABLE_RECENT) != 0);
@@ -452,9 +487,7 @@ public class SmartBarView extends BaseNavigationBar {
     @Override
     public void notifyScreenOn(boolean screenOn) {
         super.notifyScreenOn(screenOn);
-        if (mEditor != null) {
-            mEditor.notifyScreenOn(screenOn);
-        }
+        mEditor.notifyScreenOn(screenOn);
         ViewGroup hidden = (ViewGroup) getHiddenView().findViewWithTag(Res.Common.NAV_BUTTONS);
         for (String buttonTag : mCurrentSequence) {
             SmartButtonView v = findCurrentButton(buttonTag);
@@ -479,9 +512,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     protected void onKeyguardShowing(boolean showing) {
-        if (mEditor != null) {
-            mEditor.setKeyguardShowing(showing);
-        }
+        mEditor.setKeyguardShowing(showing);
         // TODO: temp hax to address package manager not having activity icons ready yet
         // this is new to N, likely part of new optimized boot time. In theory, activity
         // icons should be ready by the time lockscreen goes away. We will be stuck with this
@@ -517,9 +548,7 @@ public class SmartBarView extends BaseNavigationBar {
     public void setMenuVisibility(final boolean show, final boolean force) {
         if (!force && mShowMenu == show)
             return;
-        if (mEditor != null) {
-            mEditor.changeEditMode(BaseEditor.MODE_OFF);
-        }
+        mEditor.changeEditMode(BaseEditor.MODE_OFF);
         mShowMenu = show;
 
         // Only show Menu if IME switcher not shown.
@@ -554,14 +583,10 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     public void reorient() {
-        if (mEditor != null) {
-            mEditor.prepareToReorient();
-        }
+        mEditor.prepareToReorient();
         super.reorient();
         mBarTransitions.init();
-        if (mEditor != null) {
-            mEditor.reorient(mCurrentView == mRot90);
-        }
+        mEditor.reorient(mCurrentView == mRot90);
         mContextLeft = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_LEFT);
         mContextRight = mCurrentView.findViewWithTag(Res.Softkey.CONTEXT_VIEW_RIGHT);
         mCurrentContext = mHasLeftContext ? mContextLeft : mContextRight;
@@ -624,6 +649,11 @@ public class SmartBarView extends BaseNavigationBar {
         getHiddenContext().findViewWithTag(Res.Softkey.MENU_BUTTON).setVisibility(INVISIBLE);
         getHiddenContext().findViewWithTag(Res.Softkey.IME_SWITCHER).setVisibility(INVISIBLE);
         setNavigationIconHints(mNavigationIconHints, true);
+    }
+
+    private void updateNavDoubletapSetting() {
+        isNavDoubleTapEnabled = Settings.Secure.getIntForUser(getContext().getContentResolver(),
+                Settings.Secure.SMARTBAR_DOUBLETAP_SLEEP, 0, UserHandle.USER_CURRENT) == 1;
     }
 
     void recreateButtonLayout(ArrayList<ButtonConfig> buttonConfigs, boolean landscape,
@@ -800,7 +830,7 @@ public class SmartBarView extends BaseNavigationBar {
 
     @Override
     public boolean onStartPulse(Animation animatePulseIn) {
-        if (mEditor != null && mEditor.getMode() == BaseEditor.MODE_ON) {
+        if (mEditor.getMode() == BaseEditor.MODE_ON) {
             mEditor.changeEditMode(BaseEditor.MODE_OFF);
         }
         final View currentNavButtons = getCurrentView().findViewWithTag(Res.Common.NAV_BUTTONS);

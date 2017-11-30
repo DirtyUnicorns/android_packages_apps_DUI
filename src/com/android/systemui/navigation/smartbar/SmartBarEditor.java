@@ -486,7 +486,7 @@ public class SmartBarEditor extends BaseEditor implements View.OnTouchListener {
         }
     }
 
-    private boolean isInEditMode() {
+    public boolean isInEditMode() {
         return getMode() == MODE_ON;
     }
 
