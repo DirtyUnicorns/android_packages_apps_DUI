@@ -137,6 +137,10 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         mHost.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
         mHost.playSoundEffect(SoundEffectConstants.CLICK);
         ActionHandler.performTask(mContext, theAction);
+        if (mOnTapPreloadedRecents || mOnSwipePreloadedRecents
+                && !action.isActionRecents()) {
+            ActionHandler.cancelPreloadRecentApps();
+        }
     }
 
     @Override
