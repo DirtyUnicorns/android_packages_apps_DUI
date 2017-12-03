@@ -218,6 +218,11 @@ public class SmartBarView extends BaseNavigationBar {
         return mEditor;
     }
 
+    public void setEditMode(boolean on) {
+        Drawable d = mContext.getResources().getDrawable(R.drawable.smartbar_editmode_color);
+        setBackgroundColor(on ? d : null);
+    }
+
     @Override
     public void setResourceMap(NavbarOverlayResources resourceMap) {
         super.setResourceMap(resourceMap);
