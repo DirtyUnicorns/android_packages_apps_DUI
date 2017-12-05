@@ -55,7 +55,7 @@ public interface Navigator extends PluginListener<NavGesture> {
     public default void setComponents(RecentsComponent recentsComponent, Divider divider) {}
     public default void setOnVerticalChangedListener(OnVerticalChangedListener onVerticalChangedListener) {}
     public default void abortCurrentGesture() {}
-    public default void notifyScreenOn(boolean screenOn) {}
+    public default void notifyScreenOn() {}
     public default void setNavigationIconHints(int hints) {}
     public default void setDisabledFlags(int disabledFlags) {}
     public default void setDisabledFlags(int disabledFlags, boolean force) {}
