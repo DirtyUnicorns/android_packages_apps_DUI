@@ -290,13 +290,10 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
                 DUActionUtils.PACKAGE_SYSTEMUI);
     }
 
-    public void setForgroundColor(Drawable drawable) {
-        if (mRot0 != null) {
-            mRot0.setForeground(drawable);
-        }
-        if (mRot90 != null) {
-            mRot90.setForeground(drawable);
-        }
+    public void setBackgroundColor(Drawable drawable) {
+        setBackground(drawable != null ? drawable
+                : !BarTransitions.HIGH_END ? getContext().getDrawable(R.drawable.system_bar_background)
+                : null);
     }
 
     public void setLeftInLandscape(boolean leftInLandscape) {
