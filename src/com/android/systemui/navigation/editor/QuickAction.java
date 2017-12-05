@@ -52,6 +52,8 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
     private int mInsertPos;
     private int rootWidth = 0;
     private int mAnimStyle;
+    private int mXpos = 0;
+    private int mBtop;
 
     public static final int HORIZONTAL = 0;
     public static final int VERTICAL = 1;
@@ -155,6 +157,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 
         final int pos = mChildPos;
         final int actionId = action.getActionId();
+        final boolean isActionSticky = action.isSticky();
 
         container.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -162,7 +165,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
                     mItemClickListener.onItemClick(QuickAction.this, pos, actionId);
                 }
 
-                if (!getActionItem(pos).isSticky()) {
+                if (!isActionSticky) {
                     mDidAction = true;
                     dismiss();
                 }
@@ -176,6 +179,13 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 
         mChildPos++;
         mInsertPos++;
+    }
+
+    public void clearViews() {
+        actionItems.clear();
+        mTrack.removeAllViews();
+        mChildPos = 0;
+        mInsertPos = 0;
     }
 
     /**
@@ -227,6 +237,7 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
         }
 
         int dyTop = anchorRect.top;
+        mBtop = dyTop;
         int dyBottom = screenHeight - anchorRect.bottom;
 
         boolean onTop = (dyTop > dyBottom) ? true : false;
@@ -252,6 +263,15 @@ public class QuickAction extends PopupWindows implements OnDismissListener {
 
         setAnimationStyle(screenWidth, anchorRect.centerX());
         mWindow.showAtLocation(anchor, Gravity.NO_GRAVITY, xPos, yPos);
+        mXpos = xPos;
+    }
+
+    public int getNavButtonTopY() {
+        return mBtop;
+    }
+
+    public int getXpos() {
+        return mXpos;
     }
 
     /**
