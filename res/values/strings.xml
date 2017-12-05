@@ -78,4 +78,8 @@
     <!-- App killed message -->
     <string name="app_killed_message">%s killed</string>
 
+    <!-- Pulse and media arrows blacklist -->
+    <string name="navMediaArrowsExcludeList" translatable="false">
+        chrome,youtube,netflix,firefox,dolphin,opera,browser
+    </string>
 </resources>
