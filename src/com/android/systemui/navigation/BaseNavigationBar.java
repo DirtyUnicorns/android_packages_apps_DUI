@@ -45,16 +45,21 @@ import com.facebook.rebound.SpringSystem;
 
 import android.animation.LayoutTransition;
 import android.app.StatusBarManager;
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.Display;
@@ -138,6 +143,29 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         }
     }
 
+    private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (mPulse != null) {
+                mPulse.onReceive(intent);
+            }
+            onReceivedIntent(intent);
+        }
+    };
+
+    private void onReceivedIntent(Intent intent) {
+        if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+            notifyScreenOn(true);
+        } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+            notifyScreenOn(false);
+        } else {
+            onReceive(intent);
+        }
+    }
+
+    public void onReceive(Intent intent) {
+    }
+
     public BaseNavigationBar(Context context) {
         this(context, null);
     }
@@ -151,6 +179,13 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         mSmartObserver = new SmartObserver(mHandler, context.getContentResolver());
         mSpringSystem = SpringSystem.create();
         sIsTablet = !DUActionUtils.navigationBarCanMove();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(AudioManager.STREAM_MUTE_CHANGED_ACTION);
+        filter.addAction(AudioManager.VOLUME_CHANGED_ACTION);
+        filter.addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGING);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        context.registerReceiver(mReceiver, filter);
     }
 
     // require implementation. Surely they have something to clean up
@@ -367,6 +402,11 @@ public abstract class BaseNavigationBar extends LinearLayout implements Navigato
         }
         flushSpringSystem();
         onDispose();
+        unsetListeners();
+    }
+
+    private void unsetListeners() {
+        getContext().unregisterReceiver(mReceiver);
     }
 
     private void notifyVerticalChangedListener(boolean newVertical) {
