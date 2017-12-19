@@ -64,6 +64,10 @@ public final class SmartBarTransitions extends BarTransitions {
         applyLightsOut(isLightsOut(mode), animate, force);
     }
 
+    public void reapplyDarkIntensity() {
+        applyDarkIntensity(mLightTransitionsController.getCurrentDarkIntensity());
+    }
+
     public void applyDarkIntensity(float darkIntensity) {
         for (SmartButtonView button : DUActionUtils.getAllChildren(mView, SmartButtonView.class)) {
             Drawable d = button.getDrawable();

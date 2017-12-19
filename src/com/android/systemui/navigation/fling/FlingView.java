@@ -339,6 +339,7 @@ public class FlingView extends BaseNavigationBar {
         mLogoController.setLogoIcon();
         setLogoOpacity();
         setDisabledFlags(mDisabledFlags, true /* force */);
+        setNavigationIconHints(mNavigationIconHints, true);
     }
 
     boolean isBarPulseFaded() {
@@ -387,14 +388,20 @@ public class FlingView extends BaseNavigationBar {
     }
 
     @Override
-    public void setNavigationIconHints(int hints) {
-        if (hints == mNavigationIconHints) {
+    public void setNavigationIconHints(int hints, boolean force) {
+        if (!force && hints == mNavigationIconHints)
             return;
-        }
 
         final boolean backAlt = (hints & StatusBarManager.NAVIGATION_HINT_BACK_ALT) != 0;
         mNavigationIconHints = hints;
         mActionHandler.setImeActions(backAlt && mKeyboardCursors);
+
+        mBarTransitions.reapplyDarkIntensity();
+    }
+
+    @Override
+    public void setNavigationIconHints(int hints) {
+        setNavigationIconHints(hints, false);
     }
 
     @Override

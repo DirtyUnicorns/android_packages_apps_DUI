@@ -51,6 +51,10 @@ public final class FlingBarTransitions extends BarTransitions {
         return mLightTransitionsController;
     }
 
+    public void reapplyDarkIntensity() {
+        applyDarkIntensity(mLightTransitionsController.getCurrentDarkIntensity());
+    }
+
     public void applyDarkIntensity(float darkIntensity) {
         Drawable current = mView.getLogoDrawable(false);
         if (current != null && current instanceof DarkIntensity) {
