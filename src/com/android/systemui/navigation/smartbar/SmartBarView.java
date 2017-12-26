@@ -126,6 +126,7 @@ public class SmartBarView extends BaseNavigationBar {
             } else if (uri.equals(Settings.Secure.getUriFor(Settings.Secure.SMARTBAR_CUSTOM_ICON_SIZE))) {
                 updateCustomIconSize();
                 updateCurrentIcons();
+                reapplyDarkIntensity();
             }
         }
     };
@@ -401,6 +402,10 @@ public class SmartBarView extends BaseNavigationBar {
         setMenuVisibility(mShowMenu, true);
         setDisabledFlags(mDisabledFlags, true);
 
+        reapplyDarkIntensity();
+    }
+
+    private void reapplyDarkIntensity() {
         mBarTransitions.reapplyDarkIntensity();
     }
 
