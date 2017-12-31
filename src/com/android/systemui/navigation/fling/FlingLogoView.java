@@ -57,11 +57,11 @@ public class FlingLogoView extends ImageView {
 
     public void setLogoColor(int color) {
         mLogoColor = color;
-        if (color == -1) {
+        /*if (color == -1) {
             getDrawable().setColorFilter(null);
         } else {
             Drawable logo = getDrawable();
             logo.setColorFilter(color, Mode.SRC_ATOP);
-        }
+        }*/
     }
 }

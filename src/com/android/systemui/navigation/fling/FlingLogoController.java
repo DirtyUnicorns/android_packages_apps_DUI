@@ -39,6 +39,13 @@ import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.internal.utils.du.DUActionUtils;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.graphics.PaintFlagsDrawFilter;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.UserHandle;
@@ -240,19 +247,42 @@ public class FlingLogoController implements SmartObservable {
     }
 
     Drawable getCurrentDrawable() {
-        if (mLogoConfig.hasCustomIcon()) {
-            Drawable icon = mLogoConfig
-                    .getActionConfig(ActionConfig.PRIMARY)
-                    .getCurrentCustomIcon(mContext);
-            if (icon != null) {
-                return icon;
-            }
+        KeyButtonDrawable d = null;
+        Drawable light = null;
+        Drawable dark = null;
+        if (mLogoConfig.hasCustomIcon() &&
+                getConfigCustomIcon() != null) {
+            light = getBitmapDrawable(mContext, getConfigCustomIcon()).mutate();
+            dark = getBitmapDrawable(mContext, getConfigCustomIcon()).mutate();
+            dark.setColorFilter(new PorterDuffColorFilter(0x4D353535, PorterDuff.Mode.SRC_ATOP));
+            d = KeyButtonDrawable.create(light, dark);
+            return d;
         }
-
-        Drawable light = mHost.mResourceMap.mFlingLogo;
-        Drawable dark = mHost.mResourceMap.mFlingLogoDark;
-        KeyButtonDrawable d = KeyButtonDrawable.create(light, dark);
+        light = mHost.mResourceMap.mFlingLogo;
+        dark = mHost.mResourceMap.mFlingLogoDark;
+        d = KeyButtonDrawable.create(light, dark);
         return d;
+    }
+
+    // Helper to flatten AdaptiveIconDrawable layers to a single drawable
+    private static BitmapDrawable getBitmapDrawable(Context ctx, Drawable d) {
+        if (d instanceof BitmapDrawable) {
+            return (BitmapDrawable) d;
+        }
+        final Canvas canvas = new Canvas();
+        canvas.setDrawFilter(new PaintFlagsDrawFilter(Paint.ANTI_ALIAS_FLAG,
+                Paint.FILTER_BITMAP_FLAG));
+
+        Bitmap bmResult = Bitmap.createBitmap(d.getIntrinsicWidth(), d.getIntrinsicHeight(),
+                Bitmap.Config.ARGB_8888);
+        canvas.setBitmap(bmResult);
+        d.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+        d.draw(canvas);
+        return new BitmapDrawable(ctx.getResources(), bmResult);
+    }
+
+    private Drawable getConfigCustomIcon() {
+        return mLogoConfig.getActionConfig(ActionConfig.PRIMARY).getCurrentCustomIcon(mContext);
     }
 
     public static AnimationSet getSpinAnimation(int mode) {
