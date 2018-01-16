@@ -70,6 +70,7 @@ public final class SmartBarTransitions extends BarTransitions {
 
     public void applyDarkIntensity(float darkIntensity) {
         for (SmartButtonView button : DUActionUtils.getAllChildren(mView, SmartButtonView.class)) {
+            button.setRippleDarkIntensity(darkIntensity);
             Drawable d = button.getDrawable();
             if (d != null && d instanceof DarkIntensity) {
                 ((DarkIntensity) d).setDarkIntensity(darkIntensity);

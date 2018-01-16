@@ -76,6 +76,8 @@ public class SmartButtonView extends ImageView {
     private ButtonConfig mConfig;
     private SmartBarView mHost;
 
+    private boolean mIsRippleEnabled;
+
     static AudioManager mAudioManager;
     static AudioManager getAudioManager(Context context) {
         if (mAudioManager == null)
@@ -188,9 +190,15 @@ public class SmartButtonView extends ImageView {
     }
 
     private void setRippleEnabled(boolean enabled) {
+        mIsRippleEnabled = enabled;
         if (getBackground() != null && getBackground() instanceof SmartButtonRipple) {
-            SmartButtonRipple background = (SmartButtonRipple) getBackground();
-            background.setEnabled(enabled);
+            ((SmartButtonRipple) getBackground()).setEnabled(enabled);
+        }
+    }
+
+    public void setRippleDarkIntensity(float darkIntensity) {
+        if (mIsRippleEnabled && getBackground() != null && getBackground() instanceof SmartButtonRipple) {
+            ((SmartButtonRipple) getBackground()).setDarkIntensity(darkIntensity);
         }
     }
 
