@@ -34,6 +34,7 @@ import android.os.UserHandle;
 import android.provider.Settings;
 import android.util.TypedValue;
 
+import com.android.internal.util.NotificationColorUtil;
 import com.android.systemui.R;
 import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
 import com.android.systemui.navigation.utils.ColorAnimator;
@@ -51,6 +52,8 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private float magnitude;
     private int mDivisions;
     private int mUserColor;
+    private int mAlbumColor = -1;
+    private boolean mAutoColor;
     private int mDbFuzzFactor;
     private int mDbFuzz;
     private int mPathEffect1;
@@ -149,7 +152,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {
-        mPaint.setColor(applyPaintAlphaToColor(mUserColor));
+        mPaint.setColor(applyPaintAlphaToColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor));
     }
 
     @Override
@@ -221,6 +224,10 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     Settings.Secure.getUriFor(Settings.Secure.PULSE_CUSTOM_FUDGE_FACTOR), false,
                     this,
                     UserHandle.USER_ALL);
+            resolver.registerContentObserver(
+                    Settings.Secure.getUriFor(Settings.Secure.PULSE_AUTO_COLOR), false,
+                    this,
+                    UserHandle.USER_ALL);
         }
 
         @Override
@@ -231,14 +238,20 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         public void updateSettings() {
             ContentResolver resolver = mContext.getContentResolver();
             final Resources res = mContext.getResources();
-            mLavaLampEnabled = Settings.Secure.getIntForUser(resolver,
+
+            mAutoColor = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.PULSE_AUTO_COLOR, 0,
+                    UserHandle.USER_CURRENT) == 1;
+
+            mLavaLampEnabled = !mAutoColor && Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_LAVALAMP_ENABLED, 1, UserHandle.USER_CURRENT) == 1;
+
             mUserColor = Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_COLOR,
                     mContext.getResources().getColor(R.color.config_pulseFillColor),
                     UserHandle.USER_CURRENT);
             if (!mLavaLampEnabled) {
-                mPaint.setColor(applyPaintAlphaToColor(mUserColor));
+                mPaint.setColor(applyPaintAlphaToColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor));
             }
             int time = Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, 10000,
@@ -282,7 +295,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
                 Math.max(min, Math.min(max, val)), res.getDisplayMetrics());
     }
-    
+
     private static int validateDivision(int val) {
         // if a bad value was passed from settings (not divisible by 2)
         // reset to default value of 16. Validate range.
@@ -290,5 +303,19 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             val = 16;
         }
         return Math.max(2, Math.min(44, val));
+    }
+
+    public void setColors(boolean colorizedMedia, int[] colors) {
+        if (colorizedMedia) {
+            // be sure the color will always have an acceptable contrast against black navbar
+            mAlbumColor = NotificationColorUtil.findContrastColorAgainstDark(colors[0], 0x000000, true, 2);
+            // now be sure the color will always have an acceptable contrast against white navbar
+            mAlbumColor = NotificationColorUtil.findContrastColor(mAlbumColor, 0xffffff, true, 2);
+        } else {
+            mAlbumColor = -1;
+        }
+        if (mAutoColor && !mLavaLampEnabled) {
+            mPaint.setColor(applyPaintAlphaToColor(mAlbumColor != 1 ? mAlbumColor : mUserColor));
+        }
     }
 }

@@ -74,6 +74,7 @@ public interface Navigator extends PluginListener<NavGesture> {
     public default void dump(FileDescriptor fd, PrintWriter pw, String[] args) {}
     public default void setMediaPlaying(boolean playing) {}
     public default void setNotificationPanelExpanded(boolean expanded) {}
+    public default void setPulseColors(boolean colorizedMedia, int[] colors) {}
 
     /*
      * DUI additional methods to support additional winning ;D

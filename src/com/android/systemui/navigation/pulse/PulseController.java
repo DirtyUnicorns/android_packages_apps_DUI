@@ -416,4 +416,10 @@ public class PulseController {
         mIsMediaPlaying = playing;
         doLinkage();
     }
+
+    public void setPulseColors(boolean colorizedMedia, int[] colors) {
+        if (mRenderer != null) {
+            mRenderer.setColors(colorizedMedia, colors);
+        }
+    }
 }
