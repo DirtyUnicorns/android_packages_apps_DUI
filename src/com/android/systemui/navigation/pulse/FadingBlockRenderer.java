@@ -40,7 +40,7 @@ import com.android.systemui.navigation.pulse.PulseController.PulseObserver;
 import com.android.systemui.navigation.utils.ColorAnimator;
 
 public class FadingBlockRenderer extends Renderer implements ColorAnimator.ColorAnimationListener {
-    private static final int DEF_PAINT_ALPHA = (byte) 188;
+    //private static final int DEF_PAINT_ALPHA = (byte) 188;
     private byte[] mFFTBytes;
     private Paint mPaint;
     private Paint mFadePaint;
@@ -143,7 +143,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onColorChanged(ColorAnimator colorAnimator, int color) {
-        mPaint.setColor(applyPaintAlphaToColor(color));
+        mPaint.setColor(color);
     }
 
     @Override
@@ -152,7 +152,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
 
     @Override
     public void onStopAnimation(ColorAnimator colorAnimator, int lastColor) {
-        mPaint.setColor(applyPaintAlphaToColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor));
+        mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor);
     }
 
     @Override
@@ -182,11 +182,11 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         canvas.drawBitmap(mCanvasBitmap, mMatrix, null);
     }
 
-    private int applyPaintAlphaToColor(int color) {
+    /*private int applyPaintAlphaToColor(int color) {
         int opaqueColor = Color.rgb(Color.red(color),
                 Color.green(color), Color.blue(color));
         return (DEF_PAINT_ALPHA << 24) | (opaqueColor & 0x00ffffff);
-    }
+    }*/
 
     private class LegacySettingsObserver extends ContentObserver {
         public LegacySettingsObserver(Handler handler) {
@@ -251,7 +251,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     mContext.getResources().getColor(R.color.config_pulseFillColor),
                     UserHandle.USER_CURRENT);
             if (!mLavaLampEnabled) {
-                mPaint.setColor(applyPaintAlphaToColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor));
+                mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor);
             }
             int time = Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, 10000,
@@ -315,7 +315,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
             mAlbumColor = -1;
         }
         if (mAutoColor && !mLavaLampEnabled) {
-            mPaint.setColor(applyPaintAlphaToColor(mAlbumColor != 1 ? mAlbumColor : mUserColor));
+            mPaint.setColor(mAlbumColor != 1 ? mAlbumColor : mUserColor);
         }
     }
 }
