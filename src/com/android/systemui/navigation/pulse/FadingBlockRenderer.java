@@ -69,8 +69,12 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
     private boolean mLavaLampEnabled;
     private boolean mIsValidStream;
 
-    public FadingBlockRenderer(Context context, Handler handler, PulseObserver callback) {
+    private PulseController mController;
+
+    public FadingBlockRenderer(Context context, Handler handler, PulseObserver callback,
+            PulseController controller) {
         super(context, handler, callback);
+        mController = controller;
         mObserver = new LegacySettingsObserver(handler);
         mLavaLamp = new ColorAnimator();
         mLavaLamp.setColorAnimatorListener(this);
@@ -251,7 +255,8 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
                     mContext.getResources().getColor(R.color.config_pulseFillColor),
                     UserHandle.USER_CURRENT);
             if (!mLavaLampEnabled) {
-                mPaint.setColor(mAutoColor && mAlbumColor != -1 ? mAlbumColor : mUserColor);
+                int lastColor = mController.getAlbumArtColor();
+                mPaint.setColor(mAutoColor && lastColor != -1 ? lastColor : mUserColor);
             }
             int time = Settings.Secure.getIntForUser(resolver,
                     Settings.Secure.FLING_PULSE_LAVALAMP_SPEED, 10000,
@@ -316,6 +321,7 @@ public class FadingBlockRenderer extends Renderer implements ColorAnimator.Color
         }
         if (mAutoColor && !mLavaLampEnabled) {
             mPaint.setColor(mAlbumColor != 1 ? mAlbumColor : mUserColor);
+            mController.setLastColor(mAlbumColor);
         }
     }
 }
