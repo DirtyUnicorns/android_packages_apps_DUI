@@ -55,6 +55,7 @@
     <string name="label_action_one_handed_mode_right">One handed mode (right side)</string>
     <string name="label_action_media_left">Previous track</string>
     <string name="label_action_media_right">Next track</string>
+    <string name="label_action_assistant_sound_search">Google sound search</string>
 
     <!-- Smartbar -->
     <string name="label_smartbar_actions">Actions</string>
