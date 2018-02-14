@@ -55,6 +55,7 @@
     <string name="label_action_one_handed_mode_right">Utilisation à une main (droitier)</string>
     <string name="label_action_media_left">Titre musical précédent</string>
     <string name="label_action_media_right">Titre musical suivant</string>
+    <string name="label_action_assistant_sound_search">Recherche audio Google</string>
 
     <!-- Smartbar -->
     <string name="label_smartbar_actions">Actions</string>
