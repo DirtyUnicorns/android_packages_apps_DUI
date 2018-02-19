@@ -248,6 +248,8 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     @Override
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
             float velocityY) {
+        if (e1 == null) return true;
+
         mFlingSwipe.process(e1, e2);
 
         if (mFlingSwipe.swipeDirection == SwipeDirection.UP) {
