@@ -20,6 +20,6 @@ Copyright (C) 2018 The Dirty Unicorns Project
     android:viewportWidth="96.0"
     android:viewportHeight="96.0">
     <path
-        android:fillColor="#ffffff"
+        android:fillColor="@color/icon_color_sound_search"
         android:pathData="m 47.999997,18.329373 h 23.733698 v 11.866848 h -17.79676 v 32.639091 c 0,8.188699 -6.646618,14.835319 -14.835313,14.835314 -8.188698,0 -14.835315,-6.646615 -14.835317,-14.835314 2e-6,-8.188697 6.64662,-14.835313 14.835317,-14.835313 3.382285,0 6.406168,1.12578 8.898378,3.024609 z"/>
 </vector>
