@@ -80,6 +80,8 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         public void onScrollPreloadRecents();
 
         public void onCancelPreloadRecents();
+
+        public void cancelLongPress();
     }
 
     private static Set<Uri> sUris = new HashSet<Uri>();
@@ -232,6 +234,7 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
     @Override
     public boolean onCancel() {
         mReceiver.onCancelPreloadRecents();
+        mReceiver.cancelLongPress();
         return false;
     }
 
@@ -243,6 +246,11 @@ public class FlingGestureHandler implements OnGestureListener, SmartObservable {
         } else {
             mReceiver.onLongLeftPress();
         }
+    }
+
+    @Override
+    public void onFinishedLongPress() {
+        mReceiver.cancelLongPress();
     }
 
     @Override

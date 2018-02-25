@@ -42,6 +42,8 @@ import com.android.internal.utils.du.Config.ButtonConfig;
 
 import android.content.Context;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.HapticFeedbackConstants;
@@ -62,6 +64,7 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
     private Context mContext;
     private boolean isDoubleTapEnabled;
     private boolean mUseKbCursors;
+    private boolean mLongPressing;
     private boolean mKeyguardShowing;
     private boolean mOnTapPreloadedRecents;
     private boolean mOnSwipePreloadedRecents;
@@ -188,6 +191,10 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onSingleLeftPress() {
+        if (mUseKbCursors) {
+            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_HOME);
+            return;
+        }
         ActionConfig left_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.SINGLE_LEFT_TAP_TAG);
         ActionConfig right_tap = (ActionConfig) mActionMap
@@ -197,6 +204,10 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onSingleRightPress() {
+        if (mUseKbCursors) {
+            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_HOME);
+            return;
+        }
         ActionConfig right_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.SINGLE_RIGHT_TAP_TAG);
         ActionConfig left_tap = (ActionConfig) mActionMap
@@ -206,24 +217,16 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     protected void setImeActions(boolean enable) {
         mUseKbCursors = enable;
-        setDoubleTapEnabled();
     }
 
     private void setDoubleTapEnabled() {
-        isDoubleTapEnabled = mUseKbCursors || !((ActionConfig) mActionMap
-                .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG))
-                .hasNoAction()
-                || !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG))
-                        .hasNoAction();
+        isDoubleTapEnabled =
+                !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG)).hasNoAction()
+                || !((ActionConfig) mActionMap.get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG)).hasNoAction();
     }
 
     @Override
     public void onDoubleLeftTap() {
-        if (mUseKbCursors) {
-            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
-            return;
-        }
-
         ActionConfig left_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.DOUBLE_LEFT_TAP_TAG);
         ActionConfig right_tap = (ActionConfig) mActionMap
@@ -233,11 +236,6 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onDoubleRightTap() {
-        if (mUseKbCursors) {
-            ActionHandler.performTask(mContext, ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT);
-            return;
-        }
-
         ActionConfig right_tap = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.DOUBLE_RIGHT_TAP_TAG);
         ActionConfig left_tap = (ActionConfig) mActionMap
@@ -247,6 +245,12 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onLongLeftPress() {
+        mLongPressing = true;
+        if (mUseKbCursors) {
+            moveKbCursor(false, true);
+            return;
+        }
+
         ActionConfig left_long = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.LONG_LEFT_PRESS_TAG);
         ActionConfig right_long = (ActionConfig) mActionMap
@@ -260,6 +264,12 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
 
     @Override
     public void onLongRightPress() {
+        mLongPressing = true;
+        if (mUseKbCursors) {
+            moveKbCursor(true, true);
+            return;
+        }
+
         ActionConfig right_long = (ActionConfig) mActionMap
                 .get(ActionConstants.Fling.LONG_RIGHT_PRESS_TAG);
         ActionConfig left_long = (ActionConfig) mActionMap
@@ -271,12 +281,34 @@ public class FlingActionHandler implements Swipeable, SmartObservable {
         }
     }
 
+    private void moveKbCursor(boolean right, boolean firstTrigger) {
+        ActionHandler.performTask(mContext, right ? ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT
+                : ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                if (mLongPressing) {
+                    moveKbCursor(right, false);
+                }
+            }
+        };
+        if (mLongPressing) {
+            handler.postDelayed(r, firstTrigger ? 500 : 250);
+        }
+    }
+
+    @Override
+    public void cancelLongPress() {
+        mLongPressing = false;
+    }
+
     @Override
     public void onDownPreloadRecents(boolean isRight) {
         mOnTapPreloadedRecents = false;
         for (String flingAction : (isRight? mRightTapActions : mLeftTapActions)) {
             ActionConfig action = (ActionConfig) mActionMap.get(flingAction);
-            if (action != null && !action.hasNoAction() && action.isActionRecents()) {
+            if (!mUseKbCursors && action != null && !action.hasNoAction() && action.isActionRecents()) {
                 ActionHandler.preloadRecentApps();
                 mOnTapPreloadedRecents = true;
                 return;
