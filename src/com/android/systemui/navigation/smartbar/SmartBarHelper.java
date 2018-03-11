@@ -40,6 +40,7 @@ import android.widget.Space;
 import android.widget.ImageView.ScaleType;
 import android.widget.LinearLayout.LayoutParams;
 
+import com.android.internal.utils.du.ActionHandler;
 import com.android.internal.utils.du.DUActionUtils;
 import com.android.internal.utils.du.Config.ButtonConfig;
 import com.android.internal.utils.du.ImageHelper;
@@ -77,6 +78,9 @@ public class SmartBarHelper {
     }
 
     public static BitmapDrawable resizeCustomButtonIcon(Drawable d, Context ctx, float iconSizeScale) {
+        if (d == null) {
+            d = DUActionUtils.getDrawableForAction(ctx, ActionHandler.SYSTEMUI_TASK_NO_ACTION);
+        }
         // get custom button icon size
         final Bitmap bitmap = ImageHelper.drawableToBitmap(d);
         int originalHeight = bitmap.getHeight();
