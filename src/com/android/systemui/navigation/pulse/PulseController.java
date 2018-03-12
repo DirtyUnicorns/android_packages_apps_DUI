@@ -420,8 +420,10 @@ public class PulseController {
     }
 
     public void setMediaPlaying(boolean playing) {
-        mIsMediaPlaying = playing;
-        doLinkage();
+        if (mIsMediaPlaying != playing) {
+            mIsMediaPlaying = playing;
+            doLinkage();
+        }
     }
 
     public void setPulseColors(boolean colorizedMedia, int[] colors) {
