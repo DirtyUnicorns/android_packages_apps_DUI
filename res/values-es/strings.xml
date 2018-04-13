@@ -21,10 +21,11 @@
   <string name="label_action_settings_panel">Panel QS</string>
   <string name="label_action_notification_panel">Panel de notificaciones</string>
   <string name="label_action_screenshot">Captura de pantalla</string>
+  <string name="label_action_region_screenshot">Captura de pantalla parcial</string>
   <string name="label_action_screenrecord">Grabar Pantalla</string>
   <string name="label_action_expanded_desktop">Escritorio extendido</string>
   <string name="label_action_screen_off">Apagar pantalla</string>
-  <string name="label_action_force_close_app">Forzar cierre de app</string>
+  <string name="label_action_force_close_app">Forzar cerrar la aplicación</string>
   <string name="label_action_search_assistant">Asistente de búsqueda</string>
   <string name="label_action_google_now_on_tap">Google asistente</string>
   <string name="label_action_voice_search">Búsqueda por voz</string>
@@ -39,7 +40,7 @@
   <string name="label_action_menu">Menú</string>
   <string name="label_action_back">Volver</string>
   <string name="label_action_home">Inicio</string>
-  <string name="label_action_ime_switcher">Selector IME</string>
+  <string name="label_action_ime_switcher">Selector de IME</string>
   <string name="label_action_stop_screenpinning">Detener fijado de pantalla</string>
   <string name="label_action_ime_down">Método de entrada el cursor hacia abajo</string>
   <string name="label_action_ime_left">Método de entrada el cursor hacia izquierda</string>
@@ -49,6 +50,11 @@
   <string name="label_action_clear_notifications">Borrar notificaciones</string>
   <string name="label_action_editing_smartbar">Editor de Smartbar</string>
   <string name="label_action_split_screen">Pantalla dividida</string>
+  <string name="label_action_one_handed_mode_left">Modo una mano (lado izquierdo)</string>
+  <string name="label_action_one_handed_mode_right">Modo una mano (lado derecho)</string>
+  <string name="label_action_media_left">Canción anterior</string>
+  <string name="label_action_media_right">Siguiente canción</string>
+  <string name="label_action_assistant_sound_search">Búsqueda de goodle por voz</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Acciones</string>
   <string name="label_smartbar_icon">Icono</string>
@@ -69,4 +75,5 @@
   <string name="edit_mode">Modo de edición</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s finalizada</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>

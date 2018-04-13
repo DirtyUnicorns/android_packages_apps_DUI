@@ -54,6 +54,7 @@
   <string name="label_action_one_handed_mode_right">Режим одной руки (справа)</string>
   <string name="label_action_media_left">Предыдущий трек</string>
   <string name="label_action_media_right">Следующий трек</string>
+  <string name="label_action_assistant_sound_search">Google Sound Search</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Действия</string>
   <string name="label_smartbar_icon">Значок</string>
@@ -74,4 +75,5 @@
   <string name="edit_mode">Режим редактирования</string>
   <!-- App killed message -->
   <string name="app_killed_message">Приложение %s закрыто</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>

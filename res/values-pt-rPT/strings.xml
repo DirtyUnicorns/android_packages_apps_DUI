@@ -21,6 +21,7 @@
   <string name="label_action_settings_panel">Painel QS</string>
   <string name="label_action_notification_panel">Painel de Notificações</string>
   <string name="label_action_screenshot">Captura de ecrã</string>
+  <string name="label_action_region_screenshot">Partial screenshot</string>
   <string name="label_action_screenrecord">Gravar ecrã</string>
   <string name="label_action_expanded_desktop">Ambiente de trabalho expandido</string>
   <string name="label_action_screen_off">Desligar o ecrã</string>
@@ -49,6 +50,11 @@
   <string name="label_action_clear_notifications">Clear notifications</string>
   <string name="label_action_editing_smartbar">Smartbar editor</string>
   <string name="label_action_split_screen">Split screen</string>
+  <string name="label_action_one_handed_mode_left">One handed mode (left side)</string>
+  <string name="label_action_one_handed_mode_right">One handed mode (right side)</string>
+  <string name="label_action_media_left">Previous track</string>
+  <string name="label_action_media_right">Next track</string>
+  <string name="label_action_assistant_sound_search">Google sound search</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Actions</string>
   <string name="label_smartbar_icon">Icon</string>
@@ -69,4 +75,5 @@
   <string name="edit_mode">Edit mode</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s killed</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>

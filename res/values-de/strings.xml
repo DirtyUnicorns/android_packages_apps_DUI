@@ -21,6 +21,7 @@
   <string name="label_action_settings_panel">Schnelleinstellungen</string>
   <string name="label_action_notification_panel">Benachrichtigungsfeld</string>
   <string name="label_action_screenshot">Bildschirmfoto</string>
+  <string name="label_action_region_screenshot">Partieller Screenshot</string>
   <string name="label_action_screenrecord">Bildschirmaufnahme</string>
   <string name="label_action_expanded_desktop">Erweiterter Desktop</string>
   <string name="label_action_screen_off">Bildschirm ausschalten</string>
@@ -49,6 +50,11 @@
   <string name="label_action_clear_notifications">Benachrichtigungen löschen</string>
   <string name="label_action_editing_smartbar">SmartBar-Editor</string>
   <string name="label_action_split_screen">Geteilter Bildschirm</string>
+  <string name="label_action_one_handed_mode_left">Einhandmodus (linke Seite)</string>
+  <string name="label_action_one_handed_mode_right">Einhandmodus (rechte Seite)</string>
+  <string name="label_action_media_left">Vorheriger Titel</string>
+  <string name="label_action_media_right">Nächster Titel</string>
+  <string name="label_action_assistant_sound_search">Google Musikerkennung</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Aktionen</string>
   <string name="label_smartbar_icon">Symbol</string>
@@ -69,4 +75,5 @@
   <string name="edit_mode">Bearbeitungsmodus</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s beendet</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>

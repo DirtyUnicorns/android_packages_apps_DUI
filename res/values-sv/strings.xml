@@ -21,6 +21,7 @@
   <string name="label_action_settings_panel">QS Panel</string>
   <string name="label_action_notification_panel">Notifieringspanel</string>
   <string name="label_action_screenshot">Skärmbild</string>
+  <string name="label_action_region_screenshot">Partial screenshot</string>
   <string name="label_action_screenrecord">Skärminspelning</string>
   <string name="label_action_expanded_desktop">Utökat skrivbord</string>
   <string name="label_action_screen_off">Stänga av skärmen</string>
@@ -49,6 +50,11 @@
   <string name="label_action_clear_notifications">Ta bort meddelandet</string>
   <string name="label_action_editing_smartbar">Redigera Smartbar</string>
   <string name="label_action_split_screen">Split screen</string>
+  <string name="label_action_one_handed_mode_left">One handed mode (left side)</string>
+  <string name="label_action_one_handed_mode_right">One handed mode (right side)</string>
+  <string name="label_action_media_left">Previous track</string>
+  <string name="label_action_media_right">Next track</string>
+  <string name="label_action_assistant_sound_search">Google sound search</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Åtgärder</string>
   <string name="label_smartbar_icon">Ikon</string>
@@ -69,4 +75,5 @@
   <string name="edit_mode">Redigeringsläge</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s killed</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>

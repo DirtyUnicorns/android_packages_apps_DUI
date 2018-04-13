@@ -54,6 +54,7 @@
   <string name="label_action_one_handed_mode_right">Egykezes mód (jobb oldalon)</string>
   <string name="label_action_media_left">Előző szám</string>
   <string name="label_action_media_right">Következő szám</string>
+  <string name="label_action_assistant_sound_search">Google sound search</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Műveletek</string>
   <string name="label_smartbar_icon">Ikon</string>
@@ -74,4 +75,5 @@
   <string name="edit_mode">Szerkesztési mód</string>
   <!-- App killed message -->
   <string name="app_killed_message">%s kilőve</string>
+  <!-- Pulse and media arrows blacklist -->
 </resources>
