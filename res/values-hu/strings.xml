@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Nincs művelet</string>
-  <string name="label_action_settings_panel">QS panel</string>
+  <string name="label_action_settings_panel">Gyorsbeállítások panel</string>
   <string name="label_action_notification_panel">Értesítési panel</string>
   <string name="label_action_screenshot">Képernyőmentés</string>
   <string name="label_action_region_screenshot">Részleges képernyőmentés</string>
@@ -27,12 +27,12 @@
   <string name="label_action_screen_off">Képernyő kikapcsolása</string>
   <string name="label_action_force_close_app">Alkalmazás kényszerített bezárása</string>
   <string name="label_action_search_assistant">Keresési segéd</string>
-  <string name="label_action_google_now_on_tap">Google helyettes</string>
-  <string name="label_action_voice_search">hangalapú keresés</string>
+  <string name="label_action_google_now_on_tap">Google asszisztens</string>
+  <string name="label_action_voice_search">Hangalapú keresés</string>
   <string name="label_action_in_app_search">Alkalmazáson belüli keresés</string>
   <string name="label_action_flashlight">Zseblámpa</string>
   <string name="label_action_bluetooth">Bluetooth</string>
-  <string name="label_action_wifi">WiFi</string>
+  <string name="label_action_wifi">Wi-Fi</string>
   <string name="label_action_hotspot">Hotspot</string>
   <string name="label_action_last_app">Utolsó alkalmazás</string>
   <string name="label_action_overview">Előzmények</string>
@@ -54,18 +54,18 @@
   <string name="label_action_one_handed_mode_right">Egykezes mód (jobb oldalon)</string>
   <string name="label_action_media_left">Előző szám</string>
   <string name="label_action_media_right">Következő szám</string>
-  <string name="label_action_assistant_sound_search">Google sound search</string>
+  <string name="label_action_assistant_sound_search">Google hang-keresés</string>
   <!-- Smartbar -->
   <string name="label_smartbar_actions">Műveletek</string>
   <string name="label_smartbar_icon">Ikon</string>
   <string name="label_smartbar_add">Hozzáadás</string>
   <string name="label_smartbar_remove">Eltávolítás</string>
-  <string name="label_smartbar_cancel">Mégsem</string>
+  <string name="label_smartbar_cancel">Mégse</string>
   <string name="label_smartbar_finish">Befejezés</string>
   <string name="label_smartbar_single_tap">Egyszerű érintés</string>
   <string name="label_smartbar_double_tap">Dupla érintés</string>
   <string name="label_smartbar_long_press">Hosszan nyomva</string>
-  <string name="label_smartbar_icon_pack">Ikon csomag</string>
+  <string name="label_smartbar_icon_pack">Ikoncsomag</string>
   <string name="label_smartbar_icon_gallery">Galéria</string>
   <string name="label_smartbar_icon_color">Szín</string>
   <string name="label_smartbar_icon_reset">Visszaállítás</string>

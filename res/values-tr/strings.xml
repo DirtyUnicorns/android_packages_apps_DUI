@@ -25,7 +25,7 @@
   <string name="label_action_screenrecord">Ekran kaydı</string>
   <string name="label_action_expanded_desktop">Genişletilmiş masaüstü</string>
   <string name="label_action_screen_off">Ekranı kapat</string>
-  <string name="label_action_force_close_app">Kapatmaya zorla</string>
+  <string name="label_action_force_close_app">Uygulamayı kapatmaya zorla</string>
   <string name="label_action_search_assistant">Arama asistanı</string>
   <string name="label_action_google_now_on_tap">Google asistan</string>
   <string name="label_action_voice_search">Sesli arama</string>
