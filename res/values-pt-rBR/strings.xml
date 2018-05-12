@@ -18,7 +18,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
   <!-- Bindable action labels -->
   <string name="label_action_no_action">Sem ação</string>
-  <string name="label_action_settings_panel">Painel QS</string>
+  <string name="label_action_settings_panel">Painel de Configurações Rápidas</string>
   <string name="label_action_notification_panel">Painel de notificação</string>
   <string name="label_action_screenshot">Captura de tela</string>
   <string name="label_action_region_screenshot">Captura de tela parcial</string>
