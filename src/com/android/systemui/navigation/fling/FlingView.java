@@ -425,6 +425,11 @@ public class FlingView extends BaseNavigationBar {
     }*/
 
     @Override
+    protected void notifyBootCompleted() {
+        mLogoController.updateLogo(FlingView.this, getFlingLogo());
+    }
+
+    @Override
     public void setMediaPlaying(boolean playing) {
         PulseController mPulse = getPulseController();
         if (mPulse != null) {
