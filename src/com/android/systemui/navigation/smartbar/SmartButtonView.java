@@ -34,6 +34,8 @@ import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 //import android.content.res.ThemeConfig;
@@ -279,6 +281,16 @@ public class SmartButtonView extends ImageView {
         return mConfig != null && mConfig.getActionConfig(ActionConfig.THIRD).isActionRecents();
     }
 
+    private boolean isImeLeftArrowButton() {
+        final String action = mConfig.getActionConfig(ActionConfig.PRIMARY).getAction();
+        return "task_ime_navigation_left".equals(action);
+    }
+
+    private boolean isImeRightArrowButton() {
+        final String action = mConfig.getActionConfig(ActionConfig.PRIMARY).getAction();
+        return "task_ime_navigation_right".equals(action);
+    }
+
     public ButtonConfig getButtonConfig() {
         return mConfig;
     }
@@ -326,8 +338,10 @@ public class SmartButtonView extends ImageView {
         if (mInEditMode) {
             return false;
         }
-        final int action = ev.getAction();
 
+        final int action = ev.getAction();
+        boolean imeLeft = mConfig != null && isImeLeftArrowButton();
+        boolean imeRight = mConfig != null && isImeRightArrowButton();
         switch (action) {
             case MotionEvent.ACTION_DOWN:
                 setPressed(true);
@@ -340,7 +354,9 @@ public class SmartButtonView extends ImageView {
                 }
                 performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY);
                 playSoundEffect(SoundEffectConstants.CLICK);
-                if (isDoubleTapPending) {
+                if (imeLeft || imeRight) {
+                    moveKbCursor(imeRight, true);
+                } else if (isDoubleTapPending) {
                     isDoubleTapPending = false;
                     wasConsumed = true;
                     removeCallbacks(mDoubleTapTimeout);
@@ -363,7 +379,7 @@ public class SmartButtonView extends ImageView {
                 removeCallbacks(mDoubleTapTimeout);
                 wasConsumed = true;
                 isDoubleTapPending = false;
-                setPressed(false);
+                setPressed(false); // this will stop also the ime arrows handler
                 if (opa != null) {
                     opa.startCancelAction();
                 }
@@ -391,13 +407,30 @@ public class SmartButtonView extends ImageView {
                     isDoubleTapPending = true;
                     postDelayed(mDoubleTapTimeout, sDoubleTapTimeout);
                 } else {
-                    if (!wasConsumed && hasSingleAction()) {
+                    if (!imeLeft && !imeRight && !wasConsumed && hasSingleAction()) {
                         doSinglePress();
                     }
                 }
                 break;
         }
         return true;
+    }
+
+    private void moveKbCursor(boolean right, boolean firstTrigger) {
+        ActionHandler.performTask(mContext, right ? ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_RIGHT
+                : ActionHandler.SYSTEMUI_TASK_IME_NAVIGATION_LEFT);
+        final Handler handler = new Handler(Looper.getMainLooper());
+        final Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                if (isPressed()) {
+                    moveKbCursor(right, false);
+                }
+            }
+        };
+        if (isPressed()) {
+            handler.postDelayed(r, firstTrigger ? 500 : 250);
+        }
     }
 
     private void doSinglePress() {
